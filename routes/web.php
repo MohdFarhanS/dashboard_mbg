@@ -6,6 +6,7 @@ use App\Http\Controllers\BahanPanganController;
 use App\Http\Controllers\MenuHarianController;
 use App\Http\Controllers\GiziController;
 use App\Http\Controllers\BiayaController;
+use App\Http\Controllers\AnggaranController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -48,9 +49,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('biaya')->name('biaya.')->group(function () {
         Route::get('/dashboard',          [BiayaController::class, 'dashboard'])->name('dashboard');
-        Route::get('/detail/{menu}',      [BiayaController::class, 'detailMenu'])->name('detail-menu');  // ← pastikan ini ADA
-        Route::get('/anggaran/{menu}', [BiayaController::class, 'editAnggaran'])->name('edit-anggaran');
-        Route::put('/anggaran/{menu}', [BiayaController::class, 'updateAnggaran'])->name('update-anggaran');
+        Route::get('/detail/{menu}',      [BiayaController::class, 'detailMenu'])->name('detail-menu');
 
         Route::prefix('harga')->name('harga.')->group(function () {
             Route::get('/',             [BiayaController::class, 'indexHarga'])->name('index');
@@ -62,5 +61,13 @@ Route::middleware(['auth'])->group(function () {
         });
     
         Route::post('/api/estimasi', [BiayaController::class, 'apiEstimasi'])->name('api.estimasi');
+    });
+
+    Route::prefix('anggaran')->name('anggaran.')->middleware('auth')->group(function () {
+        Route::get('/',              [AnggaranController::class, 'index'])->name('index');
+        Route::get('/tambah',        [AnggaranController::class, 'create'])->name('create');
+        Route::post('/',             [AnggaranController::class, 'store'])->name('store');
+        Route::get('/{anggaran}/edit', [AnggaranController::class, 'edit'])->name('edit');
+        Route::put('/{anggaran}',    [AnggaranController::class, 'update'])->name('update');
     });
 });

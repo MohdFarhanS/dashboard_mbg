@@ -3,103 +3,109 @@
 namespace App\Http\Controllers;
 
 use App\Models\MenuHarian;
-use App\Models\MenuDetailBahan;
+use App\Models\BahanPangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class MenuHarianController extends Controller
 {
-    private function checkPengelola()
-    {
-        if (Auth::user()->role !== 'pengelola') {
-            abort(403, 'Hanya pengelola yang dapat mengelola menu harian.');
-        }
-    }
-
-    private function authorizeUnit(MenuHarian $menuHarian)
-    {
-        $user = Auth::user();
-        if ($user->role === 'pengelola' && $menuHarian->unit_sppg !== $user->unit_sppg) {
-            abort(403);
-        }
-    }
-
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = MenuHarian::with('detailBahans.bahanPangan')
-            ->where('unit_sppg', $user->unit_sppg)
+
+        // FIX: Admin lihat semua menu, pengelola hanya unitnya
+        $query = MenuHarian::with('detailBahans')
             ->orderByDesc('tanggal');
 
-        if ($request->filled('bulan')) {
-            $query->whereMonth('tanggal', date('m', strtotime($request->bulan)))
-                  ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
+        if ($user->role !== 'admin') {
+            $query->where('unit_sppg', $user->unit_sppg);
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        // Filter tambahan untuk admin: filter per unit
+        if ($user->role === 'admin' && $request->input('unit_sppg')) {
+            $query->where('unit_sppg', $request->input('unit_sppg'));
         }
 
         $menus = $query->paginate(15)->withQueryString();
-        return view('menu-harian.index', compact('menus'));
+
+        // Untuk filter dropdown unit (admin only)
+        $unitList = $user->role === 'admin'
+            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
+            : collect();
+
+        return view('menu-harian.index', compact('menus', 'unitList'));
     }
 
     public function create()
     {
-        $this->checkPengelola();
-        $user = Auth::user();
-        $today = today()->format('Y-m-d');
-        $existing = MenuHarian::where('unit_sppg', $user->unit_sppg)
-            ->whereDate('tanggal', $today)->first();
+        if (auth()->user()->role !== 'pengelola') {
+            abort(403);
+        }
 
-        return view('menu-harian.create', compact('user', 'existing'));
+        $user   = Auth::user();
+        $bahans = BahanPangan::select('id', 'nama_bahan', 'bdd')->orderBy('nama_bahan')->get();
+
+        $existing = MenuHarian::where('unit_sppg', $user->unit_sppg)
+            ->whereDate('tanggal', today())
+            ->first();
+
+        return view('menu-harian.create', compact('bahans', 'existing'));
     }
 
     public function store(Request $request)
     {
-        $this->checkPengelola();
+        if (auth()->user()->role !== 'pengelola') {
+            abort(403);
+        }
+        
         $user = Auth::user();
 
-        $request->validate([
-            'tanggal'                      => 'required|date',
-            'nama_menu'                    => 'nullable|string|max:255',
-            'catatan'                      => 'nullable|string|max:500',
-            'bahans'                       => 'required|array|min:1',
-            'bahans.*.bahan_pangan_id'     => 'required|exists:bahan_pangans,id',
-            'bahans.*.jumlah_gram'         => 'required|numeric|min:1',
-            'bahans.*.jumlah_porsi'        => 'required|integer|min:1',
+        $data = $request->validate([
+            'tanggal'          => 'required|date',
+            'nama_menu'        => 'nullable|string|max:200',  // nullable karena null
+            'catatan'          => 'nullable|string|max:200',
+            'status'           => 'nullable|in:draft,final',
+            'bahans'           => 'nullable|array',
+            'bahans.*.bahan_pangan_id' => 'required_with:bahans|exists:bahan_pangans,id',
+            'bahans.*.jumlah_gram'     => 'required_with:bahans|numeric|min:0.01',
+            'bahans.*.jumlah_porsi'    => 'nullable|integer|min:1',
         ]);
 
-        $exists = MenuHarian::where('unit_sppg', $user->unit_sppg)
-            ->whereDate('tanggal', $request->tanggal)->exists();
+        // Ambil jumlah_porsi dari bahan pertama (karena ada di dalam array bahans)
+        $bahans       = $data['bahans'] ?? [];
+        $jumlahPorsi  = !empty($bahans) ? ($bahans[0]['jumlah_porsi'] ?? 1) : 1;
 
-        if ($exists) {
-            return back()->withErrors(['tanggal' => 'Menu untuk tanggal ini sudah ada.'])->withInput();
+        // Cek duplikat
+        $existing = MenuHarian::where('unit_sppg', $user->unit_sppg)
+            ->whereDate('tanggal', $data['tanggal'])
+            ->first();
+
+        if ($existing) {
+            return redirect()->route('menu-harian.edit', $existing)
+                ->with('warning', 'Menu untuk tanggal ini sudah ada. Silakan edit menu yang sudah ada.');
         }
 
-        DB::transaction(function () use ($request, $user) {
-            $menuHarian = MenuHarian::create([
-                'tanggal'   => $request->tanggal,
-                'user_id'   => $user->id,
-                'unit_sppg' => $user->unit_sppg,
-                'nama_menu' => $request->nama_menu,
-                'status'    => $request->input('status', 'draft'),
-                'catatan'   => $request->catatan,
-            ]);
+        $menu = MenuHarian::create([
+            'tanggal'            => $data['tanggal'],
+            'nama_menu'          => $data['nama_menu'] ?? '-',
+            'catatan_anggaran'   => $data['catatan'] ?? null,
+            'status'             => $data['status'] ?? 'draft',
+            'unit_sppg'          => $user->unit_sppg,
+            'user_id'            => $user->id,
+            'anggaran_per_porsi' => 15000,
+            'jumlah_porsi'       => $jumlahPorsi,
+        ]);
 
-            foreach ($request->bahans as $bahan) {
-                MenuDetailBahan::create([
-                    'menu_harian_id'  => $menuHarian->id,
-                    'bahan_pangan_id' => $bahan['bahan_pangan_id'],
-                    'jumlah_gram'     => $bahan['jumlah_gram'],
-                    'jumlah_porsi'    => $bahan['jumlah_porsi'],
-                ]);
-            }
-        });
+        // Simpan detail bahan
+        foreach ($bahans as $b) {
+            $menu->detailBahans()->create([
+                'bahan_pangan_id' => $b['bahan_pangan_id'],
+                'jumlah_gram'     => $b['jumlah_gram'],
+            ]);
+        }
 
         return redirect()->route('menu-harian.index')
-            ->with('success', 'Menu harian berhasil disimpan.');
+            ->with('success', 'Menu berhasil disimpan.');
     }
 
     public function show(MenuHarian $menuHarian)
@@ -111,98 +117,106 @@ class MenuHarianController extends Controller
 
     public function edit(MenuHarian $menuHarian)
     {
-        $this->checkPengelola();
-        $this->authorizeUnit($menuHarian);
+        // Cek akses
+        if (auth()->user()->role !== 'pengelola') {
+            abort(403);
+        }
 
+        // Cek status
         if ($menuHarian->status === 'final') {
-            return back()->with('error', 'Menu yang sudah final tidak dapat diedit.');
+            return redirect()->route('menu-harian.show', $menuHarian)
+                ->with('error', 'Menu sudah final, tidak bisa diedit.');
         }
 
         $menuHarian->load('detailBahans.bahanPangan');
 
-        // ✅ Siapkan data existing di controller, bukan di Blade
-        $existingBahans = $menuHarian->detailBahans->map(function ($d) {
-            return [
-                'id'           => $d->bahanPangan->id,
-                'kode'         => $d->bahanPangan->kode,
-                'nama_bahan'   => $d->bahanPangan->nama_bahan,
-                'kategori'     => $d->bahanPangan->kategori,
-                'energi'       => $d->bahanPangan->energi   ?? 0,
-                'protein'      => $d->bahanPangan->protein  ?? 0,
-                'lemak'        => $d->bahanPangan->lemak    ?? 0,
-                'karbohidrat'  => $d->bahanPangan->karbohidrat ?? 0,
-                'bdd'          => $d->bahanPangan->bdd      ?? 100,
-                'jumlah_gram'  => $d->jumlah_gram,
-                'jumlah_porsi' => $d->jumlah_porsi,
-            ];
-        })->values();
+        // Siapkan data existing bahans untuk JS prefill
+        $existingBahans = $menuHarian->detailBahans->map(fn($d) => [
+            'id'           => $d->bahanPangan->id,
+            'kode'         => $d->bahanPangan->kode,
+            'nama_bahan'   => $d->bahanPangan->nama_bahan,
+            'kategori'     => $d->bahanPangan->kategori,
+            'energi'       => $d->bahanPangan->energi,
+            'protein'      => $d->bahanPangan->protein,
+            'lemak'        => $d->bahanPangan->lemak,
+            'karbohidrat'  => $d->bahanPangan->karbohidrat,
+            'bdd'          => $d->bahanPangan->bdd,
+            'jumlah_gram'  => $d->jumlah_gram,
+            'jumlah_porsi' => $d->jumlah_porsi,
+        ]);
 
         return view('menu-harian.edit', compact('menuHarian', 'existingBahans'));
     }
 
     public function update(Request $request, MenuHarian $menuHarian)
     {
-        $this->checkPengelola();
         $this->authorizeUnit($menuHarian);
 
-        if ($menuHarian->status === 'final') {
-            return back()->with('error', 'Menu yang sudah final tidak dapat diedit.');
-        }
-
-        $request->validate([
-            'nama_menu'                    => 'nullable|string|max:255',
-            'catatan'                      => 'nullable|string|max:500',
-            'bahans'                       => 'required|array|min:1',
-            'bahans.*.bahan_pangan_id'     => 'required|exists:bahan_pangans,id',
-            'bahans.*.jumlah_gram'         => 'required|numeric|min:1',
-            'bahans.*.jumlah_porsi'        => 'required|integer|min:1',
+        $data = $request->validate([
+            'nama_menu'        => 'nullable|string|max:200',
+            'catatan'          => 'nullable|string|max:200',
+            'status'           => 'required|in:draft,final',
+            'bahans'           => 'nullable|array',
+            'bahans.*.bahan_pangan_id' => 'required_with:bahans|exists:bahan_pangans,id',
+            'bahans.*.jumlah_gram'     => 'required_with:bahans|numeric|min:0.01',
+            'bahans.*.jumlah_porsi'    => 'nullable|integer|min:1',
         ]);
 
-        DB::transaction(function () use ($request, $menuHarian) {
-            $menuHarian->update([
-                'nama_menu' => $request->nama_menu,
-                'catatan'   => $request->catatan,
-                'status'    => $request->input('status', $menuHarian->status),
+        $bahans = $data['bahans'] ?? [];
+
+        $menuHarian->update([
+            'nama_menu' => $data['nama_menu'] ?? $menuHarian->nama_menu,
+            'catatan'   => $data['catatan'] ?? null,
+            'status'    => $data['status'],
+        ]);
+
+        $menuHarian->detailBahans()->delete();
+
+        foreach ($bahans as $b) {
+            $menuHarian->detailBahans()->create([
+                'bahan_pangan_id' => $b['bahan_pangan_id'],
+                'jumlah_gram'     => $b['jumlah_gram'],
             ]);
-
-            // Hapus detail lama, insert ulang
-            $menuHarian->detailBahans()->delete();
-
-            foreach ($request->bahans as $bahan) {
-                MenuDetailBahan::create([
-                    'menu_harian_id'  => $menuHarian->id,
-                    'bahan_pangan_id' => $bahan['bahan_pangan_id'],
-                    'jumlah_gram'     => $bahan['jumlah_gram'],
-                    'jumlah_porsi'    => $bahan['jumlah_porsi'],
-                ]);
-            }
-        });
+        }
 
         return redirect()->route('menu-harian.show', $menuHarian)
-            ->with('success', 'Menu harian berhasil diperbarui.');
+            ->with('success', 'Menu berhasil diperbarui.');
     }
 
     public function destroy(MenuHarian $menuHarian)
     {
-        $this->checkPengelola();
         $this->authorizeUnit($menuHarian);
-
-        if ($menuHarian->status === 'final') {
-            return back()->with('error', 'Menu yang sudah final tidak dapat dihapus.');
-        }
-
-        $menuHarian->detailBahans()->delete();
         $menuHarian->delete();
 
         return redirect()->route('menu-harian.index')
-            ->with('success', 'Menu harian berhasil dihapus.');
+            ->with('success', 'Menu berhasil dihapus.');
+    }
+
+    // FIX: Authorization helper
+    private function authorizeUnit(MenuHarian $menu): void
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $user->unit_sppg !== $menu->unit_sppg) {
+            abort(403, 'Anda tidak memiliki akses ke menu unit ini.');
+        }
     }
 
     public function finalize(MenuHarian $menuHarian)
     {
-        $this->checkPengelola();
-        $this->authorizeUnit($menuHarian);
+        // Hanya pengelola yang boleh finalisasi
+        if (auth()->user()->role !== 'pengelola') {
+            abort(403);
+        }
+
+        // Hanya bisa finalisasi kalau masih draft
+        if ($menuHarian->status !== 'draft') {
+            return redirect()->route('menu-harian.show', $menuHarian)
+                ->with('error', 'Menu sudah berstatus final.');
+        }
+
         $menuHarian->update(['status' => 'final']);
-        return back()->with('success', 'Menu berhasil di-finalisasi.');
+
+        return redirect()->route('menu-harian.show', $menuHarian)
+            ->with('success', 'Menu berhasil difinalisasi.');
     }
 }

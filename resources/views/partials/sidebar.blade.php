@@ -55,6 +55,10 @@
 
         @if(Auth::user()->role === 'admin')
         <div class="nav-section">Administrasi</div>
+        <a href="{{ route('anggaran.index') }}"
+            class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}">
+            <i class="fas fa-wallet"></i> Kelola Anggaran
+        </a>
         <a href="#" class="nav-link">
             <i class="fas fa-users"></i> Kelola Pengguna
         </a>
