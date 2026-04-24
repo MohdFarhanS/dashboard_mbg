@@ -1,0 +1,86 @@
+<nav id="sidebar">
+    {{-- Brand --}}
+    <div class="sidebar-brand">
+        <div style="font-size:1.8rem; margin-bottom:.3rem;">🍱</div>
+        <h5>Dashboard MBG</h5>
+        <small>Monitoring Gizi & Biaya Produksi</small>
+    </div>
+
+    {{-- Unit info --}}
+    <div style="padding:.75rem 1.25rem; background:rgba(255,255,255,.07); margin:.75rem; border-radius:10px;">
+        <div style="font-size:.68rem; color:rgba(255,255,255,.45); font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Unit SPPG</div>
+        <div style="font-size:.82rem; color:#fff; font-weight:600; margin-top:.2rem;">
+            {{ Auth::user()->unit_sppg ?? '—' }}
+        </div>
+    </div>
+
+    {{-- Navigation --}}
+    <nav class="flex-grow-1 mt-1" style="overflow-y:auto;">
+
+        <div class="nav-section">Menu Utama</div>
+
+        <a href="{{ route('dashboard') }}"
+           class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <i class="fas fa-gauge-high"></i> Dashboard
+        </a>
+
+        <div class="nav-section">Manajemen Menu</div>
+
+        <a href="{{ route('menu-harian.index') }}"
+            class="nav-link {{ request()->routeIs('menu-harian.*') ? 'active' : '' }}">
+                <i class="fas fa-utensils"></i> Menu Harian
+        </a>
+        <a href="{{ route('bahan-pangan.index') }}" 
+            class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
+            <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
+        </a>
+        <a href="#" class="nav-link {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
+            <i class="fas fa-flask"></i> Simulasi Menu
+        </a>
+
+        <div class="nav-section">Monitoring</div>
+
+        <a href="{{ route('gizi.dashboard') }}" 
+            class="nav-link {{ request()->routeIs('gizi.*') ? 'active' : '' }}">
+            <i class="fas fa-heart-pulse"></i> Monitor Gizi
+        </a>
+        <a href="{{ route('biaya.dashboard') }}"
+            class="nav-link {{ request()->routeIs('biaya.*') ? 'active' : '' }}">
+            <i class="fas fa-coins"></i> Biaya Produksi
+        </a>
+        <a href="#" class="nav-link {{ request()->routeIs('budget-alert.*') ? 'active' : '' }}">
+            <i class="fas fa-bell"></i> Budget Alert
+            <span class="badge ms-auto" style="background:rgba(255,100,100,.85); font-size:.65rem;">2</span>
+        </a>
+
+        @if(Auth::user()->role === 'admin')
+        <div class="nav-section">Administrasi</div>
+        <a href="#" class="nav-link">
+            <i class="fas fa-users"></i> Kelola Pengguna
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-building"></i> Kelola SPPG
+        </a>
+        @endif
+
+        <div class="nav-section">Laporan</div>
+        <a href="#" class="nav-link">
+            <i class="fas fa-chart-bar"></i> Laporan Gizi
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-file-invoice-dollar"></i> Laporan Biaya
+        </a>
+
+    </nav>
+
+    {{-- Logout --}}
+    <div style="padding:.75rem; border-top:1px solid rgba(255,255,255,.1);">
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="nav-link w-100 border-0 bg-transparent text-start"
+                    style="color:rgba(255,255,255,.6);">
+                <i class="fas fa-right-from-bracket"></i> Keluar
+            </button>
+        </form>
+    </div>
+</nav>
