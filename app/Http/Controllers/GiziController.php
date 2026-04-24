@@ -12,18 +12,30 @@ class GiziController extends Controller
     public function dashboard(Request $request)
     {
         $user = Auth::user();
+        $isAdmin = $user->role === 'admin';
 
         // Periode filter — default: bulan ini
         $bulan = $request->input('bulan', now()->format('Y-m'));
         [$tahun, $bln] = explode('-', $bulan);
 
-        $menus = MenuHarian::with('detailBahans.bahanPangan')
-            ->where('unit_sppg', $user->unit_sppg)
+        // FIX: Admin lihat semua unit, pengelola hanya unitnya
+        $query = MenuHarian::with('detailBahans.bahanPangan')
             ->whereYear('tanggal', $tahun)
             ->whereMonth('tanggal', $bln)
             ->where('status', 'final')
-            ->orderBy('tanggal')
-            ->get();
+            ->orderBy('tanggal');
+
+        if (!$isAdmin) {
+            $query->where('unit_sppg', $user->unit_sppg);
+        }
+
+        // FIX: Admin bisa filter per unit via dropdown
+        $filterUnit = $request->input('unit_sppg', '');
+        if ($isAdmin && $filterUnit) {
+            $query->where('unit_sppg', $filterUnit);
+        }
+
+        $menus = $query->get();
 
         // Hitung total gizi per hari → untuk chart tren
         $trendData = [];
@@ -39,7 +51,7 @@ class GiziController extends Controller
         }
 
         // Rata-rata gizi bulan ini
-        $keys   = ['energi','protein','lemak','karbohidrat','serat','kalsium','besi','vit_c'];
+        $keys      = ['energi','protein','lemak','karbohidrat','serat','kalsium','besi','vit_c'];
         $totalGizi = array_fill_keys($keys, 0);
         $jumlahHari = $menus->count();
 
@@ -62,34 +74,55 @@ class GiziController extends Controller
             $persenAkg[$k] = $acuan > 0 ? min(round(($rataGizi[$k] / $acuan) * 100, 1), 200) : 0;
         }
 
-        // Status hari ini
-        $menuHariIni = MenuHarian::with('detailBahans.bahanPangan')
-            ->where('unit_sppg', $user->unit_sppg)
-            ->whereDate('tanggal', today())
-            ->first();
+        // FIX: Status hari ini — admin lihat semua, pengelola unitnya saja
+        $queryHariIni = MenuHarian::with('detailBahans.bahanPangan')
+            ->whereDate('tanggal', today());
+
+        if (!$isAdmin) {
+            $queryHariIni->where('unit_sppg', $user->unit_sppg);
+        } elseif ($filterUnit) {
+            $queryHariIni->where('unit_sppg', $filterUnit);
+        }
+
+        $menuHariIni = $queryHariIni->first();
         $giziHariIni = $menuHariIni ? $menuHariIni->totalGizi() : null;
+
+        // FIX: List unit untuk dropdown filter (admin only)
+        $unitList = $isAdmin
+            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
+            : collect();
 
         return view('gizi.dashboard', compact(
             'bulan', 'menus', 'trendData', 'rataGizi',
             'persenAkg', 'giziHariIni', 'menuHariIni',
-            'jumlahHari'
+            'jumlahHari', 'unitList', 'filterUnit'
         ));
     }
 
-    // API endpoint untuk chart AJAX (opsional)
+    // API endpoint untuk chart AJAX
     public function apiTrend(Request $request)
     {
-        $user  = Auth::user();
-        $bulan = $request->input('bulan', now()->format('Y-m'));
+        $user   = Auth::user();
+        $isAdmin = $user->role === 'admin';
+        $bulan  = $request->input('bulan', now()->format('Y-m'));
         [$tahun, $bln] = explode('-', $bulan);
 
-        $menus = MenuHarian::with('detailBahans.bahanPangan')
-            ->where('unit_sppg', $user->unit_sppg)
+        // FIX: Admin lihat semua unit
+        $query = MenuHarian::with('detailBahans.bahanPangan')
             ->whereYear('tanggal', $tahun)
             ->whereMonth('tanggal', $bln)
             ->where('status', 'final')
-            ->orderBy('tanggal')
-            ->get();
+            ->orderBy('tanggal');
+
+        if (!$isAdmin) {
+            $query->where('unit_sppg', $user->unit_sppg);
+        }
+
+        if ($isAdmin && $request->input('unit_sppg')) {
+            $query->where('unit_sppg', $request->input('unit_sppg'));
+        }
+
+        $menus = $query->get();
 
         $data = $menus->map(function ($m) {
             $g = $m->totalGizi();
@@ -97,9 +130,9 @@ class GiziController extends Controller
         });
 
         return response()->json([
-            'data'    => $data,
-            'akg'     => AKG::MAKAN_SIANG,
-            'label'   => AKG::LABEL,
+            'data'  => $data,
+            'akg'   => AKG::MAKAN_SIANG,
+            'label' => AKG::LABEL,
         ]);
     }
 }

@@ -60,30 +60,35 @@ class MenuHarian extends Model
                 $this->tanggal->toDateString()
             );
 
-            // biaya = (gram / 100) × harga per 100g
             $biaya = ($d->jumlah_gram / 100) * $hargaPer100g;
             $totalBiayaSeluruh += $biaya;
 
             $detail[] = [
-                'nama'          => $b->nama_bahan,
-                'gram'          => $d->jumlah_gram,
-                'harga_per_100g'=> $hargaPer100g,
-                'biaya'         => round($biaya, 0),
+                'nama'           => $b->nama_bahan,
+                'gram'           => $d->jumlah_gram,
+                'harga_per_100g' => $hargaPer100g,
+                'biaya'          => round($biaya, 0),
             ];
         }
 
         $jumlahPorsi = max($this->jumlah_porsi, 1);
 
+        // Ambil anggaran berdasarkan tanggal menu, bukan kolom statis
+        $anggaran = \App\Models\AnggaranPorsi::aktif(
+            $this->unit_sppg,
+            $this->tanggal->toDateString()
+        );
+
         return [
-            'total_seluruh'  => round($totalBiayaSeluruh, 0),
-            'cost_per_porsi' => round($totalBiayaSeluruh / $jumlahPorsi, 0),
-            'anggaran'       => (float) $this->anggaran_per_porsi,
-            'selisih'        => round(($this->anggaran_per_porsi) - ($totalBiayaSeluruh / $jumlahPorsi), 0),
-            'persen_anggaran'=> $this->anggaran_per_porsi > 0
-                ? round(($totalBiayaSeluruh / $jumlahPorsi / $this->anggaran_per_porsi) * 100, 1)
+            'total_seluruh'   => round($totalBiayaSeluruh, 0),
+            'cost_per_porsi'  => round($totalBiayaSeluruh / $jumlahPorsi, 0),
+            'anggaran'        => $anggaran,
+            'selisih'         => round($anggaran - ($totalBiayaSeluruh / $jumlahPorsi), 0),
+            'persen_anggaran' => $anggaran > 0
+                ? round(($totalBiayaSeluruh / $jumlahPorsi / $anggaran) * 100, 1)
                 : 0,
-            'detail'         => $detail,
-            'jumlah_porsi'   => $jumlahPorsi,
+            'detail'          => $detail,
+            'jumlah_porsi'    => $jumlahPorsi,
         ];
     }
 

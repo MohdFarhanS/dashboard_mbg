@@ -201,6 +201,7 @@
 
 @push('scripts')
 <script>
+const existingBahans = @json($existingBahans);
 
 // ===== JS sama persis dengan create.blade.php =====
 let bahanCounter = 0;

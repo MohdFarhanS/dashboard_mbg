@@ -39,14 +39,30 @@
         </h4>
         <small class="text-muted">Unit SPPG: {{ Auth::user()->unit_sppg }}</small>
     </div>
-    {{-- Filter Bulan --}}
-    <form method="GET" class="d-flex gap-2 align-items-center">
+    {{-- Filter Bulan + Unit --}}
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
         <input type="month" name="bulan" value="{{ $bulan }}"
                class="form-control form-control-sm" style="width:160px"
                onchange="this.form.submit()">
+
+        {{-- FIX: Dropdown filter unit — hanya tampil untuk admin --}}
+        @if(auth()->user()->role === 'admin')
+        <select name="unit_sppg" class="form-select form-select-sm"
+                style="min-width:180px" onchange="this.form.submit()">
+            <option value="">— Semua Unit —</option>
+            @foreach($unitList as $unit)
+                <option value="{{ $unit }}" @selected(($filterUnit ?? '') === $unit)>
+                    {{ $unit }}
+                </option>
+            @endforeach
+        </select>
+        @endif
+
+        @if(Auth::user()->role === 'pengelola')
         <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-success">
             <i class="fas fa-plus me-1"></i>Input Menu
         </a>
+        @endif
     </form>
 </div>
 
@@ -197,6 +213,9 @@
                 <tr>
                     <th>Tanggal</th>
                     <th>Menu</th>
+                    @if(auth()->user()->role === 'admin')
+                    <th>Unit SPPG</th>
+                    @endif
                     <th class="text-end">Energi (kkal)</th>
                     <th class="text-end">Protein (g)</th>
                     <th class="text-end">Lemak (g)</th>
@@ -218,6 +237,9 @@
                         {{ $menu->tanggal->translatedFormat('d M Y') }}
                     </td>
                     <td>{{ $menu->nama_menu ?: '—' }}</td>
+                    @if(auth()->user()->role === 'admin')
+                    <td><span class="badge bg-secondary-subtle text-secondary">{{ $menu->unit_sppg }}</span></td>
+                    @endif
                     <td class="text-end">{{ number_format($g['energi'],1) }}</td>
                     <td class="text-end">{{ number_format($g['protein'],1) }}</td>
                     <td class="text-end">{{ number_format($g['lemak'],1) }}</td>
