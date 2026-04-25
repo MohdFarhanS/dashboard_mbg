@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'unit_sppg' => env('UNIT_SPPG', 'SPPG Utama'),
 ];
