@@ -9,6 +9,7 @@ use App\Http\Controllers\BiayaController;
 use App\Http\Controllers\AnggaranController;
 use App\Http\Controllers\SimulasiController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\ImportTkpiController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -84,5 +85,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',              [LaporanController::class, 'index'])->name('index');
         Route::get('/export-excel', [LaporanController::class, 'exportExcel'])->name('export-excel');
         Route::get('/export-pdf',   [LaporanController::class, 'exportPdf'])->name('export-pdf');
+    });
+
+    Route::prefix('import-tkpi')->name('import-tkpi.')->middleware(['auth'])->group(function () {
+        Route::get('/',         [ImportTkpiController::class, 'index'])->name('index');
+        Route::post('/preview', [ImportTkpiController::class, 'preview'])->name('preview');
+        Route::post('/import',  [ImportTkpiController::class, 'import'])->name('import');
     });
 });
