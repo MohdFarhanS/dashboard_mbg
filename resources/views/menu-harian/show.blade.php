@@ -79,6 +79,106 @@
         @endforeach
     </div>
 
+    {{-- ============================================================ --}}
+    {{-- BUDGET ALERT — tampil di antara stat gizi dan tabel bahan    --}}
+    {{-- ============================================================ --}}
+    @php
+        $biaya          = $menuHarian->totalBiaya();
+        $statusAnggaran = $menuHarian->statusAnggaran();
+        $persenAnggaran = $biaya['persen_anggaran'];
+        $anggaranAktif  = $biaya['anggaran'];
+        $costPerPorsi   = $biaya['cost_per_porsi'];
+        $selisih        = $biaya['selisih'];
+    @endphp
+
+    @if($statusAnggaran !== 'belum_ada_data')
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3 px-4">
+
+            {{-- Header row --}}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-wallet" style="color:var(--primary)"></i>
+                    <span class="fw-semibold">Realisasi Biaya vs Anggaran Per Porsi</span>
+                    @if($statusAnggaran === 'over')
+                        <span class="badge bg-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Melebihi Anggaran
+                        </span>
+                    @elseif($statusAnggaran === 'warning')
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-exclamation-circle me-1"></i>Mendekati Batas
+                        </span>
+                    @else
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Dalam Anggaran
+                        </span>
+                    @endif
+                </div>
+                <div class="text-end">
+                    <span class="fw-bold fs-5
+                        @if($statusAnggaran === 'over') text-danger
+                        @elseif($statusAnggaran === 'warning') text-warning
+                        @else text-success @endif">
+                        Rp {{ number_format($costPerPorsi, 0, ',', '.') }}
+                    </span>
+                    <span class="text-muted small"> / Rp {{ number_format($anggaranAktif, 0, ',', '.') }}</span>
+                </div>
+            </div>
+
+            {{-- Progress bar --}}
+            <div class="progress mb-2" style="height:10px;border-radius:8px;">
+                <div class="progress-bar
+                    @if($statusAnggaran === 'over') bg-danger
+                    @elseif($statusAnggaran === 'warning') bg-warning
+                    @else bg-success @endif"
+                    role="progressbar"
+                    style="width:{{ min($persenAnggaran, 100) }}%;border-radius:8px;"
+                    aria-valuenow="{{ $persenAnggaran }}"
+                    aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+
+            {{-- Label bawah progress --}}
+            <div class="d-flex justify-content-between">
+                <small class="text-muted">Rp 0</small>
+                <small class="fw-semibold
+                    @if($statusAnggaran === 'over') text-danger
+                    @elseif($statusAnggaran === 'warning') text-warning
+                    @else text-success @endif">
+                    {{ $persenAnggaran }}% dari anggaran
+                </small>
+                <small class="text-muted">Rp {{ number_format($anggaranAktif, 0, ',', '.') }}</small>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- Alert banner over / warning --}}
+    @if($statusAnggaran === 'over')
+    <div class="alert alert-danger d-flex align-items-start gap-3 mb-4">
+        <i class="fas fa-exclamation-triangle fs-5 mt-1 flex-shrink-0"></i>
+        <div>
+            <div class="fw-semibold mb-1">Biaya per porsi melebihi anggaran!</div>
+            Biaya saat ini <strong>Rp {{ number_format($costPerPorsi, 0, ',', '.') }}</strong>
+            melebihi anggaran sebesar
+            <strong class="text-danger">Rp {{ number_format(abs($selisih), 0, ',', '.') }}</strong>.
+            Pertimbangkan untuk mengurangi porsi atau mengganti bahan.
+        </div>
+    </div>
+    @elseif($statusAnggaran === 'warning')
+    <div class="alert alert-warning d-flex align-items-start gap-3 mb-4">
+        <i class="fas fa-info-circle fs-5 mt-1 flex-shrink-0"></i>
+        <div>
+            <div class="fw-semibold mb-1">Mendekati batas anggaran.</div>
+            Sisa anggaran per porsi:
+            <strong>Rp {{ number_format($selisih, 0, ',', '.') }}</strong>
+            ({{ round(100 - $persenAnggaran, 1) }}% tersisa).
+        </div>
+    </div>
+    @endif
+    @endif
+    {{-- ============================================================ --}}
+
     {{-- Tabel bahan --}}
     <div class="card border-0 shadow-sm">
         <div class="card-header border-0 d-flex justify-content-between align-items-center"

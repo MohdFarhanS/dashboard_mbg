@@ -1,4 +1,3 @@
-{{-- resources/views/biaya/dashboard.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Dashboard Biaya Produksi')
@@ -83,6 +82,51 @@
             </div>
         </div>
     </div>
+
+    {{-- Budget Alert Summary --}}
+    @if(isset($alertSummary) && ($alertSummary['over'] > 0 || $alertSummary['warning'] > 0))
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm border-start border-warning border-3">
+                <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-2">
+                    <i class="fas fa-bell text-warning"></i>
+                    <h6 class="fw-bold mb-0">Ringkasan Budget Alert — {{ \Carbon\Carbon::parse($bulan)->translatedFormat('F Y') }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 bg-danger-subtle rounded-3">
+                                <i class="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+                                <div>
+                                    <div class="fw-bold fs-4 text-danger">{{ $alertSummary['over'] }}</div>
+                                    <div class="text-muted small">Menu Melebihi Anggaran</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 bg-warning-subtle rounded-3">
+                                <i class="fas fa-exclamation-circle text-warning fs-3 me-3"></i>
+                                <div>
+                                    <div class="fw-bold fs-4 text-warning">{{ $alertSummary['warning'] }}</div>
+                                    <div class="text-muted small">Mendekati Batas (≥85%)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 bg-success-subtle rounded-3">
+                                <i class="fas fa-check-circle text-success fs-3 me-3"></i>
+                                <div>
+                                    <div class="fw-bold fs-4 text-success">{{ $alertSummary['aman'] }}</div>
+                                    <div class="text-muted small">Menu Dalam Anggaran</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Trend Chart --}}
     @if($trendBiaya->count())

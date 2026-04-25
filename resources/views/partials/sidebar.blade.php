@@ -54,17 +54,17 @@
         </a>
 
         @if(Auth::user()->role === 'admin')
-        <div class="nav-section">Administrasi</div>
-        <a href="{{ route('anggaran.index') }}"
-            class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}">
-            <i class="fas fa-wallet"></i> Kelola Anggaran
-        </a>
-        <a href="#" class="nav-link">
-            <i class="fas fa-users"></i> Kelola Pengguna
-        </a>
-        <a href="#" class="nav-link">
-            <i class="fas fa-building"></i> Kelola SPPG
-        </a>
+            <div class="nav-section">Administrasi</div>
+            <a class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}"
+                href="{{ route('anggaran.index') }}">
+                <i class="fas fa-wallet me-2"></i>Kelola Anggaran
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-users"></i> Kelola Pengguna
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-building"></i> Kelola SPPG
+            </a>
         @endif
 
         <div class="nav-section">Laporan</div>

@@ -18,6 +18,7 @@ class AnggaranController extends Controller
 
     public function index()
     {
+        if (auth()->user()->role !== 'admin') abort(403);
         $riwayat = AnggaranPorsi::with('createdBy')
             ->orderByDesc('berlaku_mulai')
             ->paginate(20);
@@ -27,6 +28,7 @@ class AnggaranController extends Controller
 
     public function create()
     {
+        if (auth()->user()->role !== 'admin') abort(403);
         $unitList = \App\Models\MenuHarian::distinct()->pluck('unit_sppg')->sort()->values();
         return view('anggaran.form', compact('unitList'));
     }
@@ -50,12 +52,14 @@ class AnggaranController extends Controller
 
     public function edit(AnggaranPorsi $anggaran)
     {
+        if (auth()->user()->role !== 'admin') abort(403);
         $unitList = \App\Models\MenuHarian::distinct()->pluck('unit_sppg')->sort()->values();
         return view('anggaran.form', compact('anggaran', 'unitList'));
     }
 
     public function update(Request $request, AnggaranPorsi $anggaran)
     {
+        if (auth()->user()->role !== 'admin') abort(403);
         $data = $request->validate([
             'unit_sppg'          => 'required|string',
             'anggaran_per_porsi' => 'required|numeric|min:1000',
@@ -68,5 +72,13 @@ class AnggaranController extends Controller
 
         return redirect()->route('anggaran.index')
             ->with('success', 'Anggaran berhasil diperbarui.');
+    }
+
+    public function destroy(AnggaranPorsi $anggaran)
+    {
+        if (auth()->user()->role !== 'admin') abort(403);
+        $anggaran->delete();
+        return redirect()->route('anggaran.index')
+            ->with('success', 'Data anggaran dihapus.');
     }
 }
