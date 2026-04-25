@@ -7,6 +7,7 @@ use App\Http\Controllers\MenuHarianController;
 use App\Http\Controllers\GiziController;
 use App\Http\Controllers\BiayaController;
 use App\Http\Controllers\AnggaranController;
+use App\Http\Controllers\SimulasiController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -70,5 +71,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{anggaran}/edit', [AnggaranController::class, 'edit'])->name('edit');
         Route::put('/{anggaran}',    [AnggaranController::class, 'update'])->name('update');
         Route::delete('/{anggaran}',   [AnggaranController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('simulasi')->name('simulasi.')->middleware('auth')->group(function () {
+        Route::get('/',           [SimulasiController::class, 'index'])->name('index');
+        Route::post('/kalkulasi', [SimulasiController::class, 'kalkulasi'])->name('kalkulasi');
+        Route::post('/simpan',    [SimulasiController::class, 'simpan'])->name('simpan');
     });
 });

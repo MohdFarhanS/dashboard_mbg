@@ -34,7 +34,7 @@
             class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
             <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
         </a>
-        <a href="#" class="nav-link {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
+        <a href="{{ route('simulasi.index') }}" class="nav-link {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
             <i class="fas fa-flask"></i> Simulasi Menu
         </a>
 
