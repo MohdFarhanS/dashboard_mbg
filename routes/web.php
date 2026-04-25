@@ -8,6 +8,7 @@ use App\Http\Controllers\GiziController;
 use App\Http\Controllers\BiayaController;
 use App\Http\Controllers\AnggaranController;
 use App\Http\Controllers\SimulasiController;
+use App\Http\Controllers\LaporanController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -77,5 +78,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',           [SimulasiController::class, 'index'])->name('index');
         Route::post('/kalkulasi', [SimulasiController::class, 'kalkulasi'])->name('kalkulasi');
         Route::post('/simpan',    [SimulasiController::class, 'simpan'])->name('simpan');
+    });
+
+    Route::prefix('laporan')->name('laporan.')->middleware('auth')->group(function () {
+        Route::get('/',              [LaporanController::class, 'index'])->name('index');
+        Route::get('/export-excel', [LaporanController::class, 'exportExcel'])->name('export-excel');
+        Route::get('/export-pdf',   [LaporanController::class, 'exportPdf'])->name('export-pdf');
     });
 });
