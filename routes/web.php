@@ -11,6 +11,7 @@ use App\Http\Controllers\SimulasiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ImportTkpiController;
 use App\Http\Controllers\BudgetAlertController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -96,4 +97,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/budget-alert', [BudgetAlertController::class, 'index'])
         ->name('budget-alert.index');
+
+    Route::resource('users', UserController::class);
+    Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->name('users.reset-password');
 });

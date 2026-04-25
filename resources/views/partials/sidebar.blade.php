@@ -66,7 +66,8 @@
                 href="{{ route('anggaran.index') }}">
                 <i class="fas fa-wallet"></i> Kelola Anggaran
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('users.index') }}"
+                class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                 <i class="fas fa-users"></i> Kelola Pengguna
             </a>
             <a href="#" class="nav-link">
