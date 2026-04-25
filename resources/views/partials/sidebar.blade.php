@@ -68,6 +68,10 @@
             <a href="#" class="nav-link">
                 <i class="fas fa-building"></i> Kelola SPPG
             </a>
+            <a href="{{ route('import-tkpi.index') }}"
+                class="nav-link {{ request()->routeIs('import-tkpi.*') ? 'active' : '' }}">
+                <i class="fas fa-file-import"></i> Import TKPI
+            </a>
         @endif
 
         <div class="nav-section">Laporan</div>
