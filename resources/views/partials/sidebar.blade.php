@@ -51,11 +51,15 @@
             class="nav-link {{ request()->routeIs('biaya.*') ? 'active' : '' }}">
             <i class="fas fa-coins"></i> Biaya Produksi
         </a>
-        <a href="#" class="nav-link {{ request()->routeIs('budget-alert.*') ? 'active' : '' }}">
+        <a href="{{ route('budget-alert.index') }}"
+            class="nav-link {{ request()->routeIs('budget-alert.*') ? 'active' : '' }}">
             <i class="fas fa-bell"></i> Budget Alert
-            <span class="badge ms-auto" style="background:rgba(255,100,100,.85); font-size:.65rem;">2</span>
+            @if(isset($navAlertCount) && $navAlertCount > 0)
+            <span class="badge ms-auto" style="background:rgba(255,100,100,.85); font-size:.65rem;">
+                {{ $navAlertCount }}
+            </span>
+            @endif
         </a>
-
         @if(Auth::user()->role === 'admin')
             <div class="nav-section">Administrasi</div>
             <a class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}"

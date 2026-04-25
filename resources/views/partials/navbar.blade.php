@@ -18,43 +18,77 @@
 
     <div class="topnav-right">
         {{-- Notifikasi --}}
-        <button class="btn btn-sm position-relative"
+    <div class="dropdown">
+        <button class="btn btn-sm position-relative dropdown-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
                 style="background:var(--primary-pale); border:none; border-radius:8px;
-                       color:var(--primary); width:36px; height:36px; padding:0;">
+                    color:var(--primary); width:36px; height:36px; padding:0;">
             <i class="fas fa-bell"></i>
+            @if(isset($navAlertCount) && $navAlertCount > 0)
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                  style="font-size:.55rem;">2</span>
+                style="font-size:.55rem; pointer-events:none;">
+                {{ $navAlertCount }}
+            </span>
+            @endif
         </button>
 
-        {{-- User dropdown --}}
-        <div class="dropdown">
-            <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2"
-                    style="background:var(--primary-pale); border:none; border-radius:8px; padding:.4rem .85rem;"
-                    data-bs-toggle="dropdown">
-                <div class="avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
-                <div class="text-start d-none d-md-block">
-                    <div style="font-size:.78rem; font-weight:600; color:#1a2e1d; line-height:1.2;">
-                        {{ Auth::user()->name }}
-                    </div>
-                    <div style="font-size:.68rem; color:#7a9280; text-transform:capitalize;">
-                        {{ Auth::user()->role }}
-                    </div>
-                </div>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border:none; border-radius:10px; min-width:180px;">
-                <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2 text-muted"></i> Profil Saya</a></li>
-                <li><a class="dropdown-item" href="#"><i class="fas fa-gear me-2 text-muted"></i> Pengaturan</a></li>
-                <li><hr class="dropdown-divider"></li>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm p-0"
+            style="border:none; border-radius:12px; min-width:300px; overflow:hidden;">
+
+            {{-- Header --}}
+            <li class="px-3 py-2 d-flex justify-content-between align-items-center"
+                style="background:var(--primary-pale); border-bottom:1px solid #dee2e6;">
+                <span style="font-size:.82rem; font-weight:700; color:var(--primary);">
+                    <i class="fas fa-bell me-1"></i> Notifikasi
+                </span>
+                @if(isset($navAlertCount) && $navAlertCount > 0)
+                <span class="badge bg-danger" style="font-size:.65rem;">
+                    {{ $navAlertCount }} peringatan
+                </span>
+                @endif
+            </li>
+
+            {{-- Isi notifikasi --}}
+            @if(isset($navAlerts) && count($navAlerts) > 0)
+                @foreach($navAlerts as $alert)
                 <li>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button class="dropdown-item text-danger">
-                            <i class="fas fa-right-from-bracket me-2"></i> Keluar
-                        </button>
-                    </form>
+                    <a href="{{ route('menu-harian.show', $alert['menu_id']) }}"
+                    class="dropdown-item py-2 px-3"
+                    style="border-bottom:1px solid #f5f5f5; white-space:normal;">
+                        <div class="d-flex gap-2 align-items-start">
+                            <span style="font-size:1rem; flex-shrink:0;">
+                                {{ $alert['type'] === 'danger' ? '🚨' : '⚠️' }}
+                            </span>
+                            <div>
+                                <div style="font-size:.8rem; font-weight:500; color:#1a2e1d;">
+                                    {{ $alert['msg'] }}
+                                </div>
+                                <div style="font-size:.7rem; color:#adb5bd;">
+                                    {{ $alert['time'] }}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </li>
-            </ul>
-        </div>
+                @endforeach
+            @else
+                <li class="text-center py-4 text-muted">
+                    <i class="fas fa-check-circle text-success d-block mb-1" style="font-size:1.3rem;"></i>
+                    <span style="font-size:.8rem;">Semua menu dalam batas anggaran</span>
+                </li>
+            @endif
+
+            {{-- Footer --}}
+            <li style="border-top:1px solid #f0f0f0;">
+                <a href="{{ route('biaya.dashboard') }}"
+                class="dropdown-item text-center py-2"
+                style="font-size:.8rem; font-weight:600; color:var(--primary);">
+                    Lihat Dashboard Biaya →
+                </a>
+            </li>
+        </ul>
+    </div>
     </div>
 </div>
 
