@@ -69,5 +69,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/',             [AnggaranController::class, 'store'])->name('store');
         Route::get('/{anggaran}/edit', [AnggaranController::class, 'edit'])->name('edit');
         Route::put('/{anggaran}',    [AnggaranController::class, 'update'])->name('update');
+        Route::delete('/{anggaran}',   [AnggaranController::class, 'destroy'])->name('destroy');
     });
 });

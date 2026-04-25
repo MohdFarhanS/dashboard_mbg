@@ -74,6 +74,7 @@
                             <th>Jumlah Bahan</th>
                             <th>Estimasi Energi</th>
                             <th>Status</th>
+                            <th>Anggaran</th>
                             <th class="text-end pe-4">Aksi</th>
                         </tr>
                     </thead>
@@ -107,6 +108,28 @@
                                     </span>
                                 @endif
                             </td>
+                            <td>
+                                @if($menu->status === 'final')
+                                    @php $statusAnggaran = $menu->statusAnggaran(); @endphp
+                                    @if($statusAnggaran === 'over')
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Over
+                                        </span>
+                                    @elseif($statusAnggaran === 'warning')
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-exclamation-circle me-1"></i>Mendekati
+                                        </span>
+                                    @elseif($statusAnggaran === 'aman')
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Aman
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted small">—</span>
+                                @endif
+                            </td>
                             <td class="text-end pe-4">
                                 <a href="{{ route('menu-harian.show', $menu) }}"
                                    class="btn btn-sm btn-outline-secondary me-1">
@@ -130,7 +153,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-5">
+                            <td colspan="7" class="text-center text-muted py-5">
                                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                                 Belum ada menu untuk bulan ini.
                                 @if(auth()->user()->role === 'pengelola')

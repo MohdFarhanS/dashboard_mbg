@@ -101,4 +101,40 @@ class MenuHarian extends Model
     {
         return $query->where('unit_sppg', $unit);
     }
+
+    /**
+     * Kembalikan nilai anggaran aktif per porsi berdasarkan tanggal menu.
+     */
+    public function anggaranAktif(): float
+    {
+        return (float) \App\Models\AnggaranPorsi::aktif(
+            $this->unit_sppg,
+            $this->tanggal->toDateString()
+        );
+    }
+
+    /**
+     * Status anggaran: 'over' | 'warning' | 'aman' | 'belum_ada_data'
+     * Threshold warning di ≥85% dari anggaran.
+     */
+    public function statusAnggaran(): string
+    {
+        $biaya = $this->totalBiaya();
+
+        if ($biaya['cost_per_porsi'] === 0) return 'belum_ada_data';
+
+        $persen = $biaya['persen_anggaran'];
+
+        if ($persen > 100) return 'over';
+        if ($persen >= 85) return 'warning';
+        return 'aman';
+    }
+
+    /**
+     * Persentase biaya per porsi terhadap anggaran (0–100+).
+     */
+    public function persenAnggaran(): float
+    {
+        return (float) $this->totalBiaya()['persen_anggaran'];
+    }
 }

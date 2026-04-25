@@ -20,7 +20,8 @@ class BiayaController extends Controller
         $bulan = $request->input('bulan', now()->format('Y-m'));
         [$tahun, $bln] = explode('-', $bulan);
 
-        // FIX: Admin lihat semua unit, pengelola hanya unitnya sendiri
+        $alertSummary = ['over' => 0, 'warning' => 0, 'aman' => 0];
+
         $query = MenuHarian::with('detailBahans.bahanPangan')
             ->whereYear('tanggal', $tahun)
             ->whereMonth('tanggal', $bln)
@@ -32,6 +33,13 @@ class BiayaController extends Controller
             }
 
         $menus = $query->get();
+
+        foreach ($menus as $menu) {
+            $status = $menu->statusAnggaran();
+            if (isset($alertSummary[$status])) {
+                $alertSummary[$status]++;
+            }
+        }
 
         $rekapBiaya = $menus->map(fn($m) => [
             'menu_id'   => $m->id,
@@ -71,7 +79,7 @@ class BiayaController extends Controller
             'bulan', 'rekapBiaya', 'trendBiaya',
             'totalHari', 'totalBiayaBulan', 'rataCostPorsi',
             'rataAnggaran', 'overBudget', 'underBudget',
-            'unitList', 'filterUnit'
+            'unitList', 'filterUnit', 'alertSummary', 'bulan',
         ));
     }
 
