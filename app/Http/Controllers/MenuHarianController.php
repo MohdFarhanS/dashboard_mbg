@@ -101,6 +101,7 @@ class MenuHarianController extends Controller
             $menu->detailBahans()->create([
                 'bahan_pangan_id' => $b['bahan_pangan_id'],
                 'jumlah_gram'     => $b['jumlah_gram'],
+                'jumlah_porsi'    => $b['jumlah_porsi'] ?? 1,  // ← tambahkan ini
             ]);
         }
 
@@ -176,6 +177,7 @@ class MenuHarianController extends Controller
             $menuHarian->detailBahans()->create([
                 'bahan_pangan_id' => $b['bahan_pangan_id'],
                 'jumlah_gram'     => $b['jumlah_gram'],
+                'jumlah_porsi'    => $b['jumlah_porsi'] ?? 1,  // ← tambahkan ini
             ]);
         }
 

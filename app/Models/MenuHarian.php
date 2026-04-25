@@ -32,8 +32,7 @@ class MenuHarian extends Model
         foreach ($this->detailBahans as $detail) {
             $b = $detail->bahanPangan;
             if (!$b) continue;
-            $bdd = $b->bdd ?? 100;
-            $faktor = ($detail->jumlah_gram * ($b->bdd / 100)) / 100;
+            $faktor = ($detail->jumlah_gram * ($b->bdd / 100)) / 100 * $detail->jumlah_porsi; // ← tambah × jumlah_porsi
             foreach ($keys as $k) {
                 $total[$k] += round($faktor * ($b->$k ?? 0), 2);
             }
@@ -60,7 +59,7 @@ class MenuHarian extends Model
                 $this->tanggal->toDateString()
             );
 
-            $biaya = ($d->jumlah_gram / 100) * $hargaPer100g;
+            $biaya = ($d->jumlah_gram / 100) * $hargaPer100g * $d->jumlah_porsi; // ← tambah × jumlah_porsi
             $totalBiayaSeluruh += $biaya;
 
             $detail[] = [
@@ -73,7 +72,6 @@ class MenuHarian extends Model
 
         $jumlahPorsi = max($this->jumlah_porsi, 1);
 
-        // Ambil anggaran berdasarkan tanggal menu, bukan kolom statis
         $anggaran = \App\Models\AnggaranPorsi::aktif(
             $this->unit_sppg,
             $this->tanggal->toDateString()

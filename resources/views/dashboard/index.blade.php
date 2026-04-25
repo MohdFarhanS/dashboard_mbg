@@ -125,18 +125,25 @@
         </div>
     </div>
 
-    {{-- Chart Biaya (Donut dummy) --}}
+    {{-- Chart Biaya per Kategori --}}
     <div class="col-lg-7">
         <div class="card card-mbg h-100">
             <div class="card-header">
-                <i class="fas fa-chart-pie me-2" style="color:#1a6b3a;"></i> Distribusi Biaya Produksi
+                <i class="fas fa-chart-pie me-2" style="color:#1a6b3a;"></i> Distribusi Biaya per Kategori Bahan
             </div>
             <div class="card-body d-flex align-items-center justify-content-center" style="min-height:230px;">
-                <canvas id="chartBiaya" style="max-height:220px;"></canvas>
+                @if(!empty($stats['distribusi_biaya']))
+                    <canvas id="chartBiaya" style="max-height:220px;"></canvas>
+                @else
+                    <div class="text-center text-muted">
+                        <i class="fas fa-chart-pie fa-2x mb-2 d-block opacity-25"></i>
+                        <div style="font-size:.85rem;">Belum ada data harga bahan untuk hari ini.</div>
+                        <small>Pastikan harga bahan sudah diinput di menu <strong>Biaya Produksi → Kelola Harga</strong></small>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-</div>
 
 {{-- ROW 3 : Budget Alert + Menu Hari Ini --}}
 <div class="row g-3">
@@ -146,16 +153,16 @@
         <div class="card card-mbg">
             <div class="card-header d-flex justify-content-between">
                 <span><i class="fas fa-bell me-2" style="color:#f57c00;"></i> Budget Alert</span>
-                <span class="badge" style="background:#fce4e4; color:#c62828;">2 Peringatan</span>
+                @if($stats['total_alert'] > 0)
+                    <span class="badge" style="background:#fce4e4; color:#c62828;">
+                        {{ $stats['total_alert'] }} Peringatan
+                    </span>
+                @else
+                    <span class="badge" style="background:#d1e7dd; color:#0a3622;">Aman</span>
+                @endif
             </div>
             <div class="card-body p-0">
-                @php
-                    $alerts = [
-                        ['type'=>'warning', 'msg'=>'Biaya bahan baku mendekati batas anggaran (92%)', 'time'=>'08:45'],
-                        ['type'=>'danger',  'msg'=>'Anggaran protein hewani melebihi batas hari ini', 'time'=>'09:12'],
-                    ];
-                @endphp
-                @foreach($alerts as $alert)
+                @forelse($stats['alert_list'] as $alert)
                 <div class="d-flex gap-3 p-3 border-bottom" style="border-color:#eef2ef !important;">
                     <div style="margin-top:.15rem;">
                         @if($alert['type'] === 'danger')
@@ -166,13 +173,19 @@
                     </div>
                     <div class="flex-grow-1">
                         <div style="font-size:.8rem; color:#1a2e1d; font-weight:500;">{{ $alert['msg'] }}</div>
-                        <div style="font-size:.7rem; color:#adb5bd; margin-top:.2rem;">Hari ini, {{ $alert['time'] }} WIB</div>
+                        <div style="font-size:.7rem; color:#adb5bd; margin-top:.2rem;">{{ $alert['time'] }}</div>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div class="text-center text-muted py-4" style="font-size:.85rem;">
+                    <i class="fas fa-check-circle text-success d-block mb-2 fs-4"></i>
+                    Semua menu dalam batas anggaran
+                </div>
+                @endforelse
                 <div class="p-3">
-                    <a href="#" class="btn btn-sm w-100" style="background:#e8f5ee; color:#1a6b3a; border-radius:8px; font-size:.8rem; font-weight:600;">
-                        Lihat Semua Alert
+                    <a href="{{ route('biaya.dashboard') }}" class="btn btn-sm w-100"
+                    style="background:#e8f5ee; color:#1a6b3a; border-radius:8px; font-size:.8rem; font-weight:600;">
+                        Lihat Dashboard Biaya →
                     </a>
                 </div>
             </div>
@@ -184,49 +197,55 @@
         <div class="card card-mbg">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-utensils me-2" style="color:#1a6b3a;"></i> Menu Hari Ini</span>
-                <a href="#" class="btn btn-sm" style="background:#e8f5ee; color:#1a6b3a; border-radius:8px; font-size:.75rem; font-weight:600;">
+                @if(auth()->user()->role === 'pengelola')
+                <a href="{{ route('menu-harian.create') }}" class="btn btn-sm"
+                style="background:#e8f5ee; color:#1a6b3a; border-radius:8px; font-size:.75rem; font-weight:600;">
                     + Tambah Menu
                 </a>
+                @endif
             </div>
             <div class="card-body p-0">
+                @if($menusHariIni->count())
                 <div class="table-responsive">
                     <table class="table mb-0" style="font-size:.82rem;">
                         <thead style="background:#f8fbf9;">
                             <tr>
-                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Sesi</th>
                                 <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Nama Menu</th>
                                 <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Kalori</th>
                                 <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Biaya/Porsi</th>
-                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Status Gizi</th>
+                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach($menusHariIni as $menu)
                             @php
-                                $menus = [
-                                    ['sesi'=>'Pagi',  'nama'=>'Nasi Putih + Ayam Goreng + Sayur Bayam', 'kalori'=>'720 kkal', 'biaya'=>'Rp 9.500',  'status'=>'terpenuhi'],
-                                    ['sesi'=>'Siang', 'nama'=>'Nasi Putih + Ikan Bakar + Tempe + Lalapan', 'kalori'=>'850 kkal', 'biaya'=>'Rp 11.200', 'status'=>'terpenuhi'],
-                                    ['sesi'=>'Sore',  'nama'=>'Nasi Putih + Telur Dadar + Tumis Kangkung', 'kalori'=>'580 kkal', 'biaya'=>'Rp 7.800',  'status'=>'kurang'],
-                                ];
+                                $g      = $menu->totalGizi();
+                                $b      = $menu->totalBiaya();
+                                $status = $menu->statusAnggaran();
                             @endphp
-                            @foreach($menus as $m)
                             <tr>
-                                <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle;">
-                                    <span class="badge" style="background:#e8f5ee; color:#1a6b3a; font-size:.72rem;">{{ $m['sesi'] }}</span>
-                                </td>
                                 <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle; font-weight:500; color:#1a2e1d;">
-                                    {{ $m['nama'] }}
+                                    <a href="{{ route('menu-harian.show', $menu) }}"
+                                    class="text-decoration-none text-dark">
+                                        {{ $menu->nama_menu ?? '(tanpa nama)' }}
+                                    </a>
+                                    <div style="font-size:.7rem; color:#adb5bd;">{{ $menu->status === 'final' ? '🔒 Final' : '✏️ Draft' }}</div>
                                 </td>
                                 <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle; color:#f57c00; font-weight:600;">
-                                    {{ $m['kalori'] }}
+                                    {{ number_format($g['energi'], 0) }} kkal
                                 </td>
                                 <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle; font-weight:600; color:#2196f3;">
-                                    {{ $m['biaya'] }}
+                                    Rp {{ number_format($b['cost_per_porsi'], 0, ',', '.') }}
                                 </td>
                                 <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle;">
-                                    @if($m['status'] === 'terpenuhi')
-                                        <span class="badge" style="background:#e8f5ee; color:#1a6b3a; font-size:.72rem;">✓ Terpenuhi</span>
+                                    @if($status === 'over')
+                                        <span class="badge" style="background:#fce4e4; color:#c62828; font-size:.72rem;">🚨 Over</span>
+                                    @elseif($status === 'warning')
+                                        <span class="badge" style="background:#fff8e1; color:#f57c00; font-size:.72rem;">⚠ Mendekati</span>
+                                    @elseif($status === 'aman')
+                                        <span class="badge" style="background:#e8f5ee; color:#1a6b3a; font-size:.72rem;">✓ Aman</span>
                                     @else
-                                        <span class="badge" style="background:#fff8e1; color:#f57c00; font-size:.72rem;">⚠ Kurang</span>
+                                        <span class="badge" style="background:#f0f0f0; color:#aaa; font-size:.72rem;">— Draft</span>
                                     @endif
                                 </td>
                             </tr>
@@ -234,6 +253,18 @@
                         </tbody>
                     </table>
                 </div>
+                @else
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
+                    <div style="font-size:.85rem;">Belum ada menu yang diinput hari ini.</div>
+                    @if(auth()->user()->role === 'pengelola')
+                    <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-success mt-2"
+                    style="background:#1a6b3a; border-color:#1a6b3a;">
+                        <i class="fas fa-plus me-1"></i>Input Menu Sekarang
+                    </a>
+                    @endif
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -244,48 +275,78 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+@if(!empty($stats['distribusi_biaya']))
 <script>
-    const ctx = document.getElementById('chartBiaya').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Bahan Baku', 'Tenaga Kerja', 'Overhead'],
-            datasets: [{
-                data: [185000, 65000, 35000],
-                backgroundColor: ['#2d9e5f', '#f57c00', '#2196f3'],
-                borderWidth: 0,
-                hoverOffset: 8,
-            }]
-        },
-        options: {
-            cutout: '65%',
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        font: { size: 12, family: 'Plus Jakarta Sans' },
-                        color: '#1a2e1d',
-                        padding: 16,
-                        generateLabels: (chart) => {
-                            const data = chart.data;
-                            return data.labels.map((label, i) => ({
-                                text: `${label}\nRp ${data.datasets[0].data[i].toLocaleString('id-ID')}`,
-                                fillStyle: data.datasets[0].backgroundColor[i],
-                                strokeStyle: 'transparent',
-                                pointStyle: 'circle',
-                            }));
-                        }
+const distribusi = @json($stats['distribusi_biaya']);
+
+const WARNA_KATEGORI = {
+    'Serealia'  : '#2d9e5f',
+    'Daging'    : '#e53935',
+    'Ikan'      : '#1e88e5',
+    'Telur'     : '#fdd835',
+    'Sayuran'   : '#43a047',
+    'Buah'      : '#fb8c00',
+    'Kacang'    : '#8d6e63',
+    'Umbi'      : '#f06292',
+    'Susu'      : '#90caf9',
+    'Lemak'     : '#ffb74d',
+    'Bumbu'     : '#ce93d8',
+    'Gula'      : '#ef9a9a',
+    'Minuman'   : '#80deea',
+    'Lainnya'   : '#b0bec5',
+};
+
+const labels = Object.keys(distribusi);
+const values = Object.values(distribusi);
+const colors = labels.map(l => WARNA_KATEGORI[l] || '#b0bec5');
+
+const ctx = document.getElementById('chartBiaya').getContext('2d');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels,
+        datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderWidth: 0,
+            hoverOffset: 8,
+        }]
+    },
+    options: {
+        cutout: '60%',
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    font: { size: 11, family: 'Plus Jakarta Sans' },
+                    color: '#1a2e1d',
+                    padding: 12,
+                    generateLabels: (chart) => {
+                        const d = chart.data;
+                        const total = d.datasets[0].data.reduce((a, b) => a + b, 0);
+                        return d.labels.map((label, i) => ({
+                            text: `${label}  Rp ${Math.round(d.datasets[0].data[i]).toLocaleString('id-ID')}`,
+                            fillStyle: d.datasets[0].backgroundColor[i],
+                            strokeStyle: 'transparent',
+                            pointStyle: 'circle',
+                        }));
                     }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => ` Rp ${ctx.raw.toLocaleString('id-ID')}`
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: (ctx) => {
+                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct   = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                        return ` Rp ${Math.round(ctx.raw).toLocaleString('id-ID')} (${pct}%)`;
                     }
                 }
             }
         }
-    });
+    }
+});
 </script>
+@endif
 @endpush

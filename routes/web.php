@@ -10,6 +10,7 @@ use App\Http\Controllers\AnggaranController;
 use App\Http\Controllers\SimulasiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ImportTkpiController;
+use App\Http\Controllers\BudgetAlertController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -92,4 +93,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/preview', [ImportTkpiController::class, 'preview'])->name('preview');
         Route::post('/import',  [ImportTkpiController::class, 'import'])->name('import');
     });
+
+    Route::get('/budget-alert', [BudgetAlertController::class, 'index'])
+        ->name('budget-alert.index');
 });
