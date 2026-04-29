@@ -12,9 +12,9 @@
             <small class="text-muted">Unit: {{ auth()->user()->unit_sppg }}</small>
         </div>
         @if(auth()->user()->role === 'pengelola')
-        <a href="{{ route('menu-harian.create') }}" class="btn btn-primary"
+        <a href="{{ route('simulasi.index') }}" class="btn btn-primary"
            style="background:var(--primary);border-color:var(--primary)">
-            <i class="fas fa-plus me-1"></i> Tambah Menu
+            <i class="fas fa-flask me-1"></i> Buat Menu Baru
         </a>
         @endif
     </div>
@@ -28,6 +28,12 @@
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -157,7 +163,7 @@
                                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                                 Belum ada menu untuk bulan ini.
                                 @if(auth()->user()->role === 'pengelola')
-                                    <a href="{{ route('menu-harian.create') }}">Tambah sekarang</a>
+                                    <a href="{{ route('simulasi.index') }}">Buat menu via Simulasi</a>
                                 @endif
                             </td>
                         </tr>

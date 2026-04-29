@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\MenuHarian;
-use App\Models\BahanPangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,75 +37,14 @@ class MenuHarianController extends Controller
 
     public function create()
     {
-        if (auth()->user()->role !== 'pengelola') {
-            abort(403);
-        }
-
-        $user   = Auth::user();
-        $bahans = BahanPangan::select('id', 'nama_bahan', 'bdd')->orderBy('nama_bahan')->get();
-
-        $existing = MenuHarian::where('unit_sppg', $user->unit_sppg)
-            ->whereDate('tanggal', today())
-            ->first();
-
-        return view('menu-harian.create', compact('bahans', 'existing'));
+        return redirect()->route('simulasi.index')
+            ->with('info', 'Untuk membuat menu baru, gunakan fitur Simulasi Menu.');
     }
 
     public function store(Request $request)
     {
-        if (auth()->user()->role !== 'pengelola') {
-            abort(403);
-        }
-        
-        $user = Auth::user();
-
-        $data = $request->validate([
-            'tanggal'          => 'required|date',
-            'nama_menu'        => 'nullable|string|max:200',  // nullable karena null
-            'catatan'          => 'nullable|string|max:200',
-            'status'           => 'nullable|in:draft,final',
-            'bahans'           => 'nullable|array',
-            'bahans.*.bahan_pangan_id' => 'required_with:bahans|exists:bahan_pangans,id',
-            'bahans.*.jumlah_gram'     => 'required_with:bahans|numeric|min:0.01',
-            'bahans.*.jumlah_porsi'    => 'nullable|integer|min:1',
-        ]);
-
-        // Ambil jumlah_porsi dari bahan pertama (karena ada di dalam array bahans)
-        $bahans       = $data['bahans'] ?? [];
-        $jumlahPorsi  = !empty($bahans) ? ($bahans[0]['jumlah_porsi'] ?? 1) : 1;
-
-        // Cek duplikat
-        $existing = MenuHarian::where('unit_sppg', $user->unit_sppg)
-            ->whereDate('tanggal', $data['tanggal'])
-            ->first();
-
-        if ($existing) {
-            return redirect()->route('menu-harian.edit', $existing)
-                ->with('warning', 'Menu untuk tanggal ini sudah ada. Silakan edit menu yang sudah ada.');
-        }
-
-        $menu = MenuHarian::create([
-            'tanggal'            => $data['tanggal'],
-            'nama_menu'          => $data['nama_menu'] ?? '-',
-            'catatan_anggaran'   => $data['catatan'] ?? null,
-            'status'             => $data['status'] ?? 'draft',
-            'unit_sppg'          => $user->unit_sppg,
-            'user_id'            => $user->id,
-            'anggaran_per_porsi' => 15000,
-            'jumlah_porsi'       => $jumlahPorsi,
-        ]);
-
-        // Simpan detail bahan
-        foreach ($bahans as $b) {
-            $menu->detailBahans()->create([
-                'bahan_pangan_id' => $b['bahan_pangan_id'],
-                'jumlah_gram'     => $b['jumlah_gram'],
-                'jumlah_porsi'    => $b['jumlah_porsi'] ?? 1,  // ← tambahkan ini
-            ]);
-        }
-
-        return redirect()->route('menu-harian.index')
-            ->with('success', 'Menu berhasil disimpan.');
+        return redirect()->route('simulasi.index')
+            ->with('info', 'Untuk membuat menu baru, gunakan fitur Simulasi Menu.');
     }
 
     public function show(MenuHarian $menuHarian)

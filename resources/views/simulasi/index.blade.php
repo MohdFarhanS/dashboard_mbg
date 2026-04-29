@@ -81,11 +81,37 @@
         display:inline-flex; align-items:center; justify-content:center;
         font-size:.8rem; font-weight:700; flex-shrink:0;
     }
+
+    /* Tier radio BGN */
+    .tier-label {
+        cursor: pointer;
+        font-size: .82rem;
+        transition: border-color .15s, background .15s;
+    }
+    .tier-label:hover { border-color: #a8d5b5 !important; background: #f0faf4; }
+    .tier-label.active {
+        border-color: var(--primary) !important;
+        background: #e8f5ee;
+        font-weight: 600;
+    }
+
+    /* Stacked bar */
+    .chart-bar-segment { height: 100%; transition: width .4s ease; }
+    .chart-bar-segment:first-child { border-radius: 5px 0 0 5px; }
+    .chart-bar-segment:last-child  { border-radius: 0 5px 5px 0; }
+    .chart-bar-segment:only-child  { border-radius: 5px; }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid">
+
+    @if(session('info'))
+        <div class="alert alert-info alert-dismissible fade show mb-3">
+            <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -149,7 +175,7 @@
                         <div class="col-md-5"><small class="fw-semibold text-muted">Nama Bahan</small></div>
                         <div class="col-md-2"><small class="fw-semibold text-muted">Gram/sajian</small></div>
                         <div class="col-md-2"><small class="fw-semibold text-muted">Jumlah sajian</small></div>
-                        <div class="col-md-2"><small class="fw-semibold text-muted">Energi</small></div>
+                        <div class="col-md-2"><small class="fw-semibold text-muted">Est. Biaya</small></div>
                         <div class="col-md-1"></div>
                     </div>
 
@@ -166,22 +192,17 @@
                         <i class="fas fa-plus me-1"></i>Tambah Bahan
                     </button>
                 </div>
-            </div>
-
-            {{-- Langkah 3: Hitung --}}
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body py-3">
+                <div class="card-footer border-top bg-white py-2">
                     <div class="d-flex gap-2 align-items-center flex-wrap">
-                        <span class="step-badge">3</span>
                         <button type="button" id="btn-hitung"
-                                class="btn btn-success px-4"
+                                class="btn btn-success btn-sm px-3"
                                 style="background:var(--primary);border-color:var(--primary)" disabled>
-                            <i class="fas fa-calculator me-2"></i>Hitung Estimasi
+                            <i class="fas fa-calculator me-1"></i>Hitung Estimasi
                         </button>
-                        <button type="button" id="btn-reset" class="btn btn-outline-secondary">
+                        <button type="button" id="btn-reset" class="btn btn-outline-secondary btn-sm">
                             <i class="fas fa-redo me-1"></i>Reset
                         </button>
-                        <small class="text-muted ms-2" id="hint-hitung">Tambahkan minimal 1 bahan terlebih dahulu</small>
+                        <small class="text-muted" id="hint-hitung">Tambahkan minimal 1 bahan terlebih dahulu</small>
                     </div>
                 </div>
             </div>
@@ -201,10 +222,9 @@
                                     <th class="ps-3">Bahan</th>
                                     <th class="text-end">Gram</th>
                                     <th class="text-end">Sajian</th>
-                                    <th class="text-end">Energi</th>
-                                    <th class="text-end">Protein</th>
-                                    <th class="text-end">Lemak</th>
-                                    <th class="text-end">Karbo</th>
+                                    <th class="text-end">% Energi</th>
+                                    <th class="text-end">Biaya/kkal</th>
+                                    <th class="text-center">Status BDD</th>
                                     <th class="text-end pe-3">Biaya</th>
                                 </tr>
                             </thead>
@@ -240,7 +260,7 @@
                             <span class="fw-semibold small" style="color:var(--primary)">
                                 <i class="fas fa-heart-pulse me-1"></i>Pemenuhan Gizi vs AKG Makan Siang
                             </span>
-                            <span class="badge bg-secondary" id="badge-hari">— hari</span>
+                            <span id="badge-gizi-summary"></span>
                         </div>
                         <div class="card-body pb-2">
                             <div id="gizi-list">
@@ -257,6 +277,31 @@
                             </span>
                         </div>
                         <div class="card-body pb-3">
+
+                            {{-- Pemilih tingkatan anggaran per porsi BGN --}}
+                            <div class="mb-3">
+                                <div class="small fw-semibold mb-2 text-muted">
+                                    <i class="fas fa-layer-group me-1"></i>Tingkatan Anggaran per porsi BGN
+                                </div>
+                                <div class="d-flex flex-column gap-1">
+                                    <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
+                                           id="label-tier-13">
+                                        <input type="radio" name="bgn-tier" value="13000"
+                                               class="form-check-input mt-0 flex-shrink-0">
+                                        <span>Balita hingga Kelas 3 SD —
+                                            <strong>Rp13.000/porsi</strong></span>
+                                    </label>
+                                    <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
+                                           id="label-tier-15">
+                                        <input type="radio" name="bgn-tier" value="15000"
+                                               class="form-check-input mt-0 flex-shrink-0" checked>
+                                        <span>Kelas 4 SD hingga Ibu Menyusui —
+                                            <strong>Rp15.000/porsi</strong></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {{-- 5 kotak metrik --}}
                             <div class="row g-2 mb-3 text-center">
                                 <div class="col-6">
                                     <div class="border rounded-2 p-2">
@@ -282,6 +327,15 @@
                                         <div class="fw-bold" id="biaya-selisih">—</div>
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="border rounded-2 p-2" style="background:#f8f9fa">
+                                        <div class="text-muted small">Rasio Biaya Makanan</div>
+                                        <div class="fw-bold fs-5" id="biaya-rasio">—</div>
+                                        <div style="font-size:.7rem;color:#aaa">
+                                            cost per porsi ÷ anggaran × 100%
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- Budget progress bar --}}
@@ -292,10 +346,24 @@
                             <div class="budget-bar-wrap">
                                 <div class="budget-bar-fill" id="budget-bar" style="width:0%;background:var(--primary)"></div>
                             </div>
-                            <div class="alert mt-3 mb-0 py-2 d-none" id="alert-budget">
+                            <div class="alert mt-3 mb-3 py-2 d-none" id="alert-budget">
                                 <i class="fas fa-circle-info me-1"></i>
                                 <span id="alert-budget-text"></span>
                             </div>
+
+                            {{-- Grafik stacked bar proporsi biaya per kategori --}}
+                            <div id="chart-kategori-wrap" class="d-none">
+                                <div class="small fw-semibold text-muted mb-2">
+                                    <i class="fas fa-chart-bar me-1"></i>Proporsi Biaya per Kategori
+                                </div>
+                                <div id="chart-kategori-bar"
+                                     style="display:flex;height:22px;border-radius:5px;overflow:hidden;background:#e9ecef">
+                                </div>
+                                <div id="chart-kategori-legend"
+                                     style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -303,7 +371,7 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
                             <div class="fw-semibold small mb-2">
-                                <span class="step-badge me-1">4</span>
+                                <span class="step-badge me-1">3</span>
                                 Simpan sebagai Menu Harian (Draft)
                             </div>
                             <div class="mb-3">
@@ -342,6 +410,7 @@
                 <input type="hidden" class="bahan-lemak"    value="0">
                 <input type="hidden" class="bahan-karbo"    value="0">
                 <input type="hidden" class="bahan-bdd"      value="100">
+                <input type="hidden" class="bahan-harga"    value="0">
                 <div class="autocomplete-list d-none"></div>
             </div>
             <div class="col-md-2">
@@ -353,7 +422,7 @@
                        placeholder="sajian" min="1" value="1">
             </div>
             <div class="col-md-2">
-                <small class="energi-preview text-muted">— kkal</small>
+                <small class="biaya-preview text-muted">— /sajian</small>
             </div>
             <div class="col-md-1 text-end">
                 <button type="button" class="btn btn-sm btn-outline-danger btn-hapus py-0">
@@ -464,27 +533,42 @@ function pilihBahan(b, row, acList) {
     const bdd = b.bdd ?? 100;
     row.querySelector('.bahan-search').value  = `${b.kode} — ${b.nama_bahan}`;
     row.querySelector('.bahan-id').value       = b.id;
-    row.querySelector('.bahan-energi').value   = b.energi   ?? 0;
-    row.querySelector('.bahan-protein').value  = b.protein  ?? 0;
-    row.querySelector('.bahan-lemak').value    = b.lemak    ?? 0;
-    row.querySelector('.bahan-karbo').value    = b.karbohidrat ?? 0;
+    row.querySelector('.bahan-energi').value   = b.energi        ?? 0;
+    row.querySelector('.bahan-protein').value  = b.protein       ?? 0;
+    row.querySelector('.bahan-lemak').value    = b.lemak         ?? 0;
+    row.querySelector('.bahan-karbo').value    = b.karbohidrat   ?? 0;
     row.querySelector('.bahan-bdd').value      = bdd;
+    row.querySelector('.bahan-harga').value    = b.harga_per_100g ?? 0;
     row.querySelector('.bahan-label').textContent =
-        `${b.kategori} · Energi: ${b.energi ?? 0} kkal/100g · Protein: ${b.protein ?? 0} g · BDD: ${bdd}%`;
+        `${b.kategori} · Energi: ${b.energi ?? 0} kkal/100g · BDD: ${bdd}%`;
     if (acList) acList.classList.add('d-none');
     recalcRow(row);
     updateCountAndBtn();
 }
 
 function recalcRow(row) {
-    const gram   = parseFloat(row.querySelector('.input-gram').value)   || 0;
-    const sajian = parseInt(row.querySelector('.input-sajian').value)   || 1;
-    const bdd    = parseFloat(row.querySelector('.bahan-bdd').value)    || 100;
-    const e      = parseFloat(row.querySelector('.bahan-energi').value) || 0;
-    const f      = (gram * (bdd / 100)) / 100 * sajian;
-    const kkal   = f * e;
-    row.querySelector('.energi-preview').textContent =
-        gram > 0 ? `${kkal.toFixed(1)} kkal` : '— kkal';
+    const gram   = parseFloat(row.querySelector('.input-gram').value)  || 0;
+    const sajian = parseInt(row.querySelector('.input-sajian').value)  || 1;
+    const harga  = parseFloat(row.querySelector('.bahan-harga').value) || 0;
+    const el     = row.querySelector('.biaya-preview');
+
+    if (!row.querySelector('.bahan-id').value) {
+        el.textContent = '— /sajian';
+        el.style.color = '';
+        updateCountAndBtn();
+        return;
+    }
+    if (harga <= 0) {
+        el.textContent = 'Belum ada harga';
+        el.style.color = '#aaa';
+    } else if (gram > 0) {
+        const biaya = gram * sajian * harga / 100;
+        el.textContent = 'Rp ' + Math.round(biaya).toLocaleString('id-ID');
+        el.style.color = '#1a6b3a';
+    } else {
+        el.textContent = '— /sajian';
+        el.style.color = '';
+    }
     updateCountAndBtn();
 }
 
@@ -570,13 +654,16 @@ function renderHasil(data) {
 }
 
 function renderGizi(gizi, persenAkg) {
-    const keys = ['energi','protein','lemak','karbohidrat','serat','kalsium','besi','vit_c'];
-    let html = '';
+    const keys   = ['energi','protein','lemak','karbohidrat','serat','kalsium','besi','vit_c'];
+    let html     = '';
+    let kurangCount = 0;
+
     keys.forEach(k => {
         const pct  = persenAkg[k] || 0;
         const info = AKG_LABEL[k] || { label: k, satuan: '', icon: 'fa-circle' };
         const cls  = pct < 70 ? 'kurang' : pct > 130 ? 'lebih' : 'cukup';
         const barW = Math.min(pct, 100);
+        if (cls === 'kurang') kurangCount++;
         html += `
         <div class="mb-2">
             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -597,67 +684,176 @@ function renderGizi(gizi, persenAkg) {
             </div>
         </div>`;
     });
+
     document.getElementById('gizi-list').innerHTML = html;
-}
 
-function renderBiaya(b) {
-    const fmt = v => 'Rp ' + Math.round(v).toLocaleString('id-ID');
-    document.getElementById('biaya-total').textContent      = fmt(b.total);
-    document.getElementById('biaya-cost-porsi').textContent = fmt(b.cost_per_porsi);
-    document.getElementById('biaya-anggaran').textContent   = fmt(b.anggaran);
-
-    const selisih    = b.selisih;
-    const selisihEl  = document.getElementById('biaya-selisih');
-    selisihEl.textContent = (selisih >= 0 ? '+' : '-') + fmt(Math.abs(selisih));
-    selisihEl.style.color = selisih >= 0 ? '#1a6b3a' : '#dc3545';
-
-    const pct     = Math.min(b.persen_anggaran, 150);
-    const barEl   = document.getElementById('budget-bar');
-    barEl.style.width = Math.min(pct, 100) + '%';
-    barEl.style.background = pct > 100 ? '#dc3545' : pct >= 85 ? '#ffc107' : '#1a6b3a';
-    document.getElementById('persen-anggaran').textContent = b.persen_anggaran + '%';
-
-    const alertEl = document.getElementById('alert-budget');
-    const txtEl   = document.getElementById('alert-budget-text');
-    alertEl.classList.remove('d-none', 'alert-danger', 'alert-warning', 'alert-success');
-    if (b.anggaran === 0) {
-        alertEl.classList.add('d-none');
-    } else if (b.persen_anggaran > 100) {
-        alertEl.classList.add('alert-danger');
-        txtEl.textContent = `Over budget! Melebihi anggaran sebesar ${fmt(Math.abs(selisih))}.`;
-    } else if (b.persen_anggaran >= 85) {
-        alertEl.classList.add('alert-warning');
-        txtEl.textContent = `Mendekati batas anggaran (${b.persen_anggaran}%). Sisa ${fmt(selisih)}.`;
+    // Badge ringkasan
+    const badgeEl = document.getElementById('badge-gizi-summary');
+    if (kurangCount === 0) {
+        badgeEl.innerHTML =
+            `<span class="badge" style="background:#d1e7dd;color:#0a3622;font-size:.7rem">
+                <i class="fas fa-check-circle me-1"></i>Gizi Lengkap ✓
+            </span>`;
     } else {
-        alertEl.classList.add('alert-success');
-        txtEl.textContent = `Anggaran aman. Sisa ${fmt(selisih)} (${b.persen_anggaran}% terpakai).`;
+        badgeEl.innerHTML =
+            `<span class="badge" style="background:#fff3cd;color:#664d03;font-size:.7rem">
+                <i class="fas fa-exclamation-circle me-1"></i>${kurangCount} zat gizi kurang
+            </span>`;
     }
 }
 
+const CHART_COLORS = [
+    '#1a6b3a','#2196F3','#FF9800','#9C27B0',
+    '#F44336','#00BCD4','#795548','#607D8B','#E91E63','#FF5722',
+];
+
+function renderBiaya(b) {
+    const fmt = v => 'Rp ' + Math.round(v).toLocaleString('id-ID');
+
+    // Baca anggaran dari radio yang dipilih (override server value)
+    const checkedTier = document.querySelector('input[name="bgn-tier"]:checked');
+    const anggaran    = checkedTier ? parseInt(checkedTier.value) : b.anggaran;
+
+    // Hitung ulang berdasarkan anggaran yang dipilih
+    const costPerPorsi  = b.cost_per_porsi;
+    const selisih       = anggaran - costPerPorsi;
+    const persenAngg    = anggaran > 0
+        ? Math.round(costPerPorsi / anggaran * 1000) / 10   // 1 desimal
+        : 0;
+
+    // Highlight label aktif
+    document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
+    if (checkedTier) checkedTier.closest('.tier-label')?.classList.add('active');
+
+    // Kotak metrik
+    document.getElementById('biaya-total').textContent      = fmt(b.total);
+    document.getElementById('biaya-cost-porsi').textContent = fmt(costPerPorsi);
+    document.getElementById('biaya-anggaran').textContent   = fmt(anggaran);
+
+    const selisihEl = document.getElementById('biaya-selisih');
+    selisihEl.textContent = (selisih >= 0 ? '+' : '') + fmt(selisih);
+    selisihEl.style.color = selisih >= 0 ? '#1a6b3a' : '#dc3545';
+
+    // Rasio biaya makanan
+    const rasioEl = document.getElementById('biaya-rasio');
+    rasioEl.textContent   = anggaran > 0 ? persenAngg + '%' : '—';
+    rasioEl.style.color   = persenAngg > 100 ? '#dc3545'
+                          : persenAngg >= 85  ? '#856404'
+                          : '#1a6b3a';
+
+    // Budget bar
+    const barEl = document.getElementById('budget-bar');
+    barEl.style.width      = Math.min(persenAngg, 100) + '%';
+    barEl.style.background = persenAngg > 100 ? '#dc3545'
+                           : persenAngg >= 85  ? '#ffc107'
+                           : '#1a6b3a';
+    document.getElementById('persen-anggaran').textContent = persenAngg + '%';
+
+    // Alert anggaran
+    const alertEl = document.getElementById('alert-budget');
+    const txtEl   = document.getElementById('alert-budget-text');
+    alertEl.classList.remove('d-none', 'alert-danger', 'alert-warning', 'alert-success');
+    if (anggaran === 0) {
+        alertEl.classList.add('d-none');
+    } else if (persenAngg > 100) {
+        alertEl.classList.add('alert-danger');
+        txtEl.textContent = `Over budget! Melebihi anggaran sebesar ${fmt(Math.abs(selisih))}.`;
+    } else if (persenAngg >= 85) {
+        alertEl.classList.add('alert-warning');
+        txtEl.textContent = `Mendekati batas anggaran (${persenAngg}%). Sisa ${fmt(selisih)}.`;
+    } else {
+        alertEl.classList.add('alert-success');
+        txtEl.textContent = `Anggaran aman. Sisa ${fmt(selisih)} (${persenAngg}% terpakai).`;
+    }
+
+    // Grafik stacked bar per kategori
+    if (hasilKalkulasi?.detail?.length) {
+        renderKategoriChart(hasilKalkulasi.detail);
+    }
+}
+
+function renderKategoriChart(detail) {
+    // Kelompokkan & jumlahkan biaya per kategori (hanya yang ada harga)
+    const map = {};
+    let totalBiaya = 0;
+    detail.forEach(d => {
+        if (!d.ada_harga || d.biaya <= 0) return;
+        const kat = d.kategori || 'Lainnya';
+        map[kat]   = (map[kat] || 0) + d.biaya;
+        totalBiaya += d.biaya;
+    });
+
+    const wrap  = document.getElementById('chart-kategori-wrap');
+    const barEl = document.getElementById('chart-kategori-bar');
+    const legEl = document.getElementById('chart-kategori-legend');
+
+    if (totalBiaya === 0) { wrap.classList.add('d-none'); return; }
+    wrap.classList.remove('d-none');
+
+    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+
+    let barHtml = '';
+    let legHtml = '';
+    entries.forEach(([kat, biaya], i) => {
+        const pct   = (biaya / totalBiaya * 100).toFixed(1);
+        const color = CHART_COLORS[i % CHART_COLORS.length];
+        barHtml += `<div class="chart-bar-segment" style="width:${pct}%;background:${color}"
+                        title="${kat}: Rp ${Math.round(biaya).toLocaleString('id-ID')} (${pct}%)"></div>`;
+        legHtml += `
+            <div style="display:flex;align-items:center;gap:4px;font-size:.72rem">
+                <div style="width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></div>
+                <span class="text-muted">${kat}&ensp;<strong>${pct}%</strong></span>
+            </div>`;
+    });
+
+    barEl.innerHTML = barHtml;
+    legEl.innerHTML = legHtml;
+}
+
 function renderDetail(detail) {
-    const fmt  = v => v.toFixed(1);
     const fmtRp = v => v > 0 ? 'Rp ' + Math.round(v).toLocaleString('id-ID') : '—';
 
-    let rowsHtml = '';
-    let totE=0, totP=0, totL=0, totK=0, totBiaya=0;
+    // Pass 1: hitung total energi & biaya untuk persentase
+    let totE = 0, totBiaya = 0;
+    detail.forEach(d => { totE += d.gizi.energi; totBiaya += d.biaya; });
 
+    // Pass 2: render baris
+    let rowsHtml = '';
     detail.forEach(d => {
-        const g = d.gizi;
-        totE   += g.energi;  totP += g.protein;
-        totL   += g.lemak;   totK += g.karbohidrat;
-        totBiaya += d.biaya;
+        const energi      = d.gizi.energi;
+        const pctEnergi   = totE > 0 ? (energi / totE * 100).toFixed(1) : '0.0';
+        const biayaPerKkal = (d.ada_harga && energi > 0)
+            ? 'Rp ' + (d.biaya / energi).toFixed(0)
+            : '—';
+
+        // Status BDD
+        const bdd = d.bdd ?? 100;
+        let bddBadge;
+        if (bdd >= 90) {
+            bddBadge = `<span class="badge" style="background:#d1e7dd;color:#0a3622">
+                            <i class="fas fa-check-circle me-1"></i>Efisien (${bdd}%)
+                        </span>`;
+        } else if (bdd >= 70) {
+            bddBadge = `<span class="badge" style="background:#fff3cd;color:#664d03">
+                            <i class="fas fa-exclamation-circle me-1"></i>Sedang (${bdd}%)
+                        </span>`;
+        } else {
+            bddBadge = `<span class="badge" style="background:#f8d7da;color:#842029">
+                            <i class="fas fa-times-circle me-1"></i>Boros (${bdd}%)
+                        </span>`;
+        }
+
         rowsHtml += `
         <tr>
             <td class="ps-3">
                 <div class="fw-semibold">${d.nama}</div>
-                <small class="text-muted">${d.kategori} · BDD ${d.bdd}%</small>
+                <small class="text-muted">${d.kategori}</small>
             </td>
             <td class="text-end">${d.gram}g</td>
             <td class="text-end">${d.porsi}x</td>
-            <td class="text-end fw-semibold" style="color:var(--primary)">${fmt(g.energi)}</td>
-            <td class="text-end">${fmt(g.protein)}</td>
-            <td class="text-end">${fmt(g.lemak)}</td>
-            <td class="text-end">${fmt(g.karbohidrat)}</td>
+            <td class="text-end fw-semibold" style="color:var(--primary)">${pctEnergi}%</td>
+            <td class="text-end text-muted small">${biayaPerKkal}</td>
+            <td class="text-center">${bddBadge}</td>
             <td class="text-end pe-3">
                 ${d.ada_harga
                     ? `<span style="color:#1a6b3a">${fmtRp(d.biaya)}</span>`
@@ -670,10 +866,9 @@ function renderDetail(detail) {
     document.getElementById('tfoot-detail').innerHTML = `
         <tr class="fw-semibold">
             <td class="ps-3" colspan="3">Total</td>
-            <td class="text-end" style="color:var(--primary)">${fmt(totE)} kkal</td>
-            <td class="text-end">${fmt(totP)} g</td>
-            <td class="text-end">${fmt(totL)} g</td>
-            <td class="text-end">${fmt(totK)} g</td>
+            <td class="text-end" style="color:var(--primary)">${totE.toFixed(1)} kkal</td>
+            <td class="text-end">—</td>
+            <td></td>
             <td class="text-end pe-3" style="color:var(--primary)">Rp ${Math.round(totBiaya).toLocaleString('id-ID')}</td>
         </tr>`;
 }
@@ -721,22 +916,37 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 
         if (res.ok && data.success) {
             successEl.classList.remove('d-none');
-            successEl.innerHTML = `<i class="fas fa-check-circle me-1"></i>${data.success}
-                <a href="${data.redirect}" class="alert-link ms-2">Lihat Menu →</a>`;
+            successEl.innerHTML = `<i class="fas fa-check-circle me-1"></i>${data.success} Mengalihkan…`;
             errorEl.classList.add('d-none');
+            setTimeout(() => { window.location.href = data.redirect; }, 1200);
         } else {
             errorEl.classList.remove('d-none');
             errorEl.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i>${data.error || 'Gagal menyimpan.'}
                 ${data.redirect ? `<a href="${data.redirect}" class="alert-link ms-2">Edit menu →</a>` : ''}`;
             successEl.classList.add('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-1"></i>Simpan ke Menu Harian';
         }
     } catch (e) {
         console.error(e);
         alert('Gagal menghubungi server.');
-    } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-save me-1"></i>Simpan ke Menu Harian';
     }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIER ANGGARAN BGN — re-render biaya saat radio berubah
+// ═══════════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('input[name="bgn-tier"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        if (hasilKalkulasi?.biaya) renderBiaya(hasilKalkulasi.biaya);
+    });
+});
+
+// Set label aktif awal (tier 15000 checked by default)
+document.querySelectorAll('.tier-label').forEach(el => {
+    if (el.querySelector('input[name="bgn-tier"]')?.checked) el.classList.add('active');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

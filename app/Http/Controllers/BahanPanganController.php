@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanPangan;
+use App\Models\HargaBahan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BahanPanganController extends Controller
@@ -165,6 +167,9 @@ class BahanPanganController extends Controller
         $q     = $request->input('q', '');
         $limit = $request->input('limit', 8);
 
+        $unit    = Auth::user()->unit_sppg;
+        $tanggal = today()->toDateString();
+
         $results = BahanPangan::where('is_active', true)
             ->where(function ($query) use ($q) {
                 $query->where('nama_bahan', 'like', "%{$q}%")
@@ -176,9 +181,9 @@ class BahanPanganController extends Controller
             ])
             ->limit($limit)
             ->get()
-            ->map(function ($item) {
-                // Pastikan bdd tidak null
-                $item->bdd = $item->bdd ?? 100;
+            ->map(function ($item) use ($unit, $tanggal) {
+                $item->bdd           = $item->bdd ?? 100;
+                $item->harga_per_100g = HargaBahan::hargaAktif($item->id, $unit, $tanggal) ?: null;
                 return $item;
             });
 
