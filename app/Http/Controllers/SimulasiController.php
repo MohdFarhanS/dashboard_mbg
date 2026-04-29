@@ -3,7 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BahanPangan;
 use App\Models\MenuHarian;
-use App\Models\DetailBahan;
+use App\Models\MenuDetailBahan;
 use App\Models\AnggaranPorsi;
 use App\Models\HargaBahan;
 use App\Constants\AKG;
@@ -136,17 +136,17 @@ class SimulasiController extends Controller
                 'unit_sppg'          => Auth::user()->unit_sppg,
                 'tanggal'            => $request->tanggal,
                 'nama_menu'          => $request->nama_menu,
-                'catatan'            => $request->catatan,
+                'catatan_anggaran'   => $request->catatan,
                 'jumlah_porsi'       => $request->jumlah_porsi,
                 'anggaran_per_porsi' => AnggaranPorsi::aktif(
                     Auth::user()->unit_sppg, $request->tanggal
                 ),
-                'status'     => 'draft',
-                'created_by' => Auth::id(),
+                'status'  => 'draft',
+                'user_id' => Auth::id(),
             ]);
 
             foreach ($request->bahans as $item) {
-                DetailBahan::create([
+                MenuDetailBahan::create([
                     'menu_harian_id'  => $menu->id,
                     'bahan_pangan_id' => $item['id'],
                     'jumlah_gram'     => $item['gram'],
