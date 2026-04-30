@@ -78,9 +78,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('simulasi')->name('simulasi.')->middleware('auth')->group(function () {
-        Route::get('/',           [SimulasiController::class, 'index'])->name('index');
-        Route::post('/kalkulasi', [SimulasiController::class, 'kalkulasi'])->name('kalkulasi');
-        Route::post('/simpan',    [SimulasiController::class, 'simpan'])->name('simpan');
+        Route::get('/',                        [SimulasiController::class, 'index'])->name('index');
+        Route::get('/{menuHarian}/edit',       [SimulasiController::class, 'editMenu'])->name('edit-simulasi');
+        Route::post('/kalkulasi',              [SimulasiController::class, 'kalkulasi'])->name('kalkulasi');
+        Route::post('/simpan',                 [SimulasiController::class, 'simpan'])->name('simpan');
     });
 
     Route::prefix('laporan')->name('laporan.')->middleware('auth')->group(function () {

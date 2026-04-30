@@ -32,7 +32,7 @@ class MenuHarian extends Model
         foreach ($this->detailBahans as $detail) {
             $b = $detail->bahanPangan;
             if (!$b) continue;
-            $faktor = ($detail->jumlah_gram * ($b->bdd / 100)) / 100 * $detail->jumlah_porsi; // ← tambah × jumlah_porsi
+            $faktor = ($detail->jumlah_gram * (($b->bdd ?? 100) / 100)) / 100 * $detail->jumlah_porsi; // ← tambah × jumlah_porsi
             foreach ($keys as $k) {
                 $total[$k] += round($faktor * ($b->$k ?? 0), 2);
             }

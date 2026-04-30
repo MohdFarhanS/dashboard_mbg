@@ -3,25 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanPangan;
+use App\Models\ImportLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ImportTkpiController extends Controller
 {
-    // Mapping kolom CSV → kolom database
+    // Mapping kolom CSV → kolom database (sesuai kolom tabel bahan_pangans)
     const KOLOM_MAP = [
         'nama_bahan'  => ['nama_bahan', 'nama bahan', 'food name', 'bahan pangan', 'nama'],
+        'kategori'    => ['kategori', 'category', 'golongan', 'kelompok pangan'],
+        'sub_kategori'=> ['sub_kategori', 'sub_category', 'jenis', 'type'],
+        'kode_lama'   => ['kode_lama', 'kode lama', 'old code', 'kode_asli'],
+        'sumber'      => ['sumber', 'source', 'sumber data', 'referensi'],
+        'bdd'         => ['bdd', 'berat dapat dimakan', '%bdd', 'edible portion'],
+        'air'         => ['air', 'water', 'moisture'],
         'energi'      => ['energi', 'energy', 'kalori', 'kal', 'kkal'],
         'protein'     => ['protein'],
         'lemak'       => ['lemak', 'fat', 'total fat'],
         'karbohidrat' => ['karbohidrat', 'carbohydrate', 'karbo', 'kh'],
         'serat'       => ['serat', 'fiber', 'dietary fiber', 'serat pangan'],
+        'abu'         => ['abu', 'ash'],
         'kalsium'     => ['kalsium', 'calcium', 'ca'],
+        'fosfor'      => ['fosfor', 'phosphorus', 'phosphor', 'p'],
         'besi'        => ['besi', 'iron', 'fe', 'zat besi'],
+        'natrium'     => ['natrium', 'sodium', 'na'],
+        'kalium'      => ['kalium', 'potassium', 'k'],
+        'tembaga'     => ['tembaga', 'copper', 'cu'],
+        'seng'        => ['seng', 'zinc', 'zn'],
+        'retinol'     => ['retinol', 'vitamin a', 'vit a', 'vit_a'],
+        'b_karoten'   => ['b_karoten', 'b karoten', 'beta karoten', 'beta carotene', 'karoten'],
+        'kar_total'   => ['kar_total', 'karoten total', 'total carotene', 'total karoten'],
+        'thiamin'     => ['thiamin', 'thiamine', 'vitamin b1', 'vit b1', 'vit_b1', 'b1'],
+        'riboflavin'  => ['riboflavin', 'vitamin b2', 'vit b2', 'vit_b2', 'b2'],
+        'niasin'      => ['niasin', 'niacin', 'vitamin b3', 'vit b3', 'b3'],
         'vit_c'       => ['vit_c', 'vitamin c', 'vit c', 'vitc', 'asam askorbat'],
-        'air'         => ['air', 'water', 'moisture'],
-        'harga_per_kg'=> ['harga_per_kg', 'harga', 'price', 'harga/kg'],
     ];
     
     public function index()
@@ -30,7 +47,7 @@ class ImportTkpiController extends Controller
             abort(403);
         }
         $totalBahan = BahanPangan::count();
-        $riwayat    = session('import_riwayat', []);
+        $riwayat    = ImportLog::with('user')->latest()->limit(10)->get();
         return view('import-tkpi.index', compact('totalBahan', 'riwayat'));
     }
 
@@ -63,11 +80,12 @@ class ImportTkpiController extends Controller
         $tmpPath = storage_path('app/tmp_import_' . auth()->id() . '.csv');
         copy($path, $tmpPath);
 
-        session(['import_tmp' => $tmpPath, 'import_headers' => $headers, 'import_mapped' => $mapped]);
+        $originalFilename = $request->file('csv_file')->getClientOriginalName();
+        session(['import_tmp' => $tmpPath, 'import_headers' => $headers, 'import_mapped' => $mapped, 'import_filename' => $originalFilename]);
 
         return view('import-tkpi.index', [
             'totalBahan' => BahanPangan::count(),
-            'riwayat'    => session('import_riwayat', []),
+            'riwayat'    => ImportLog::with('user')->latest()->limit(10)->get(),
             'headers'    => $headers,
             'preview'    => $preview,
             'mapped'     => $mapped,
@@ -77,9 +95,10 @@ class ImportTkpiController extends Controller
 
     public function import(Request $request)
     {
-        $tmpPath = session('import_tmp');
-        $mapped  = session('import_mapped');
-        $mode    = $request->input('mode', 'skip'); // skip | update
+        $tmpPath  = session('import_tmp');
+        $mapped   = session('import_mapped');
+        $filename = session('import_filename', 'unknown.csv');
+        $mode     = $request->input('mode', 'skip'); // skip | update
 
         if (!$tmpPath || !file_exists($tmpPath)) {
             return back()->withErrors(['csv_file' => 'Session preview sudah kedaluwarsa. Upload ulang file CSV.']);
@@ -127,18 +146,21 @@ class ImportTkpiController extends Controller
 
         // Hapus file tmp
         @unlink($tmpPath);
-        session()->forget(['import_tmp', 'import_headers', 'import_mapped']);
+        session()->forget(['import_tmp', 'import_headers', 'import_mapped', 'import_filename']);
 
-        // Simpan riwayat di session
-        $riwayat = session('import_riwayat', []);
-        array_unshift($riwayat, [
-            'waktu'    => now()->format('d/m/Y H:i'),
-            'inserted' => $inserted,
-            'updated'  => $updated,
-            'skipped'  => $skipped,
-            'mode'     => $mode,
-        ]);
-        session(['import_riwayat' => array_slice($riwayat, 0, 5)]);
+        // Simpan ringkasan log ke database
+        try {
+            ImportLog::create([
+                'user_id'  => auth()->id(),
+                'filename' => $filename,
+                'inserted' => $inserted,
+                'updated'  => $updated,
+                'skipped'  => $skipped,
+                'mode'     => $mode,
+            ]);
+        } catch (\Exception $e) {
+            // Log tidak kritis — data bahan_pangans tetap tersimpan
+        }
 
         return redirect()->route('import-tkpi.index')
             ->with('success', "Import selesai: {$inserted} ditambah, {$updated} diupdate, {$skipped} dilewati.")
@@ -205,7 +227,11 @@ class ImportTkpiController extends Controller
 
     private function filterData(array $data): array
     {
-        $numericCols = ['energi','protein','lemak','karbohidrat','serat','kalsium','besi','vit_c','air','harga_per_kg'];
+        $numericCols = [
+            'bdd', 'air', 'energi', 'protein', 'lemak', 'karbohidrat', 'serat', 'abu',
+            'kalsium', 'fosfor', 'besi', 'natrium', 'kalium', 'tembaga', 'seng',
+            'retinol', 'b_karoten', 'kar_total', 'thiamin', 'riboflavin', 'niasin', 'vit_c',
+        ];
         foreach ($numericCols as $col) {
             if (isset($data[$col])) {
                 $data[$col] = (float) str_replace(',', '.', $data[$col]);

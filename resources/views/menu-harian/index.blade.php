@@ -142,7 +142,7 @@
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 @if(auth()->user()->role === 'pengelola' && $menu->status !== 'final')
-                                <a href="{{ route('menu-harian.edit', $menu) }}"
+                                <a href="{{ route('simulasi.edit-simulasi', $menu) }}"
                                    class="btn btn-sm btn-outline-primary me-1">
                                     <i class="fas fa-edit"></i>
                                 </a>

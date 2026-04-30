@@ -139,22 +139,39 @@
                     </span>
                 </div>
                 <div class="card-body pb-3">
+                    @isset($menuHarian)
+                    <div class="alert alert-info py-2 mb-3 d-flex align-items-center gap-2" style="font-size:.85rem">
+                        <i class="fas fa-pen-to-square"></i>
+                        Mode Edit — <strong>{{ $menuHarian->tanggal->translatedFormat('d F Y') }}</strong>
+                        &nbsp;·&nbsp;{{ $menuHarian->unit_sppg }}
+                        <a href="{{ route('menu-harian.show', $menuHarian) }}"
+                           class="btn btn-sm btn-outline-secondary ms-auto py-0">
+                            <i class="fas fa-times me-1"></i>Batal
+                        </a>
+                    </div>
+                    @endisset
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Tanggal</label>
                             <input type="date" id="sim-tanggal" class="form-control form-control-sm"
-                                   value="{{ today()->format('Y-m-d') }}">
+                                   value="{{ isset($menuHarian) ? $menuHarian->tanggal->format('Y-m-d') : today()->format('Y-m-d') }}"
+                                   @isset($menuHarian) readonly style="background:#f8f9fa" @endisset>
+                            @isset($menuHarian)
+                            <div class="form-text"><i class="fas fa-lock fa-xs me-1"></i>Tanggal tidak dapat diubah.</div>
+                            @endisset
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Jumlah Porsi</label>
                             <input type="number" id="sim-porsi" class="form-control form-control-sm"
-                                   value="1" min="1" max="9999">
+                                   value="{{ isset($menuHarian) ? $menuHarian->jumlah_porsi : 1 }}"
+                                   min="1" max="9999">
                             <div class="form-text">Jumlah penerima manfaat</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Nama Menu <span class="text-muted fw-normal">(opsional)</span></label>
                             <input type="text" id="sim-nama-menu" class="form-control form-control-sm"
-                                   placeholder="cth. Nasi Ayam Sayur">
+                                   placeholder="cth. Nasi Ayam Sayur"
+                                   value="{{ isset($menuHarian) ? ($menuHarian->nama_menu ?? '') : '' }}">
                         </div>
                     </div>
                 </div>
@@ -372,17 +389,26 @@
                         <div class="card-body">
                             <div class="fw-semibold small mb-2">
                                 <span class="step-badge me-1">3</span>
-                                Simpan sebagai Menu Harian (Draft)
+                                @isset($menuHarian)
+                                    Perbarui Menu Harian
+                                @else
+                                    Simpan sebagai Menu Harian (Draft)
+                                @endisset
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Catatan <span class="text-muted fw-normal">(opsional)</span></label>
                                 <input type="text" id="sim-catatan" class="form-control form-control-sm"
-                                       placeholder="cth. Untuk siswa SD Negeri 01">
+                                       placeholder="cth. Untuk siswa SD Negeri 01"
+                                       value="{{ isset($menuHarian) ? ($menuHarian->catatan_anggaran ?? '') : '' }}">
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="button" id="btn-simpan" class="btn btn-success flex-fill"
                                         style="background:var(--primary);border-color:var(--primary)">
-                                    <i class="fas fa-save me-1"></i>Simpan ke Menu Harian
+                                    @isset($menuHarian)
+                                        <i class="fas fa-sync me-1"></i>Perbarui Menu
+                                    @else
+                                        <i class="fas fa-save me-1"></i>Simpan ke Menu Harian
+                                    @endisset
                                 </button>
                             </div>
                             <div class="alert alert-success mt-2 d-none py-2" id="alert-simpan"></div>
@@ -455,7 +481,7 @@ let hasilKalkulasi = null;   // simpan hasil AJAX terakhir
 // ═══════════════════════════════════════════════════════════════════════════════
 document.getElementById('btn-tambah').addEventListener('click', () => tambahBahan());
 
-function tambahBahan() {
+function tambahBahan(skipFocus = false) {
     const tpl  = document.getElementById('tpl-bahan');
     const clone = tpl.content.cloneNode(true);
     const idx   = bahanCounter++;
@@ -500,7 +526,7 @@ function tambahBahan() {
     row.querySelector('.input-sajian').addEventListener('input', () => recalcRow(row));
 
     updateCountAndBtn();
-    searchInput.focus();
+    if (!skipFocus) searchInput.focus();
 }
 
 async function fetchBahan(q, acList, row) {
@@ -896,6 +922,9 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
         jumlah_porsi : parseInt(document.getElementById('sim-porsi').value) || 1,
         bahans,
         _token       : '{{ csrf_token() }}',
+        @isset($menuHarian)
+        menu_id      : {{ $menuHarian->id }},
+        @endisset
     };
 
     const btn = document.getElementById('btn-simpan');
@@ -948,6 +977,35 @@ document.querySelectorAll('input[name="bgn-tier"]').forEach(radio => {
 document.querySelectorAll('.tier-label').forEach(el => {
     if (el.querySelector('input[name="bgn-tier"]')?.checked) el.classList.add('active');
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PRE-FILL (mode edit — hanya dijalankan jika $menuHarian tersedia)
+// ═══════════════════════════════════════════════════════════════════════════════
+@isset($menuHarian)
+document.addEventListener('DOMContentLoaded', () => {
+    const bahansEdit = @json($existingBahans);
+    bahansEdit.forEach(b => {
+        tambahBahan(true); // skipFocus agar tidak scroll ke tiap baris
+        const list = document.getElementById('bahan-list');
+        const row  = list.lastElementChild;
+        pilihBahan({
+            id           : b.id,
+            kode         : b.kode,
+            nama_bahan   : b.nama_bahan,
+            kategori     : b.kategori,
+            energi       : b.energi,
+            protein      : b.protein,
+            lemak        : b.lemak,
+            karbohidrat  : b.karbohidrat,
+            bdd          : b.bdd,
+            harga_per_100g: null,
+        }, row, null);
+        row.querySelector('.input-gram').value   = b.jumlah_gram;
+        row.querySelector('.input-sajian').value = b.jumlah_porsi;
+        recalcRow(row);
+    });
+});
+@endisset
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RESET

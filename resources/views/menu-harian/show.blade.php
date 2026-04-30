@@ -31,7 +31,7 @@
                     <i class="fas fa-pencil me-1"></i>Draft
                 </span>
                 @if(auth()->user()->role === 'pengelola')
-                <a href="{{ route('menu-harian.edit', $menuHarian) }}" class="btn btn-outline-primary btn-sm">
+                <a href="{{ route('simulasi.edit-simulasi', $menuHarian) }}" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-edit me-1"></i>Edit
                 </a>
                 <form action="{{ route('menu-harian.finalize', $menuHarian) }}" method="POST"
@@ -54,25 +54,60 @@
         </div>
     @endif
 
-    @php $gizi = $menuHarian->totalGizi(); @endphp
+    @php
+        $gizi = $menuHarian->totalGizi();
+        $akg  = \App\Constants\AKG::MAKAN_SIANG;
+        $giziMeta = [
+            ['key'=>'energi',      'label'=>'Energi',      'unit'=>'kkal', 'color'=>'#1a6b3a', 'icon'=>'fa-fire',      'bg'=>'#e8f5ee'],
+            ['key'=>'protein',     'label'=>'Protein',     'unit'=>'g',    'color'=>'#0d6efd', 'icon'=>'fa-dumbbell',  'bg'=>'#e7f0ff'],
+            ['key'=>'lemak',       'label'=>'Lemak',       'unit'=>'g',    'color'=>'#fd7e14', 'icon'=>'fa-droplet',   'bg'=>'#fff3e0'],
+            ['key'=>'karbohidrat', 'label'=>'Karbohidrat', 'unit'=>'g',    'color'=>'#6f42c1', 'icon'=>'fa-wheat-awn', 'bg'=>'#f3eeff'],
+            ['key'=>'serat',       'label'=>'Serat',       'unit'=>'g',    'color'=>'#20c997', 'icon'=>'fa-leaf',      'bg'=>'#e6faf5'],
+            ['key'=>'vit_c',       'label'=>'Vit. C',      'unit'=>'mg',   'color'=>'#dc3545', 'icon'=>'fa-lemon',     'bg'=>'#fff0f0'],
+        ];
+    @endphp
 
     {{-- Stat gizi --}}
     <div class="row g-3 mb-4">
-        @foreach([
-            ['Energi',      'energi',      'kkal', '#1a6b3a'],
-            ['Protein',     'protein',     'g',    '#0d6efd'],
-            ['Lemak',       'lemak',       'g',    '#fd7e14'],
-            ['Karbohidrat', 'karbohidrat', 'g',    '#6f42c1'],
-            ['Serat',       'serat',       'g',    '#20c997'],
-            ['Vit. C',      'vit_c',       'mg',   '#dc3545'],
-        ] as [$label, $key, $unit, $color])
-        <div class="col-6 col-md-2">
-            <div class="card border-0 shadow-sm text-center h-100">
-                <div class="card-body py-3 px-2">
-                    <div class="fw-bold fs-5" style="color:{{ $color }}">
-                        {{ number_format($gizi[$key], 1) }}
+        @foreach($giziMeta as $m)
+        @php
+            $nilai  = $gizi[$m['key']] ?? 0;
+            $target = $akg[$m['key']]  ?? 1;
+            $pct    = $target > 0 ? round($nilai / $target * 100, 1) : 0;
+            $barW   = min($pct, 100);
+            if ($pct < 70)       $status = ['label'=>'Kurang', 'color'=>'#842029', 'bg'=>'#f8d7da'];
+            elseif ($pct > 130)  $status = ['label'=>'Lebih',  'color'=>'#664d03', 'bg'=>'#fff3cd'];
+            else                 $status = ['label'=>'Cukup',  'color'=>'#0a3622', 'bg'=>'#d1e7dd'];
+        @endphp
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100" style="overflow:hidden">
+                <div class="card-body p-3">
+                    {{-- Icon + label --}}
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:32px;height:32px;background:{{ $m['bg'] }}">
+                            <i class="fas {{ $m['icon'] }}" style="color:{{ $m['color'] }};font-size:.8rem"></i>
+                        </div>
+                        <div style="min-width:0">
+                            <div class="fw-semibold text-truncate" style="font-size:.8rem;line-height:1.2">{{ $m['label'] }}</div>
+                            <div class="text-muted" style="font-size:.68rem">Target {{ $target }} {{ $m['unit'] }}</div>
+                        </div>
                     </div>
-                    <div class="text-muted" style="font-size:.75rem">{{ $label }} ({{ $unit }})</div>
+                    {{-- Nilai --}}
+                    <div class="fw-bold lh-1" style="font-size:1.35rem;color:{{ $m['color'] }}">
+                        {{ number_format($nilai, 1) }}
+                        <span class="fw-normal text-muted" style="font-size:.72rem">{{ $m['unit'] }}</span>
+                    </div>
+                    {{-- Badge + bar --}}
+                    <div class="d-flex align-items-center justify-content-between mt-2 mb-1">
+                        <span class="badge" style="font-size:.62rem;background:{{ $status['bg'] }};color:{{ $status['color'] }}">
+                            {{ $status['label'] }}
+                        </span>
+                        <span style="font-size:.7rem;font-weight:600;color:{{ $m['color'] }}">{{ $pct }}%</span>
+                    </div>
+                    <div style="height:5px;background:#e9ecef;border-radius:3px;overflow:hidden">
+                        <div style="height:100%;width:{{ $barW }}%;background:{{ $m['color'] }};border-radius:3px"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -200,14 +235,17 @@
                             <th class="text-end">BDD</th>
                             <th class="text-end">Energi</th>
                             <th class="text-end">Protein</th>
-                            <th class="text-end pe-4">Lemak</th>
+                            <th class="text-end">Lemak</th>
+                            <th class="text-end">Karbo</th>
+                            <th class="text-end">Serat</th>
+                            <th class="text-end pe-4">Vit. C</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($menuHarian->detailBahans as $detail)
                         @php
                             $b = $detail->bahanPangan;
-                            $f = ($detail->jumlah_gram * ($b->bdd / 100)) / 100 * $detail->jumlah_porsi;
+                            $f = ($detail->jumlah_gram * (($b->bdd ?? 100) / 100)) / 100 * $detail->jumlah_porsi;
                         @endphp
                         <tr>
                             <td class="ps-4">
@@ -222,11 +260,14 @@
                                 {{ number_format($f * ($b->energi ?? 0), 1) }}
                             </td>
                             <td class="text-end">{{ number_format($f * ($b->protein ?? 0), 2) }}</td>
-                            <td class="text-end pe-4">{{ number_format($f * ($b->lemak ?? 0), 2) }}</td>
+                            <td class="text-end">{{ number_format($f * ($b->lemak ?? 0), 2) }}</td>
+                            <td class="text-end">{{ number_format($f * ($b->karbohidrat ?? 0), 2) }}</td>
+                            <td class="text-end">{{ number_format($f * ($b->serat ?? 0), 2) }}</td>
+                            <td class="text-end pe-4">{{ number_format($f * ($b->vit_c ?? 0), 2) }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">Belum ada bahan.</td>
+                            <td colspan="11" class="text-center text-muted py-4">Belum ada bahan.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -238,16 +279,19 @@
                                 {{ number_format($gizi['energi'], 1) }} kkal
                             </td>
                             <td class="text-end">{{ number_format($gizi['protein'], 2) }} g</td>
-                            <td class="text-end pe-4">{{ number_format($gizi['lemak'], 2) }} g</td>
+                            <td class="text-end">{{ number_format($gizi['lemak'], 2) }} g</td>
+                            <td class="text-end">{{ number_format($gizi['karbohidrat'], 2) }} g</td>
+                            <td class="text-end">{{ number_format($gizi['serat'], 2) }} g</td>
+                            <td class="text-end pe-4">{{ number_format($gizi['vit_c'], 2) }} mg</td>
                         </tr>
                     </tfoot>
                     @endif
                 </table>
             </div>
         </div>
-        @if($menuHarian->catatan)
+        @if($menuHarian->catatan_anggaran ?? $menuHarian->catatan)
         <div class="card-footer bg-white border-top">
-            <small class="text-muted"><i class="fas fa-sticky-note me-1"></i>{{ $menuHarian->catatan }}</small>
+            <small class="text-muted"><i class="fas fa-sticky-note me-1"></i>{{ $menuHarian->catatan_anggaran ?? $menuHarian->catatan }}</small>
         </div>
         @endif
     </div>

@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use App\Models\MenuHarian;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,7 +25,12 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer(['partials.navbar', 'partials.sidebar'], function ($view) {
             if (!Auth::check()) return;
-        
+            if (!Schema::hasTable('menu_harians')) {
+                $view->with('navAlertCount', 0);
+                $view->with('navAlerts', []);
+                return;
+            }
+
             $user  = Auth::user();
             $today = today();
         
