@@ -80,7 +80,7 @@ class SimulasiController extends Controller
         }
 
         $costPerPorsi = $jumlahPorsi > 0 ? $biayaTotal / $jumlahPorsi : 0;
-        $anggaran     = AnggaranPorsi::aktif($unit, $tanggal);
+        $anggaran     = AnggaranPorsi::aktif($tanggal);
         $totalAngg    = $anggaran * $jumlahPorsi;
         $selisih      = $totalAngg - $biayaTotal;
         $persenAngg   = $totalAngg > 0
@@ -164,9 +164,7 @@ class SimulasiController extends Controller
                     'nama_menu'          => $request->nama_menu,
                     'catatan_anggaran'   => $request->catatan,
                     'jumlah_porsi'       => $request->jumlah_porsi,
-                    'anggaran_per_porsi' => AnggaranPorsi::aktif(
-                        $menu->unit_sppg, $menu->tanggal->toDateString()
-                    ),
+                    'anggaran_per_porsi' => AnggaranPorsi::aktif($menu->tanggal->toDateString()),
                 ]);
 
                 $menu->detailBahans()->delete();
@@ -206,9 +204,7 @@ class SimulasiController extends Controller
                 'nama_menu'          => $request->nama_menu,
                 'catatan_anggaran'   => $request->catatan,
                 'jumlah_porsi'       => $request->jumlah_porsi,
-                'anggaran_per_porsi' => AnggaranPorsi::aktif(
-                    Auth::user()->unit_sppg, $request->tanggal
-                ),
+                'anggaran_per_porsi' => AnggaranPorsi::aktif($request->tanggal),
                 'status'  => 'draft',
                 'user_id' => Auth::id(),
             ]);

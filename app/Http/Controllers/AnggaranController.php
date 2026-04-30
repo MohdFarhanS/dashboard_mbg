@@ -39,13 +39,10 @@ class AnggaranController extends Controller
             'keterangan'         => 'nullable|string|max:200',
         ]);
 
-        $unit = config('app.unit_sppg');
-        $data['unit_sppg']   = $unit;
-        $data['created_by']  = auth()->id();
+        $data['created_by'] = auth()->id();
 
         // Tutup anggaran aktif sebelumnya (set berlaku_sampai = berlaku_mulai baru - 1 hari)
-        AnggaranPorsi::where('unit_sppg', $unit)
-            ->whereNull('berlaku_sampai')
+        AnggaranPorsi::whereNull('berlaku_sampai')
             ->update(['berlaku_sampai' => \Carbon\Carbon::parse($data['berlaku_mulai'])->subDay()->toDateString()]);
 
         AnggaranPorsi::create($data);

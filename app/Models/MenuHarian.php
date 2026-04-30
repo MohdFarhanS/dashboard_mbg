@@ -72,10 +72,7 @@ class MenuHarian extends Model
 
         $jumlahPorsi = max($this->jumlah_porsi, 1);
 
-        $anggaran = \App\Models\AnggaranPorsi::aktif(
-            $this->unit_sppg,
-            $this->tanggal->toDateString()
-        );
+        $anggaran = \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString());
 
         return [
             'total_seluruh'   => round($totalBiayaSeluruh, 0),
@@ -105,10 +102,7 @@ class MenuHarian extends Model
      */
     public function anggaranAktif(): float
     {
-        return (float) \App\Models\AnggaranPorsi::aktif(
-            $this->unit_sppg,
-            $this->tanggal->toDateString()
-        );
+        return (float) \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString());
     }
 
     /**

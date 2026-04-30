@@ -14,14 +14,13 @@ return new class extends Migration
         if (!Schema::hasTable('anggaran_porsis')) {
             Schema::create('anggaran_porsis', function (Blueprint $table) {
                 $table->id();
-                $table->string('unit_sppg');
                 $table->decimal('anggaran_per_porsi', 10, 2);
                 $table->date('berlaku_mulai');
                 $table->date('berlaku_sampai')->nullable();
                 $table->string('keterangan')->nullable();
                 $table->foreignId('created_by')->constrained('users');
                 $table->timestamps();
-                $table->index(['unit_sppg', 'berlaku_mulai']);
+                $table->index('berlaku_mulai');
             });
         }
     }
