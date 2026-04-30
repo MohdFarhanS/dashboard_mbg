@@ -69,12 +69,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('anggaran')->name('anggaran.')->middleware('auth')->group(function () {
-        Route::get('/',              [AnggaranController::class, 'index'])->name('index');
-        Route::get('/tambah',        [AnggaranController::class, 'create'])->name('create');
-        Route::post('/',             [AnggaranController::class, 'store'])->name('store');
-        Route::get('/{anggaran}/edit', [AnggaranController::class, 'edit'])->name('edit');
-        Route::put('/{anggaran}',    [AnggaranController::class, 'update'])->name('update');
-        Route::delete('/{anggaran}',   [AnggaranController::class, 'destroy'])->name('destroy');
+        Route::get('/',       [AnggaranController::class, 'index'])->name('index');
+        Route::get('/tambah', [AnggaranController::class, 'create'])->name('create');
+        Route::post('/',      [AnggaranController::class, 'store'])->name('store');
     });
 
     Route::prefix('simulasi')->name('simulasi.')->middleware('auth')->group(function () {

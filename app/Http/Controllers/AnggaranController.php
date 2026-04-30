@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggaranPorsi;
-use App\Models\MenuHarian;
 use Illuminate\Http\Request;
 
 class AnggaranController extends Controller
@@ -29,56 +28,29 @@ class AnggaranController extends Controller
     public function create()
     {
         if (auth()->user()->role !== 'admin') abort(403);
-        $unitList = \App\Models\MenuHarian::distinct()->pluck('unit_sppg')->sort()->values();
-        return view('anggaran.form', compact('unitList'));
+        return view('anggaran.form');
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'unit_sppg'          => 'required|string',
             'anggaran_per_porsi' => 'required|numeric|min:1000',
             'berlaku_mulai'      => 'required|date',
-            'berlaku_sampai'     => 'nullable|date|after_or_equal:berlaku_mulai',
             'keterangan'         => 'nullable|string|max:200',
         ]);
 
-        $data['created_by'] = auth()->id();
+        $unit = config('app.unit_sppg');
+        $data['unit_sppg']   = $unit;
+        $data['created_by']  = auth()->id();
+
+        // Tutup anggaran aktif sebelumnya (set berlaku_sampai = berlaku_mulai baru - 1 hari)
+        AnggaranPorsi::where('unit_sppg', $unit)
+            ->whereNull('berlaku_sampai')
+            ->update(['berlaku_sampai' => \Carbon\Carbon::parse($data['berlaku_mulai'])->subDay()->toDateString()]);
+
         AnggaranPorsi::create($data);
 
         return redirect()->route('anggaran.index')
             ->with('success', 'Anggaran baru berhasil ditetapkan.');
-    }
-
-    public function edit(AnggaranPorsi $anggaran)
-    {
-        if (auth()->user()->role !== 'admin') abort(403);
-        $unitList = \App\Models\MenuHarian::distinct()->pluck('unit_sppg')->sort()->values();
-        return view('anggaran.form', compact('anggaran', 'unitList'));
-    }
-
-    public function update(Request $request, AnggaranPorsi $anggaran)
-    {
-        if (auth()->user()->role !== 'admin') abort(403);
-        $data = $request->validate([
-            'unit_sppg'          => 'required|string',
-            'anggaran_per_porsi' => 'required|numeric|min:1000',
-            'berlaku_mulai'      => 'required|date',
-            'berlaku_sampai'     => 'nullable|date|after_or_equal:berlaku_mulai',
-            'keterangan'         => 'nullable|string|max:200',
-        ]);
-
-        $anggaran->update($data);
-
-        return redirect()->route('anggaran.index')
-            ->with('success', 'Anggaran berhasil diperbarui.');
-    }
-
-    public function destroy(AnggaranPorsi $anggaran)
-    {
-        if (auth()->user()->role !== 'admin') abort(403);
-        $anggaran->delete();
-        return redirect()->route('anggaran.index')
-            ->with('success', 'Data anggaran dihapus.');
     }
 }

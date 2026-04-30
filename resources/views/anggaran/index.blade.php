@@ -25,43 +25,22 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-success">
                         <tr>
-                            <th>Unit SPPG</th>
                             <th>Anggaran/Porsi</th>
                             <th>Berlaku Mulai</th>
-                            <th>Berlaku Sampai</th>
                             <th>Keterangan</th>
                             <th>Ditetapkan Oleh</th>
-                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($riwayat as $item)
                         <tr>
-                            <td><span class="badge bg-success-subtle text-success">{{ $item->unit_sppg }}</span></td>
                             <td class="fw-semibold">Rp {{ number_format($item->anggaran_per_porsi, 0, ',', '.') }}</td>
                             <td>{{ $item->berlaku_mulai->format('d/m/Y') }}</td>
-                            <td>
-                                @if($item->berlaku_sampai)
-                                    {{ $item->berlaku_sampai->format('d/m/Y') }}
-                                @else
-                                    <span class="text-muted fst-italic">Tidak terbatas</span>
-                                @endif
-                            </td>                            
                             <td>{{ $item->keterangan ?? '-' }}</td>
                             <td>{{ $item->createdBy->name ?? '-' }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('anggaran.edit', $item) }}" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('anggaran.destroy', $item) }}" method="POST" class="d-inline"
-                                      onsubmit="return confirm('Hapus data anggaran ini?')">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada data anggaran.</td></tr>
+                        <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada data anggaran.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

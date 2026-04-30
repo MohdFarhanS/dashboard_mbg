@@ -20,20 +20,6 @@
                         @if(isset($anggaran)) @method('PUT') @endif
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Unit SPPG <span class="text-danger">*</span></label>
-                            <select name="unit_sppg" class="form-select @error('unit_sppg') is-invalid @enderror" required>
-                                <option value="">-- Pilih Unit --</option>
-                                @foreach($unitList as $unit)
-                                <option value="{{ $unit }}"
-                                    {{ (isset($anggaran) && $anggaran->unit_sppg === $unit) || old('unit_sppg') === $unit ? 'selected' : '' }}>
-                                    {{ $unit }}
-                                </option>
-                                @endforeach
-                            </select>
-                            @error('unit_sppg')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label fw-semibold">Anggaran Per Porsi (Rp) <span class="text-danger">*</span></label>
                             <input type="number" name="anggaran_per_porsi"
                                    class="form-control @error('anggaran_per_porsi') is-invalid @enderror"
@@ -42,23 +28,14 @@
                             @error('anggaran_per_porsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Berlaku Mulai <span class="text-danger">*</span></label>
-                                <input type="date" name="berlaku_mulai"
-                                       class="form-control @error('berlaku_mulai') is-invalid @enderror"
-                                       value="{{ old('berlaku_mulai', isset($anggaran) ? $anggaran->berlaku_mulai->format('Y-m-d') : '') }}"
-                                       required>
-                                @error('berlaku_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Berlaku Sampai</label>
-                                <input type="date" name="berlaku_sampai"
-                                       class="form-control @error('berlaku_sampai') is-invalid @enderror"
-                                       value="{{ old('berlaku_sampai', isset($anggaran) && $anggaran->berlaku_sampai ? $anggaran->berlaku_sampai->format('Y-m-d') : '') }}">
-                                <div class="form-text">Kosongkan jika tidak terbatas.</div>
-                                @error('berlaku_sampai')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Berlaku Mulai <span class="text-danger">*</span></label>
+                            <input type="date" name="berlaku_mulai"
+                                   class="form-control @error('berlaku_mulai') is-invalid @enderror"
+                                   value="{{ old('berlaku_mulai', isset($anggaran) ? $anggaran->berlaku_mulai->format('Y-m-d') : '') }}"
+                                   required>
+                            <div class="form-text">Anggaran berlaku mulai tanggal ini hingga ditetapkan anggaran baru.</div>
+                            @error('berlaku_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="mb-3">
