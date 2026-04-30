@@ -122,11 +122,14 @@ class BiayaController extends Controller
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
             'unit_sppg'       => 'required|string|max:50',
-            'harga_per_100g'  => 'required|numeric|min:0',
+            'harga_per_kg'    => 'required|numeric|min:0',
             'berlaku_mulai'   => 'required|date',
             'berlaku_sampai'  => 'nullable|date|after_or_equal:berlaku_mulai',
             'keterangan'      => 'nullable|string|max:200',
         ]);
+
+        $data['harga_per_100g'] = $data['harga_per_kg'] / 10;
+        unset($data['harga_per_kg']);
 
         HargaBahan::create($data);
 
@@ -152,12 +155,15 @@ class BiayaController extends Controller
     
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
-            'harga_per_100g'  => 'required|numeric|min:0',
+            'harga_per_kg'    => 'required|numeric|min:0',
             'berlaku_mulai'   => 'required|date',
             'berlaku_sampai'  => 'nullable|date|after_or_equal:berlaku_mulai',
             'keterangan'      => 'nullable|string|max:200',
         ]);
-    
+
+        $data['harga_per_100g'] = $data['harga_per_kg'] / 10;
+        unset($data['harga_per_kg']);
+
         $harga->update($data);
     
         return redirect()->route('biaya.harga.index')

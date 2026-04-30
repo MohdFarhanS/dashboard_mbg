@@ -25,81 +25,48 @@
                 @csrf
                 @if(isset($harga)) @method('PUT') @endif
 
-                {{-- FIX: Dropdown unit_sppg hanya untuk admin; pengelola memakai unit sendiri --}}
-                @if(auth()->user()->role === 'admin')
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Unit SPPG <span class="text-danger">*</span></label>
-                    @php
-                        $unitList = \App\Models\MenuHarian::distinct()->pluck('unit_sppg')->sort()->values();
-                    @endphp
-                    <select name="unit_sppg" class="form-select @error('unit_sppg') is-invalid @enderror" required>
-                        <option value="">— Pilih Unit —</option>
-                        @foreach($unitList as $u)
-                            <option value="{{ $u }}"
-                                @selected(old('unit_sppg', $harga->unit_sppg ?? '') === $u)>{{ $u }}</option>
-                        @endforeach
-                    </select>
-                    @error('unit_sppg')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                @else
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Unit SPPG</label>
-                    <input type="text" class="form-control" value="{{ auth()->user()->unit_sppg }}" disabled>
-                    <div class="form-text">Harga akan disimpan untuk unit Anda.</div>
-                </div>
-                @endif
+                <input type="hidden" name="unit_sppg" value="{{ auth()->user()->unit_sppg }}">
 
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
                     <label class="form-label fw-medium">Bahan Pangan <span class="text-danger">*</span></label>
-                    <select name="bahan_pangan_id"
-                            class="form-select @error('bahan_pangan_id') is-invalid @enderror"
-                            required>
-                        <option value="">— Pilih Bahan —</option>
-                        @foreach($bahans as $b)
-                            <option value="{{ $b->id }}"
-                                @selected(old('bahan_pangan_id', $harga->bahan_pangan_id ?? '') == $b->id)>
-                                {{ $b->nama_bahan }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="bahan_pangan_id" id="bahan-pangan-id"
+                           value="{{ old('bahan_pangan_id', $harga->bahan_pangan_id ?? '') }}">
+                    <input type="text" id="bahan-search"
+                           class="form-control @error('bahan_pangan_id') is-invalid @enderror"
+                           placeholder="Ketik nama bahan untuk mencari..."
+                           autocomplete="off"
+                           value="{{ old('bahan_pangan_id') ? '' : ($harga->bahanPangan->nama_bahan ?? '') }}">
+                    <div id="bahan-dropdown"
+                         class="list-group shadow-sm position-absolute w-100 z-3"
+                         style="max-height:220px;overflow-y:auto;display:none;top:100%;left:0"></div>
                     @error('bahan_pangan_id')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Harga per kg (Rp) <span class="text-danger">*</span></label>
+                    <input type="number" name="harga_per_kg" step="1" min="0"
+                           value="{{ old('harga_per_kg', isset($harga) ? $harga->harga_per_100g * 10 : '') }}"
+                           class="form-control @error('harga_per_kg') is-invalid @enderror"
+                           placeholder="Contoh: 15000"
+                           required>
+                    <div class="form-text">Masukkan harga pembelian per kilogram (kg).</div>
+                    @error('harga_per_kg')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-medium">Harga per 100g (Rp) <span class="text-danger">*</span></label>
-                    <input type="number" name="harga_per_100g" step="0.01" min="0"
-                           value="{{ old('harga_per_100g', $harga->harga_per_100g ?? '') }}"
-                           class="form-control @error('harga_per_100g') is-invalid @enderror"
+                    <label class="form-label fw-medium">Berlaku Mulai <span class="text-danger">*</span></label>
+                    <input type="date" name="berlaku_mulai"
+                           value="{{ old('berlaku_mulai', isset($harga) ? $harga->berlaku_mulai->format('Y-m-d') : '') }}"
+                           class="form-control @error('berlaku_mulai') is-invalid @enderror"
                            required>
-                    @error('harga_per_100g')
+                    <div class="form-text">Harga berlaku mulai tanggal ini hingga ditetapkan harga baru.</div>
+                    @error('berlaku_mulai')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label class="form-label fw-medium">Berlaku Mulai <span class="text-danger">*</span></label>
-                        <input type="date" name="berlaku_mulai"
-                               value="{{ old('berlaku_mulai', isset($harga) ? $harga->berlaku_mulai->format('Y-m-d') : '') }}"
-                               class="form-control @error('berlaku_mulai') is-invalid @enderror"
-                               required>
-                        @error('berlaku_mulai')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label fw-medium">Berlaku Sampai</label>
-                        <input type="date" name="berlaku_sampai"
-                               value="{{ old('berlaku_sampai', isset($harga) && $harga->berlaku_sampai ? $harga->berlaku_sampai->format('Y-m-d') : '') }}"
-                               class="form-control @error('berlaku_sampai') is-invalid @enderror">
-                        @error('berlaku_sampai')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -125,4 +92,65 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+(function () {
+    const searchInput = document.getElementById('bahan-search');
+    const hiddenInput = document.getElementById('bahan-pangan-id');
+    const dropdown    = document.getElementById('bahan-dropdown');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function () {
+        const q = this.value.trim();
+        hiddenInput.value = '';
+        clearTimeout(debounceTimer);
+
+        if (q.length < 2) { dropdown.style.display = 'none'; return; }
+
+        debounceTimer = setTimeout(async () => {
+            try {
+                const res  = await fetch(`/api/bahan-pangan/search?q=${encodeURIComponent(q)}&limit=15`);
+                const data = await res.json();
+                renderDropdown(data);
+            } catch { dropdown.style.display = 'none'; }
+        }, 250);
+    });
+
+    function renderDropdown(items) {
+        dropdown.innerHTML = '';
+        if (!items.length) {
+            dropdown.innerHTML = '<span class="list-group-item text-muted small">Tidak ditemukan</span>';
+            dropdown.style.display = 'block';
+            return;
+        }
+        items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action small';
+            btn.textContent = item.nama_bahan;
+            btn.addEventListener('mousedown', () => {
+                hiddenInput.value  = item.id;
+                searchInput.value  = item.nama_bahan;
+                dropdown.style.display = 'none';
+            });
+            dropdown.appendChild(btn);
+        });
+        dropdown.style.display = 'block';
+    }
+
+    document.addEventListener('click', e => {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    searchInput.addEventListener('focus', function () {
+        if (this.value.trim().length >= 2 && dropdown.children.length) {
+            dropdown.style.display = 'block';
+        }
+    });
+})();
+</script>
+@endpush
 @endsection

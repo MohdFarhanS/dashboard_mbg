@@ -35,13 +35,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>Nama Bahan</th>
-                            {{-- FIX: Kolom Unit hanya untuk admin --}}
-                            @if(auth()->user()->role === 'admin')
-                            <th>Unit SPPG</th>
-                            @endif
-                            <th class="text-end">Harga / 100g</th>
+                            <th class="text-end">Harga / kg</th>
+                            <th class="text-end">Harga / gram</th>
                             <th>Berlaku Mulai</th>
-                            <th>Berlaku Sampai</th>
                             <th>Keterangan</th>
                             <th class="text-center">Aksi</th>
                         </tr>
@@ -50,13 +46,9 @@
                         @forelse($hargaList as $h)
                         <tr>
                             <td>{{ $h->bahanPangan?->nama_bahan ?? '—' }}</td>
-                            {{-- FIX: Tampilkan unit untuk admin --}}
-                            @if(auth()->user()->role === 'admin')
-                            <td><span class="badge bg-secondary-subtle text-secondary">{{ $h->unit_sppg }}</span></td>
-                            @endif
-                            <td class="text-end">Rp {{ number_format($h->harga_per_100g, 0, ',', '.') }}</td>
+                            <td class="text-end">Rp {{ number_format($h->harga_per_100g * 10, 0, ',', '.') }}</td>
+                            <td class="text-end text-muted small">Rp {{ number_format($h->harga_per_100g / 100, 2, ',', '.') }}</td>
                             <td>{{ $h->berlaku_mulai->format('d/m/Y') }}</td>
-                            <td>{{ $h->berlaku_sampai?->format('d/m/Y') ?? '—' }}</td>
                             <td class="text-muted small">{{ $h->keterangan ?? '—' }}</td>
                             <td class="text-center">
                                 <div class="d-flex gap-1 justify-content-center">
@@ -76,7 +68,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->role === 'admin' ? 7 : 6 }}" class="text-center text-muted py-4">
+                            <td colspan="6" class="text-center text-muted py-4">
                                 Belum ada data harga bahan.
                             </td>
                         </tr>

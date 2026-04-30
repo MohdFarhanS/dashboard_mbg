@@ -24,19 +24,6 @@
             <input type="month" name="bulan" value="{{ $bulan }}" class="form-control form-control-sm">
         </div>
 
-        {{-- FIX: Filter unit hanya tampil untuk admin --}}
-        @if(auth()->user()->role === 'admin')
-        <div class="col-auto">
-            <label class="form-label small text-muted mb-1">Unit SPPG</label>
-            <select name="unit_sppg" class="form-select form-select-sm" style="min-width:160px">
-                <option value="">— Semua Unit —</option>
-                @foreach($unitList as $unit)
-                    <option value="{{ $unit }}" @selected($filterUnit === $unit)>{{ $unit }}</option>
-                @endforeach
-            </select>
-        </div>
-        @endif
-
         <div class="col-auto">
             <button type="submit" class="btn btn-success btn-sm">
                 <i class="fa fa-filter me-1"></i>Tampilkan
@@ -147,10 +134,6 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Nama Menu</th>
-                            {{-- FIX: Kolom Unit hanya untuk admin --}}
-                            @if(auth()->user()->role === 'admin')
-                            <th>Unit SPPG</th>
-                            @endif
                             <th class="text-end">Cost/Porsi</th>
                             <th class="text-end">Anggaran</th>
                             <th class="text-end">Selisih</th>
@@ -164,10 +147,6 @@
                         <tr>
                             <td class="text-nowrap">{{ $r['tanggal'] }}</td>
                             <td>{{ $r['menu'] }}</td>
-                            {{-- FIX: Tampilkan unit untuk admin --}}
-                            @if(auth()->user()->role === 'admin')
-                            <td><span class="badge bg-secondary-subtle text-secondary">{{ $r['unit_sppg'] }}</span></td>
-                            @endif
                             <td class="text-end">Rp {{ number_format($b['cost_per_porsi'], 0, ',', '.') }}</td>
                             <td class="text-end">Rp {{ number_format($b['anggaran'], 0, ',', '.') }}</td>
                             <td class="text-end">
@@ -193,7 +172,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->role === 'admin' ? 8 : 7 }}" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 Belum ada data menu final untuk bulan ini.
                             </td>
                         </tr>
