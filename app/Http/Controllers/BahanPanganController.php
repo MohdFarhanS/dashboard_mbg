@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BahanPangan;
 use App\Models\HargaBahan;
+use App\Models\ImportLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -66,7 +67,26 @@ class BahanPanganController extends Controller
                                 ->pluck('total', 'kategori'),
         ];
 
-        return view('bahan-pangan.index', compact('bahanPangans', 'stats'));
+        // Batch query harga aktif untuk bahan di halaman ini
+        $unit    = auth()->user()->unit_sppg;
+        $tanggal = today()->toDateString();
+        $hargaMap = collect();
+
+        if ($unit) {
+            $bahanIds = $bahanPangans->pluck('id')->toArray();
+            $hargaMap = HargaBahan::whereIn('bahan_pangan_id', $bahanIds)
+                ->where('unit_sppg', $unit)
+                ->where('berlaku_mulai', '<=', $tanggal)
+                ->where(function ($q) use ($tanggal) {
+                    $q->whereNull('berlaku_sampai')->orWhere('berlaku_sampai', '>=', $tanggal);
+                })
+                ->orderByDesc('berlaku_mulai')
+                ->get()
+                ->groupBy('bahan_pangan_id')
+                ->map(fn($items) => (float) $items->first()->harga_per_100g);
+        }
+
+        return view('bahan-pangan.index', compact('bahanPangans', 'stats', 'hargaMap'));
     }
 
     /**
@@ -91,9 +111,22 @@ class BahanPanganController extends Controller
 
         $validated = $this->validateBahan($request);
 
-        BahanPangan::create($validated);
+        $bahan = DB::transaction(function () use ($validated) {
+            $bahan = BahanPangan::create($validated);
 
-        return redirect()->route('bahan-pangan.index')
+            ImportLog::create([
+                'user_id'  => auth()->id(),
+                'filename' => 'Manual Input',
+                'inserted' => 1,
+                'updated'  => 0,
+                'skipped'  => 0,
+                'mode'     => 'manual',
+            ]);
+
+            return $bahan;
+        });
+
+        return redirect()->route('bahan-pangan.show', $bahan)
             ->with('success', "Bahan pangan <strong>{$validated['nama_bahan']}</strong> berhasil ditambahkan.");
     }
 

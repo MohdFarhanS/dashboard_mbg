@@ -107,6 +107,36 @@ class SimulasiController extends Controller
         ]);
     }
 
+    public function editMenu(MenuHarian $menuHarian)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $user->unit_sppg !== $menuHarian->unit_sppg) {
+            abort(403);
+        }
+        if ($menuHarian->status === 'final') {
+            return redirect()->route('menu-harian.show', $menuHarian)
+                ->with('error', 'Menu sudah final, tidak bisa diedit.');
+        }
+
+        $menuHarian->load('detailBahans.bahanPangan');
+
+        $existingBahans = $menuHarian->detailBahans->map(fn($d) => [
+            'id'           => $d->bahanPangan->id,
+            'kode'         => $d->bahanPangan->kode,
+            'nama_bahan'   => $d->bahanPangan->nama_bahan,
+            'kategori'     => $d->bahanPangan->kategori,
+            'energi'       => $d->bahanPangan->energi,
+            'protein'      => $d->bahanPangan->protein,
+            'lemak'        => $d->bahanPangan->lemak,
+            'karbohidrat'  => $d->bahanPangan->karbohidrat,
+            'bdd'          => $d->bahanPangan->bdd,
+            'jumlah_gram'  => $d->jumlah_gram,
+            'jumlah_porsi' => $d->jumlah_porsi,
+        ]);
+
+        return view('simulasi.index', compact('menuHarian', 'existingBahans'));
+    }
+
     public function simpan(Request $request)
     {
         $request->validate([
@@ -118,8 +148,46 @@ class SimulasiController extends Controller
             'bahans.*.id'    => 'required|exists:bahan_pangans,id',
             'bahans.*.gram'  => 'required|numeric|min:1',
             'bahans.*.porsi' => 'required|integer|min:1',
+            'menu_id'        => 'nullable|integer|exists:menu_harians,id',
         ]);
 
+        // ── Mode edit: perbarui menu yang sudah ada ─────────────────────────
+        if ($request->filled('menu_id')) {
+            $menu = MenuHarian::findOrFail($request->menu_id);
+
+            if (Auth::user()->role !== 'admin' && Auth::user()->unit_sppg !== $menu->unit_sppg) {
+                return response()->json(['error' => 'Akses ditolak.'], 403);
+            }
+
+            DB::transaction(function () use ($request, $menu) {
+                $menu->update([
+                    'nama_menu'          => $request->nama_menu,
+                    'catatan_anggaran'   => $request->catatan,
+                    'jumlah_porsi'       => $request->jumlah_porsi,
+                    'anggaran_per_porsi' => AnggaranPorsi::aktif(
+                        $menu->unit_sppg, $menu->tanggal->toDateString()
+                    ),
+                ]);
+
+                $menu->detailBahans()->delete();
+
+                foreach ($request->bahans as $item) {
+                    MenuDetailBahan::create([
+                        'menu_harian_id'  => $menu->id,
+                        'bahan_pangan_id' => $item['id'],
+                        'jumlah_gram'     => $item['gram'],
+                        'jumlah_porsi'    => $item['porsi'],
+                    ]);
+                }
+            });
+
+            return response()->json([
+                'success'  => 'Menu berhasil diperbarui.',
+                'redirect' => route('menu-harian.show', $menu),
+            ]);
+        }
+
+        // ── Mode tambah baru ─────────────────────────────────────────────────
         $existing = MenuHarian::where('unit_sppg', Auth::user()->unit_sppg)
             ->whereDate('tanggal', $request->tanggal)
             ->first();
@@ -127,7 +195,7 @@ class SimulasiController extends Controller
         if ($existing) {
             return response()->json([
                 'error'    => 'Menu untuk tanggal ini sudah ada. Silakan edit menu yang sudah ada.',
-                'redirect' => route('menu-harian.edit', $existing),
+                'redirect' => route('simulasi.edit-simulasi', $existing),
             ], 422);
         }
 

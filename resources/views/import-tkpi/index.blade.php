@@ -126,16 +126,32 @@
                     <div class="mt-3 p-3 rounded" style="background:#f0faf4; font-size:.82rem">
                         <strong>Kolom yang dikenali otomatis:</strong><br>
                         <span class="mapped-tag">nama_bahan</span>
+                        <span class="mapped-tag">kategori / golongan</span>
+                        <span class="mapped-tag">sub_kategori / jenis</span>
+                        <span class="mapped-tag">kode_lama</span>
+                        <span class="mapped-tag">sumber</span>
+                        <span class="mapped-tag">bdd</span>
+                        <span class="mapped-tag">air</span>
                         <span class="mapped-tag">energi</span>
                         <span class="mapped-tag">protein</span>
                         <span class="mapped-tag">lemak</span>
                         <span class="mapped-tag">karbohidrat</span>
                         <span class="mapped-tag">serat</span>
-                        <span class="mapped-tag">kalsium</span>
+                        <span class="mapped-tag">abu</span>
+                        <span class="mapped-tag">kalsium / ca</span>
+                        <span class="mapped-tag">fosfor / p</span>
                         <span class="mapped-tag">besi / fe</span>
+                        <span class="mapped-tag">natrium / na</span>
+                        <span class="mapped-tag">kalium / k</span>
+                        <span class="mapped-tag">tembaga / cu</span>
+                        <span class="mapped-tag">seng / zn</span>
+                        <span class="mapped-tag">retinol / vit_a</span>
+                        <span class="mapped-tag">b_karoten</span>
+                        <span class="mapped-tag">kar_total</span>
+                        <span class="mapped-tag">thiamin / b1</span>
+                        <span class="mapped-tag">riboflavin / b2</span>
+                        <span class="mapped-tag">niasin / b3</span>
                         <span class="mapped-tag">vit_c</span>
-                        <span class="mapped-tag">air</span>
-                        <span class="mapped-tag">harga_per_kg</span>
                     </div>
                 </div>
             </div>
@@ -254,25 +270,49 @@
             </div>
 
             {{-- Riwayat --}}
-            @if(!empty($riwayat))
             <div class="card border-0 shadow-sm">
                 <div class="card-header border-0" style="background:var(--primary-pale)">
                     <span class="fw-semibold small" style="color:var(--primary)">
-                        <i class="fas fa-history me-2"></i>Riwayat Import (Sesi Ini)
+                        <i class="fas fa-history me-2"></i>Riwayat Import Terakhir
                     </span>
                 </div>
+                @if($riwayat->count())
                 <div class="card-body p-0">
                     @foreach($riwayat as $r)
                     <div class="px-3 py-2 border-bottom" style="font-size:.82rem">
-                        <div class="text-muted">{{ $r['waktu'] }} · mode: {{ $r['mode'] }}</div>
-                        <span class="text-success">+{{ $r['inserted'] }} baru</span> ·
-                        <span class="text-primary">↺ {{ $r['updated'] }} update</span> ·
-                        <span class="text-secondary">{{ $r['skipped'] }} skip</span>
+                        <div class="d-flex justify-content-between align-items-start gap-1">
+                            <span class="text-truncate fw-medium" style="max-width:140px" title="{{ $r->filename }}">
+                                {{ $r->filename }}
+                            </span>
+                            @php
+                                $modeStyle = match($r->mode) {
+                                    'manual' => 'bg-primary-subtle text-primary',
+                                    'update' => 'bg-warning-subtle text-warning-emphasis',
+                                    default  => 'bg-secondary-subtle text-secondary',
+                                };
+                            @endphp
+                            <span class="badge {{ $modeStyle }} flex-shrink-0">{{ $r->mode }}</span>
+                        </div>
+                        <div class="text-muted" style="font-size:.78rem">
+                            {{ $r->created_at->translatedFormat('d M Y, H:i') }}
+                            @if($r->user) · {{ $r->user->name }}@endif
+                        </div>
+                        <div class="mt-1">
+                            <span class="text-success fw-semibold">+{{ $r->inserted }} baru</span>
+                            <span class="text-muted mx-1">·</span>
+                            <span class="text-primary">↺{{ $r->updated }} update</span>
+                            <span class="text-muted mx-1">·</span>
+                            <span class="text-secondary">{{ $r->skipped }} skip</span>
+                        </div>
                     </div>
                     @endforeach
                 </div>
+                @else
+                <div class="card-body text-center text-muted py-3" style="font-size:.83rem">
+                    Belum ada riwayat import.
+                </div>
+                @endif
             </div>
-            @endif
 
         </div>
     </div>

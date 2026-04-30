@@ -135,6 +135,9 @@
                             </th>
                             <th class="text-center" style="width:60px">BDD%</th>
                             <th class="text-center" style="width:50px">Status</th>
+                            <th class="text-center" style="width:110px">
+                                Harga/kg<br><small class="fw-normal text-muted">(Rp)</small>
+                            </th>
                             <th class="text-center" style="width:110px">Aksi</th>
                         </tr>
                     </thead>
@@ -195,6 +198,17 @@
                                 @endif
                             </td>
                             <td class="text-center">
+                                @if(!auth()->user()->unit_sppg)
+                                    <span class="text-muted small">—</span>
+                                @elseif(isset($hargaMap[$bahan->id]))
+                                    <span class="small fw-semibold text-dark">
+                                        Rp {{ number_format($hargaMap[$bahan->id] * 10, 0, ',', '.') }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger" style="font-size:.7rem;">Belum ada</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('bahan-pangan.show', $bahan) }}"
                                        class="btn btn-outline-primary btn-xs" title="Detail">
@@ -216,7 +230,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center py-5 text-muted">
+                            <td colspan="11" class="text-center py-5 text-muted">
                                 <i class="fas fa-search fa-2x mb-2 d-block opacity-25"></i>
                                 Tidak ada data yang cocok dengan pencarian.
                                 <br>

@@ -16,8 +16,11 @@ class BahanPanganSeeder extends Seeder
     {
         $this->command->info('Memuat data TKPI...');
 
-        // Hapus data lama
-        DB::table('bahan_pangans')->truncate();
+        // Hapus data lama — gunakan DELETE agar kompatibel dengan MySQL 8+ yang
+        // memblokir TRUNCATE pada tabel dengan foreign key meski FK checks dinonaktifkan
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('bahan_pangans')->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $jsonPath = database_path('seeders/data/tkpi_seeder.json');
 

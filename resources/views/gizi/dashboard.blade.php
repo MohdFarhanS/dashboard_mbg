@@ -184,6 +184,73 @@
     </div>
 </div>
 
+{{-- ═══ TABEL RINGKAS MENU BULAN INI ═══════════════════════════════ --}}
+<div class="card shadow-sm mb-4">
+    <div class="card-header py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-list me-2 text-success"></i>Rincian Menu Bulan Ini
+        </span>
+        <span class="badge bg-secondary">{{ $menus->count() }} menu</span>
+    </div>
+    @if($menus->count())
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Tanggal</th>
+                    <th>Nama Menu</th>
+                    <th class="text-end">Energi (kkal)</th>
+                    <th class="text-center">% AKG Energi</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center" style="width:60px">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($menus as $menu)
+                @php
+                    $g    = $menu->totalGizi();
+                    $pct  = AKG::MAKAN_SIANG['energi'] > 0
+                        ? round($g['energi'] / AKG::MAKAN_SIANG['energi'] * 100)
+                        : 0;
+                    $cls  = $pct < 70 ? 'kurang' : ($pct > 130 ? 'lebih' : 'cukup');
+                @endphp
+                <tr>
+                    <td class="ps-3 text-nowrap">
+                        {{ $menu->tanggal->translatedFormat('d M Y') }}
+                    </td>
+                    <td>{{ $menu->nama_menu ?: '—' }}</td>
+                    <td class="text-end fw-semibold">{{ number_format($g['energi'], 1) }}</td>
+                    <td class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <div class="progress flex-grow-1" style="height:8px;max-width:80px;">
+                                <div class="progress-bar progress-bar-{{ $cls }}"
+                                     style="width:{{ min($pct, 100) }}%"></div>
+                            </div>
+                            <span class="small fw-semibold" style="min-width:38px">{{ $pct }}%</span>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-status-{{ $cls }}">{{ ucfirst($cls) }}</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ route('menu-harian.show', $menu) }}"
+                           class="btn btn-outline-secondary btn-sm py-0 px-2" title="Lihat detail">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @else
+    <div class="card-body text-center text-muted py-4">
+        <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
+        Belum ada menu final di bulan ini.
+    </div>
+    @endif
+</div>
+
 {{-- ═══ TREN HARIAN ════════════════════════════════════════════════ --}}
 @if(count($trendData) > 0)
 <div class="card shadow-sm mb-4">
@@ -201,72 +268,6 @@
 </div>
 @endif
 
-{{-- ═══ TABEL RINGKASAN MENU ════════════════════════════════════════ --}}
-<div class="card shadow-sm">
-    <div class="card-header py-2 fw-semibold border-bottom">
-        <i class="fas fa-table me-2 text-success"></i>Rekap Menu Final Bulan Ini
-    </div>
-    @if($menus->count())
-    <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Tanggal</th>
-                    <th>Menu</th>
-                    @if(auth()->user()->role === 'admin')
-                    <th>Unit SPPG</th>
-                    @endif
-                    <th class="text-end">Energi (kkal)</th>
-                    <th class="text-end">Protein (g)</th>
-                    <th class="text-end">Lemak (g)</th>
-                    <th class="text-end">Karbo (g)</th>
-                    <th class="text-center">Status Gizi</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($menus as $menu)
-                @php
-                    $g   = $menu->totalGizi();
-                    $pct = AKG::MAKAN_SIANG['energi'] > 0
-                        ? round($g['energi']/AKG::MAKAN_SIANG['energi']*100) : 0;
-                    $cls = $pct < 70 ? 'kurang' : ($pct > 130 ? 'lebih' : 'cukup');
-                @endphp
-                <tr>
-                    <td class="text-nowrap">
-                        {{ $menu->tanggal->translatedFormat('d M Y') }}
-                    </td>
-                    <td>{{ $menu->nama_menu ?: '—' }}</td>
-                    @if(auth()->user()->role === 'admin')
-                    <td><span class="badge bg-secondary-subtle text-secondary">{{ $menu->unit_sppg }}</span></td>
-                    @endif
-                    <td class="text-end">{{ number_format($g['energi'],1) }}</td>
-                    <td class="text-end">{{ number_format($g['protein'],1) }}</td>
-                    <td class="text-end">{{ number_format($g['lemak'],1) }}</td>
-                    <td class="text-end">{{ number_format($g['karbohidrat'],1) }}</td>
-                    <td class="text-center">
-                        <span class="badge badge-status-{{ $cls }}">
-                            {{ ucfirst($cls) }} ({{ $pct }}%)
-                        </span>
-                    </td>
-                    <td>
-                        <a href="{{ route('menu-harian.show', $menu) }}"
-                           class="btn btn-xs btn-outline-secondary btn-sm py-0">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    @else
-    <div class="card-body text-center text-muted py-5">
-        <i class="fas fa-chart-line fa-2x mb-2 d-block opacity-25"></i>
-        Belum ada menu final di bulan ini.
-    </div>
-    @endif
-</div>
 @endsection
 
 @push('scripts')

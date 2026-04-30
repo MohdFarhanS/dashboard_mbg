@@ -14,6 +14,13 @@
         </ol>
     </nav>
 
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show py-2 mb-4" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{!! session('success') !!}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
     <div class="row g-4">
         {{-- Info Utama --}}
         <div class="col-lg-4">
@@ -160,7 +167,7 @@
                                         <td class="text-muted small ps-0">{{ $item['label'] }}</td>
                                         <td class="text-end fw-semibold small pe-0">
                                             @php $val = $bahanPangan->{$item['key']}; @endphp
-                                            {{ $val !== null ? number_format($val, 2) . ' ' . $item['unit'] : '<span class="text-muted">—</span>' }}
+                                            {!! $val !== null ? number_format($val, 2) . ' ' . $item['unit'] : '<span class="text-muted">—</span>' !!}
                                         </td>
                                     </tr>
                                     @endforeach
