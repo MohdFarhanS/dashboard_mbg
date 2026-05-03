@@ -37,32 +37,12 @@
         <h4 class="mb-0 fw-bold" style="color:#0f4c81">
             <i class="fas fa-chart-line me-2"></i>Dashboard Monitoring Gizi
         </h4>
-        <small class="text-muted">Unit SPPG: {{ Auth::user()->unit_sppg }}</small>
     </div>
-    {{-- Filter Bulan + Unit --}}
+    {{-- Filter Bulan --}}
     <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
         <input type="month" name="bulan" value="{{ $bulan }}"
                class="form-control form-control-sm" style="width:160px"
                onchange="this.form.submit()">
-
-        {{-- FIX: Dropdown filter unit — hanya tampil untuk admin --}}
-        @if(auth()->user()->role === 'admin')
-        <select name="unit_sppg" class="form-select form-select-sm"
-                style="min-width:180px" onchange="this.form.submit()">
-            <option value="">— Semua Unit —</option>
-            @foreach($unitList as $unit)
-                <option value="{{ $unit }}" @selected(($filterUnit ?? '') === $unit)>
-                    {{ $unit }}
-                </option>
-            @endforeach
-        </select>
-        @endif
-
-        @if(Auth::user()->role === 'pengelola')
-        <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary">
-            <i class="fas fa-plus me-1"></i>Input Menu
-        </a>
-        @endif
     </form>
 </div>
 
@@ -119,11 +99,13 @@
             <div class="text-center text-muted py-4">
                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                 Belum ada menu yang diinput hari ini.
+                @if(Auth::user()->role === 'pengelola')
                 <div class="mt-2">
                     <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary">
                         <i class="fas fa-plus me-1"></i>Input Menu Sekarang
                     </a>
                 </div>
+                @endif
             </div>
         @endif
     </div>

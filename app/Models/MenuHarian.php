@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MenuHarian extends Model
 {
     protected $fillable = [
-        'tanggal', 'user_id', 'unit_sppg', 'nama_menu', 'status', 'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
+        'tanggal', 'user_id', 'nama_menu', 'status', 'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
     ];
 
     protected $casts = ['tanggal' => 'date'];
@@ -55,8 +55,7 @@ class MenuHarian extends Model
 
             $hargaPer100g = \App\Models\HargaBahan::hargaAktif(
                 $b->id,
-                $this->unit_sppg,
-                $this->tanggal->toDateString()
+                $this->tanggal->toDateString()  // harga pada tanggal menu, bukan hari ini
             );
 
             $biaya = ($d->jumlah_gram / 100) * $hargaPer100g * $d->jumlah_porsi; // ← tambah × jumlah_porsi
@@ -90,11 +89,6 @@ class MenuHarian extends Model
     public function scopeTanggal($query, $tanggal)
     {
         return $query->whereDate('tanggal', $tanggal);
-    }
-
-    public function scopeUnit($query, $unit)
-    {
-        return $query->where('unit_sppg', $unit);
     }
 
     /**

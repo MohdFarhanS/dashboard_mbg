@@ -68,23 +68,17 @@ class BahanPanganController extends Controller
         ];
 
         // Batch query harga aktif untuk bahan di halaman ini
-        $unit    = auth()->user()->unit_sppg;
-        $tanggal = today()->toDateString();
-        $hargaMap = collect();
-
-        if ($unit) {
-            $bahanIds = $bahanPangans->pluck('id')->toArray();
-            $hargaMap = HargaBahan::whereIn('bahan_pangan_id', $bahanIds)
-                ->where('unit_sppg', $unit)
-                ->where('berlaku_mulai', '<=', $tanggal)
-                ->where(function ($q) use ($tanggal) {
-                    $q->whereNull('berlaku_sampai')->orWhere('berlaku_sampai', '>=', $tanggal);
-                })
-                ->orderByDesc('berlaku_mulai')
-                ->get()
-                ->groupBy('bahan_pangan_id')
-                ->map(fn($items) => (float) $items->first()->harga_per_100g);
-        }
+        $tanggal  = today()->toDateString();
+        $bahanIds = $bahanPangans->pluck('id')->toArray();
+        $hargaMap = HargaBahan::whereIn('bahan_pangan_id', $bahanIds)
+            ->where('berlaku_mulai', '<=', $tanggal)
+            ->where(function ($q) use ($tanggal) {
+                $q->whereNull('berlaku_sampai')->orWhere('berlaku_sampai', '>=', $tanggal);
+            })
+            ->orderByDesc('berlaku_mulai')
+            ->get()
+            ->groupBy('bahan_pangan_id')
+            ->map(fn($items) => (float) $items->first()->harga_per_100g);
 
         return view('bahan-pangan.index', compact('bahanPangans', 'stats', 'hargaMap'));
     }
@@ -200,7 +194,6 @@ class BahanPanganController extends Controller
         $q     = $request->input('q', '');
         $limit = $request->input('limit', 8);
 
-        $unit    = Auth::user()->unit_sppg;
         $tanggal = today()->toDateString();
 
         $results = BahanPangan::where('is_active', true)
@@ -214,9 +207,9 @@ class BahanPanganController extends Controller
             ])
             ->limit($limit)
             ->get()
-            ->map(function ($item) use ($unit, $tanggal) {
-                $item->bdd           = $item->bdd ?? 100;
-                $item->harga_per_100g = HargaBahan::hargaAktif($item->id, $unit, $tanggal) ?: null;
+            ->map(function ($item) use ($tanggal) {
+                $item->bdd            = $item->bdd ?? 100;
+                $item->harga_per_100g = HargaBahan::hargaAktif($item->id, $tanggal) ?: null;
                 return $item;
             });
 

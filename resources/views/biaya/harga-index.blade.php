@@ -44,7 +44,6 @@
                     <thead class="table-light">
                         <tr>
                             <th>Nama Bahan</th>
-                            <th>Unit SPPG</th>
                             <th class="text-end">Harga / kg</th>
                             <th class="text-end">Harga / gram</th>
                             <th>Berlaku Mulai</th>
@@ -56,13 +55,6 @@
                         @forelse($hargaList as $h)
                         <tr>
                             <td>{{ $h->bahanPangan?->nama_bahan ?? '—' }}</td>
-                            <td>
-                                @if($h->unit_sppg)
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ $h->unit_sppg }}</span>
-                                @else
-                                    <span class="badge bg-warning text-dark">Belum diset</span>
-                                @endif
-                            </td>
                             <td class="text-end">Rp {{ number_format($h->harga_per_100g * 10, 0, ',', '.') }}</td>
                             <td class="text-end text-muted small">Rp {{ number_format($h->harga_per_100g / 100, 2, ',', '.') }}</td>
                             <td>{{ $h->berlaku_mulai->format('d/m/Y') }}</td>

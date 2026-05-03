@@ -10,29 +10,21 @@ class MenuHarianController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
-
-        // FIX: Admin lihat semua menu, pengelola hanya unitnya
         $query = MenuHarian::with('detailBahans')
             ->orderByDesc('tanggal');
 
-        if ($user->role !== 'admin') {
-            $query->where('unit_sppg', $user->unit_sppg);
+        if ($request->filled('bulan')) {
+            [$tahun, $bln] = explode('-', $request->bulan);
+            $query->whereYear('tanggal', $tahun)->whereMonth('tanggal', $bln);
         }
 
-        // Filter tambahan untuk admin: filter per unit
-        if ($user->role === 'admin' && $request->input('unit_sppg')) {
-            $query->where('unit_sppg', $request->input('unit_sppg'));
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
         $menus = $query->paginate(15)->withQueryString();
 
-        // Untuk filter dropdown unit (admin only)
-        $unitList = $user->role === 'admin'
-            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
-            : collect();
-
-        return view('menu-harian.index', compact('menus', 'unitList'));
+        return view('menu-harian.index', compact('menus'));
     }
 
     public function create()
@@ -70,19 +62,21 @@ class MenuHarianController extends Controller
         $menuHarian->load('detailBahans.bahanPangan');
 
         // Siapkan data existing bahans untuk JS prefill
-        $existingBahans = $menuHarian->detailBahans->map(fn($d) => [
-            'id'           => $d->bahanPangan->id,
-            'kode'         => $d->bahanPangan->kode,
-            'nama_bahan'   => $d->bahanPangan->nama_bahan,
-            'kategori'     => $d->bahanPangan->kategori,
-            'energi'       => $d->bahanPangan->energi,
-            'protein'      => $d->bahanPangan->protein,
-            'lemak'        => $d->bahanPangan->lemak,
-            'karbohidrat'  => $d->bahanPangan->karbohidrat,
-            'bdd'          => $d->bahanPangan->bdd,
-            'jumlah_gram'  => $d->jumlah_gram,
-            'jumlah_porsi' => $d->jumlah_porsi,
-        ]);
+        $existingBahans = $menuHarian->detailBahans
+            ->filter(fn($d) => $d->bahanPangan)
+            ->map(fn($d) => [
+                'id'           => $d->bahanPangan->id,
+                'kode'         => $d->bahanPangan->kode,
+                'nama_bahan'   => $d->bahanPangan->nama_bahan,
+                'kategori'     => $d->bahanPangan->kategori,
+                'energi'       => $d->bahanPangan->energi,
+                'protein'      => $d->bahanPangan->protein,
+                'lemak'        => $d->bahanPangan->lemak,
+                'karbohidrat'  => $d->bahanPangan->karbohidrat,
+                'bdd'          => $d->bahanPangan->bdd,
+                'jumlah_gram'  => $d->jumlah_gram,
+                'jumlah_porsi' => $d->jumlah_porsi,
+            ])->values();
 
         return view('menu-harian.edit', compact('menuHarian', 'existingBahans'));
     }
@@ -132,13 +126,9 @@ class MenuHarianController extends Controller
             ->with('success', 'Menu berhasil dihapus.');
     }
 
-    // FIX: Authorization helper
     private function authorizeUnit(MenuHarian $menu): void
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin' && $user->unit_sppg !== $menu->unit_sppg) {
-            abort(403, 'Anda tidak memiliki akses ke menu unit ini.');
-        }
+        // Single SPPG — semua pengguna terautentikasi boleh akses
     }
 
     public function finalize(MenuHarian $menuHarian)

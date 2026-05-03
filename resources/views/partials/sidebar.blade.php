@@ -1,7 +1,7 @@
 <nav id="sidebar" style="display:flex; flex-direction:column; height:100vh; overflow:hidden;">
     {{-- Brand --}}
     <div class="sidebar-brand" style="flex-shrink:0;">
-        <div style="font-size:1.8rem; margin-bottom:.3rem;">🍱</div>
+        <img src="{{ asset('images/logo_bgn.png') }}" alt="Logo" width="100">
         <h5>Dashboard MBG</h5>
         <small>Monitoring Gizi & Biaya Produksi</small>
     </div>
@@ -10,7 +10,7 @@
     <div style="flex-shrink:0; padding:.75rem 1.25rem; background:rgba(255,255,255,.07); margin:.75rem; border-radius:10px;">
         <div style="font-size:.68rem; color:rgba(255,255,255,.45); font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Unit SPPG</div>
         <div style="font-size:.82rem; color:#fff; font-weight:600; margin-top:.2rem;">
-            {{ Auth::user()->unit_sppg ?? '—' }}
+            {{ config('app.unit_sppg', 'SPPG') }}
         </div>
     </div>
 
@@ -56,7 +56,7 @@
             @endif
         </a>
         @if(Auth::user()->role === 'admin')
-            <div class="nav-section">Administrasi</div>
+            <div class="nav-section">Admin Panel</div>
             <a class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}"
                 href="{{ route('anggaran.index') }}">
                 <i class="fas fa-wallet"></i> Kelola Anggaran

@@ -47,7 +47,7 @@
 <div class="header">
     <h2>LAPORAN BIAYA PRODUKSI MENU</h2>
     <p>Program Makan Bergizi Gratis (MBG) — {{ $bulanLabel }}</p>
-    <p>Unit SPPG: {{ $user->unit_sppg ?? 'Semua Unit' }}</p>
+    <p>Unit SPPG: {{ config('app.unit_sppg', 'SPPG') }}</p>
 </div>
 
 @php $totalMenu = $menus->count(); @endphp
@@ -107,7 +107,7 @@
 </table>
 
 <div class="ttd">
-    <p>{{ $user->unit_sppg ?? '' }}, {{ now()->translatedFormat('d F Y') }}</p>
+    <p>{{ config('app.unit_sppg', 'SPPG') }}, {{ now()->translatedFormat('d F Y') }}</p>
     <p>Pengelola SPPG,</p>
     <div class="garis"></div>
     <p style="margin-top:3px">{{ $user->name }}</p>

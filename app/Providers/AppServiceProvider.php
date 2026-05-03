@@ -38,10 +38,6 @@ class AppServiceProvider extends ServiceProvider
                 ->whereYear('tanggal',  $today->year)
                 ->whereMonth('tanggal', $today->month);
         
-            if ($user->role === 'pengelola') {
-                $query->where('unit_sppg', $user->unit_sppg);
-            }
-        
             $totalAlert   = 0;
             $navAlerts    = [];
             $dismissedIds = session('dismissed_alert_ids', []);

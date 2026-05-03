@@ -27,7 +27,6 @@
             <h4 class="fw-bold mb-0" style="color:var(--primary)">
                 Edit Menu — {{ $menuHarian->tanggal->translatedFormat('d F Y') }}
             </h4>
-            <small class="text-muted">Unit: {{ auth()->user()->unit_sppg }}</small>
         </div>
     </div>
 
@@ -54,11 +53,6 @@
                             <input type="text" class="form-control bg-light"
                                    value="{{ $menuHarian->tanggal->translatedFormat('d F Y') }}" disabled>
                             {{-- Tanggal tidak bisa diubah saat edit --}}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Unit SPPG</label>
-                            <input type="text" class="form-control bg-light"
-                                   value="{{ auth()->user()->unit_sppg }}" disabled>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Nama Menu</label>

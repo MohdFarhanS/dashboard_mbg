@@ -48,20 +48,6 @@
                            value="{{ $bulan }}" onchange="this.form.submit()">
                 </div>
 
-                @if($unitList->count())
-                <div class="col-md-3">
-                    <label class="form-label small fw-semibold">Unit SPPG</label>
-                    <select name="unit_sppg" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">— Semua Unit —</option>
-                        @foreach($unitList as $unit)
-                            <option value="{{ $unit }}" {{ request('unit_sppg') === $unit ? 'selected' : '' }}>
-                                {{ $unit }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
-
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold">Jenis Laporan</label>
                     <div class="tab-jenis d-flex gap-1">
@@ -161,7 +147,6 @@
                         <tr>
                             <th class="ps-3">No</th>
                             <th>Tanggal</th>
-                            <th>Unit SPPG</th>
                             <th>Nama Menu</th>
                             <th class="text-end">Porsi</th>
                             <th class="text-end">Total Bahan</th>
@@ -180,7 +165,6 @@
                         <tr>
                             <td class="ps-3 text-muted small">{{ $i + 1 }}</td>
                             <td>{{ $menu->tanggal->format('d/m/Y') }}</td>
-                            <td><span class="badge bg-secondary-subtle text-secondary">{{ $menu->unit_sppg }}</span></td>
                             <td>{{ $menu->nama_menu ?? '-' }}</td>
                             <td class="text-end">{{ number_format($menu->jumlah_porsi ?? 1) }}</td>
                             <td class="text-end">Rp {{ number_format($b['total_seluruh'], 0, ',', '.') }}</td>
@@ -234,7 +218,6 @@
                         <tr>
                             <th class="ps-3">No</th>
                             <th>Tanggal</th>
-                            <th>Unit SPPG</th>
                             <th>Nama Menu</th>
                             <th class="text-end">Energi (kkal)</th>
                             <th class="text-end">% AKG</th>
@@ -255,7 +238,6 @@
                         <tr>
                             <td class="ps-3 text-muted small">{{ $i + 1 }}</td>
                             <td>{{ $menu->tanggal->format('d/m/Y') }}</td>
-                            <td><span class="badge bg-secondary-subtle text-secondary">{{ $menu->unit_sppg }}</span></td>
                             <td>{{ $menu->nama_menu ?? '-' }}</td>
                             <td class="text-end fw-semibold" style="color:var(--primary)">
                                 {{ number_format($g['energi'], 1) }}

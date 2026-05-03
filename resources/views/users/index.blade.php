@@ -36,7 +36,6 @@
                         <th class="ps-4">Nama</th>
                         <th>Email</th>
                         <th>Role</th>
-                        <th>Unit SPPG</th>
                         <th>Bergabung</th>
                         <th class="text-center">Aksi</th>
                     </tr>
@@ -62,7 +61,6 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="text-muted small">{{ $user->unit_sppg }}</td>
                         <td class="text-muted small">{{ $user->created_at->format('d/m/Y') }}</td>
                         <td class="text-center">
                             <div class="d-flex gap-1 justify-content-center">

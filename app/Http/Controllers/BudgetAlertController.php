@@ -5,31 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\MenuHarian;
 use App\Constants\AKG;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class BudgetAlertController extends Controller
 {
     public function index(Request $request)
     {
-        $user      = Auth::user();
-        $bulan     = $request->input('bulan', today()->format('Y-m'));
+        $bulan    = $request->input('bulan', today()->format('Y-m'));
         $severity  = $request->input('severity', '');
 
         [$tahun, $bulanAngka] = explode('-', $bulan);
 
-        $query = MenuHarian::with('detailBahans.bahanPangan')
+        $menusFinal = MenuHarian::with('detailBahans.bahanPangan')
             ->where('status', 'final')
             ->whereYear('tanggal',  $tahun)
             ->whereMonth('tanggal', $bulanAngka)
-            ->orderBy('tanggal', 'desc');
-
-        if ($user->role === 'pengelola') {
-            $query->where('unit_sppg', $user->unit_sppg);
-        } elseif ($request->filled('unit_sppg')) {
-            $query->where('unit_sppg', $request->unit_sppg);
-        }
-
-        $menusFinal = $query->get();
+            ->orderBy('tanggal', 'desc')
+            ->get();
 
         // Klasifikasi tiap menu
         $alerts        = [];
@@ -77,13 +68,8 @@ class BudgetAlertController extends Controller
             session(['dismissed_alert_ids' => array_unique(array_merge($existing, $alertMenuIds))]);
         }
 
-        // Unit list untuk filter admin
-        $unitList = $user->role === 'admin'
-            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
-            : collect();
-
         return view('budget-alert.index', compact(
-            'alerts', 'bulan', 'severity', 'unitList',
+            'alerts', 'bulan', 'severity',
             'countOver', 'countWarning', 'countAman'
         ));
     }
