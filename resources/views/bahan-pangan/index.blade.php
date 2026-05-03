@@ -14,9 +14,14 @@
             <small class="text-muted">Tabel Komposisi Pangan Indonesia — {{ number_format($stats['total']) }} bahan pangan</small>
         </div>
         @if(auth()->user()->role === 'admin')
-        <a href="{{ route('bahan-pangan.create') }}" class="btn btn-primary btn-sm px-3">
-            <i class="fas fa-plus me-1"></i> Tambah Bahan
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('import-tkpi.index') }}" class="btn btn-outline-success btn-sm px-3">
+                <i class="fas fa-file-csv me-1"></i> Import CSV
+            </a>
+            <a href="{{ route('bahan-pangan.create') }}" class="btn btn-primary btn-sm px-3">
+                <i class="fas fa-plus me-1"></i> Tambah Bahan
+            </a>
+        </div>
         @endif
     </div>
 
