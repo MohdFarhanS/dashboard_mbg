@@ -7,8 +7,8 @@
         * { font-family: 'DejaVu Sans', sans-serif; font-size: 9pt; margin: 0; padding: 0; }
         body { padding: 15px; }
 
-        .header { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #1a6b3a; padding-bottom: 10px; }
-        .header h2 { font-size: 14pt; color: #1a6b3a; font-weight: bold; }
+        .header { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #0f4c81; padding-bottom: 10px; }
+        .header h2 { font-size: 14pt; color: #0f4c81; font-weight: bold; }
         .header p  { font-size: 9pt; color: #555; margin-top: 3px; }
 
         table.main {
@@ -17,7 +17,7 @@
             margin-top: 4px;
         }
         table.main th {
-            background: #1a6b3a;
+            background: #0f4c81;
             color: #fff;
             padding: 5px 6px;
             font-size: 8pt;
@@ -27,13 +27,13 @@
             border-bottom: 1px solid #eee;
             font-size: 8pt;
         }
-        table.main tr:nth-child(even) td { background: #f8fdf9; }
+        table.main tr:nth-child(even) td { background: #f0f5fc; }
         table.main tfoot td {
-            background: #e8f5ee;
+            background: #daeeff;
             font-weight: bold;
-            border-top: 2px solid #1a6b3a;
+            border-top: 2px solid #0f4c81;
         }
-        .badge-aman    { color: #0a3622; background: #d1e7dd; padding: 1px 5px; border-radius: 3px; }
+        .badge-aman    { color: #0f4c81; background: #daeeff; padding: 1px 5px; border-radius: 3px; }
         .badge-over    { color: #842029; background: #f8d7da; padding: 1px 5px; border-radius: 3px; }
         .badge-warning { color: #664d03; background: #fff3cd; padding: 1px 5px; border-radius: 3px; }
 
@@ -84,9 +84,9 @@
             <td>{{ $menu->nama_menu ?? '-' }}</td>
             <td style="text-align:right">{{ number_format($menu->jumlah_porsi ?? 1) }}</td>
             <td style="text-align:right">{{ number_format($b['total_seluruh'], 0, ',', '.') }}</td>
-            <td style="text-align:right;font-weight:bold;color:#1a6b3a">{{ number_format($b['cost_per_porsi'], 0, ',', '.') }}</td>
+            <td style="text-align:right;font-weight:bold;color:#0f4c81">{{ number_format($b['cost_per_porsi'], 0, ',', '.') }}</td>
             <td style="text-align:right">{{ number_format($b['anggaran'], 0, ',', '.') }}</td>
-            <td style="text-align:right;color:{{ $b['selisih'] >= 0 ? '#1a6b3a' : '#dc3545' }}">
+            <td style="text-align:right;color:{{ $b['selisih'] >= 0 ? '#0f4c81' : '#dc3545' }}">
                 {{ $b['selisih'] >= 0 ? '+' : '-' }}{{ number_format(abs($b['selisih']), 0, ',', '.') }}
             </td>
             <td style="text-align:center"><span class="badge-{{ $status === 'belum_ada_data' ? 'aman' : $status }}">{{ $lbl }}</span></td>

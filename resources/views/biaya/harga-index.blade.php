@@ -7,12 +7,21 @@
 <div class="container-fluid py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-semibold mb-0">
-            <i class="fa fa-tags text-success me-2"></i>Manajemen Harga Bahan
-        </h4>
-        <a href="{{ route('biaya.harga.create') }}" class="btn btn-success btn-sm">
+        <div class="d-flex align-items-center">
+            <a href="{{ route('biaya.dashboard') }}" class="btn btn-sm btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+    
+            <h4 class="fw-semibold mb-0">
+                <i class="fa fa-tags me-0" style="color:#0f4c81"></i>
+                Manajemen Harga Bahan
+            </h4>
+        </div>
+    
+        <!-- Kanan: tombol tambah -->
+        <a href="{{ route('biaya.harga.create') }}" class="btn btn-primary btn-sm">
             <i class="fa fa-plus me-1"></i>Tambah Harga
-        </a>
+        </a>   
     </div>
 
     {{-- Search --}}
@@ -20,7 +29,7 @@
         <input type="text" name="q" value="{{ $q }}"
                class="form-control form-control-sm" style="max-width:280px"
                placeholder="Cari nama bahan...">
-        <button type="submit" class="btn btn-outline-success btn-sm">
+        <button type="submit" class="btn btn-outline-primary btn-sm">
             <i class="fa fa-search"></i>
         </button>
         @if($q)
@@ -35,6 +44,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Nama Bahan</th>
+                            <th>Unit SPPG</th>
                             <th class="text-end">Harga / kg</th>
                             <th class="text-end">Harga / gram</th>
                             <th>Berlaku Mulai</th>
@@ -46,6 +56,13 @@
                         @forelse($hargaList as $h)
                         <tr>
                             <td>{{ $h->bahanPangan?->nama_bahan ?? '—' }}</td>
+                            <td>
+                                @if($h->unit_sppg)
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ $h->unit_sppg }}</span>
+                                @else
+                                    <span class="badge bg-warning text-dark">Belum diset</span>
+                                @endif
+                            </td>
                             <td class="text-end">Rp {{ number_format($h->harga_per_100g * 10, 0, ',', '.') }}</td>
                             <td class="text-end text-muted small">Rp {{ number_format($h->harga_per_100g / 100, 2, ',', '.') }}</td>
                             <td>{{ $h->berlaku_mulai->format('d/m/Y') }}</td>

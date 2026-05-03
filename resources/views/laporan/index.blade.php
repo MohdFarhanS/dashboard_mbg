@@ -66,11 +66,11 @@
                     <label class="form-label small fw-semibold">Jenis Laporan</label>
                     <div class="tab-jenis d-flex gap-1">
                         <a href="{{ request()->fullUrlWithQuery(['jenis' => 'gizi']) }}"
-                           class="btn btn-sm btn-outline-success {{ $jenis === 'gizi' ? 'active' : '' }}">
+                           class="btn btn-sm btn-outline-primary {{ $jenis === 'gizi' ? 'active' : '' }}">
                             <i class="fas fa-heart-pulse me-1"></i>Gizi
                         </a>
                         <a href="{{ request()->fullUrlWithQuery(['jenis' => 'biaya']) }}"
-                           class="btn btn-sm btn-outline-success {{ $jenis === 'biaya' ? 'active' : '' }}">
+                           class="btn btn-sm btn-outline-primary {{ $jenis === 'biaya' ? 'active' : '' }}">
                             <i class="fas fa-coins me-1"></i>Biaya
                         </a>
                     </div>
@@ -78,7 +78,7 @@
 
                 <div class="col-md-3 d-flex gap-2 flex-wrap">
                     <a href="{{ route('laporan.export-excel', ['bulan' => $bulan, 'jenis' => $jenis]) }}"
-                       class="btn btn-success btn-sm">
+                       class="btn btn-primary btn-sm">
                         <i class="fas fa-file-excel me-1"></i>Excel
                     </a>
                     <a href="{{ route('laporan.export-pdf', ['bulan' => $bulan, 'jenis' => $jenis]) }}"
@@ -97,7 +97,7 @@
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
             <div class="stat-laporan">
-                <div class="icon" style="background:#e8f5ee">📋</div>
+                <div class="icon" style="background:#daeeff">📋</div>
                 <div>
                     <div class="text-muted" style="font-size:.72rem">Total Menu Final</div>
                     <div class="fw-bold fs-5">{{ $totalMenu }} menu</div>
@@ -190,7 +190,7 @@
                             <td class="text-end">Rp {{ number_format($b['anggaran'], 0, ',', '.') }}</td>
                             <td class="text-end">
                                 @if($b['selisih'] >= 0)
-                                    <span class="text-success fw-semibold">+Rp {{ number_format($b['selisih'], 0, ',', '.') }}</span>
+                                    <span style="color:#0f4c81" class="fw-semibold">+Rp {{ number_format($b['selisih'], 0, ',', '.') }}</span>
                                 @else
                                     <span class="text-danger fw-semibold">-Rp {{ number_format(abs($b['selisih']), 0, ',', '.') }}</span>
                                 @endif
@@ -201,7 +201,7 @@
                                 @elseif($status === 'warning')
                                     <span class="badge bg-warning text-dark">Mendekati</span>
                                 @elseif($status === 'aman')
-                                    <span class="badge bg-success">Aman</span>
+                                    <span class="badge bg-primary">Aman</span>
                                 @else
                                     <span class="text-muted small">—</span>
                                 @endif
@@ -262,7 +262,7 @@
                             </td>
                             <td class="text-center">
                                 @php
-                                    $badgeColor = $cls === 'kurang' ? 'bg-danger' : ($cls === 'lebih' ? 'bg-warning text-dark' : 'bg-success');
+                                    $badgeColor = $cls === 'kurang' ? 'bg-danger' : ($cls === 'lebih' ? 'bg-warning text-dark' : 'bg-primary');
                                 @endphp
                                 <span class="badge {{ $badgeColor }}">{{ $pct }}%</span>
                             </td>
@@ -275,7 +275,7 @@
                                 @elseif($cls === 'lebih')
                                     <span class="badge bg-warning text-dark">Lebih</span>
                                 @else
-                                    <span class="badge bg-success">Cukup</span>
+                                    <span class="badge bg-primary">Cukup</span>
                                 @endif
                             </td>
                         </tr>

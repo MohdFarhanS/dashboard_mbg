@@ -5,14 +5,15 @@
 @section('content')
 <div class="container-fluid py-4">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb small">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('bahan-pangan.index') }}">Bahan Pangan</a></li>
-            <li class="breadcrumb-item active">{{ $bahanPangan->kode }}</li>
-        </ol>
-    </nav>
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <a href="{{ route('bahan-pangan.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0" style="color:var(--primary)">{{ $bahanPangan->nama_bahan }}</h4>
+            <small class="text-muted">{{ $bahanPangan->kode }}</small>
+        </div>
+    </div>
 
     @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show py-2 mb-4" role="alert">
@@ -57,7 +58,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Status</span>
                             @if($bahanPangan->is_active)
-                                <span class="badge bg-success">Aktif</span>
+                                <span class="badge bg-primary">Aktif</span>
                             @else
                                 <span class="badge bg-secondary">Nonaktif</span>
                             @endif
@@ -76,7 +77,7 @@
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-2 rounded-2" style="background:#d1e7dd;">
+                            <div class="p-2 rounded-2" style="background:#daeeff;">
                                 <div class="fw-bold fs-5">{{ $bahanPangan->protein !== null ? number_format($bahanPangan->protein, 1) : '—' }}</div>
                                 <div class="small text-muted">Protein (g)</div>
                             </div>
@@ -179,11 +180,6 @@
                 </div>
             </div>
 
-            <div class="mt-3">
-                <a href="{{ route('bahan-pangan.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-arrow-left me-1"></i>Kembali ke Daftar
-                </a>
-            </div>
         </div>
     </div>
 </div>

@@ -36,11 +36,12 @@
             class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
             <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
         </a>
-        <a href="{{ route('simulasi.index') }}"
-            class="nav-link {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
-            <i class="fas fa-flask"></i> Simulasi Menu
-        </a>
-
+        @if(Auth::user()->role === 'pengelola')
+            <a href="{{ route('simulasi.index') }}"
+                class="nav-link {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
+                <i class="fas fa-flask"></i> Simulasi Menu
+            </a>
+        @endif
         <div class="nav-section">Monitoring</div>
 
         <a href="{{ route('gizi.dashboard') }}"

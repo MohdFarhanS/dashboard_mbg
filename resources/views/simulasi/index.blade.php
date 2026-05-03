@@ -12,7 +12,7 @@
         border: 1px solid #e9ecef;
         transition: border-color .2s;
     }
-    .bahan-row:hover { border-color: #a8d5b5; }
+    .bahan-row:hover { border-color: #7db8e8; }
 
     .autocomplete-list {
         position: absolute;
@@ -37,13 +37,13 @@
         gap: .5rem;
     }
     .autocomplete-item:last-child { border-bottom: none; }
-    .autocomplete-item:hover { background: #e8f5ee; }
+    .autocomplete-item:hover { background: #daeeff; }
     .autocomplete-item .kode {
         color: var(--primary);
         font-size: .72rem;
         font-weight: 700;
         font-family: monospace;
-        background: #e8f5ee;
+        background: #daeeff;
         padding: 2px 6px;
         border-radius: 4px;
         flex-shrink: 0;
@@ -55,12 +55,12 @@
     /* Progress gizi */
     .progress-gizi { height: 8px; border-radius: 4px; }
     .bar-kurang  { background: #dc3545; }
-    .bar-cukup   { background: #1a6b3a; }
+    .bar-cukup   { background: #0071e4; }
     .bar-lebih   { background: #ffc107; }
 
     /* Status badge gizi */
     .badge-kurang { background:#fff3cd; color:#856404; border:1px solid #ffc107; }
-    .badge-cukup  { background:#d1e7dd; color:#0a3622; border:1px solid #1a6b3a; }
+    .badge-cukup  { background:#daeeff; color:#0f4c81; border:1px solid #0071e4; }
     .badge-lebih  { background:#f8d7da; color:#842029; border:1px solid #dc3545; }
 
     /* Tabel detail */
@@ -88,10 +88,10 @@
         font-size: .82rem;
         transition: border-color .15s, background .15s;
     }
-    .tier-label:hover { border-color: #a8d5b5 !important; background: #f0faf4; }
+    .tier-label:hover { border-color: #7db8e8 !important; background: #f0f6ff; }
     .tier-label.active {
         border-color: var(--primary) !important;
-        background: #e8f5ee;
+        background: #daeeff;
         font-weight: 600;
     }
 
@@ -126,6 +126,17 @@
         </a>
     </div>
 
+    @if(auth()->user()->role === 'admin')
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-ban fa-3x mb-3 d-block" style="color:#dc3545;opacity:.4"></i>
+            <div class="fw-semibold h5 mb-2">Akses Tidak Tersedia</div>
+            <p class="text-muted mb-0">
+                Fitur Simulasi Menu hanya dapat digunakan oleh <strong>Pengelola SPPG</strong>.<br>
+            </p>
+        </div>
+    </div>
+    @else
     <div class="row g-4">
 
         {{-- ═══ KOLOM KIRI: Input ══════════════════════════════════════════════ --}}
@@ -180,8 +191,8 @@
             {{-- Langkah 2: Bahan --}}
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-header border-0 py-2 d-flex justify-content-between align-items-center"
-                     style="background:#d1e7dd">
-                    <span class="fw-semibold" style="color:#0a3622">
+                     style="background:#daeeff">
+                    <span class="fw-semibold" style="color:#0f4c81">
                         <span class="step-badge me-2">2</span>Bahan Pangan (TKPI)
                     </span>
                     <span class="text-muted small" id="label-jml-bahan">0 bahan</span>
@@ -204,7 +215,7 @@
                     </div>
 
                     <button type="button" id="btn-tambah"
-                            class="btn btn-outline-success btn-sm mt-2"
+                            class="btn btn-outline-primary btn-sm mt-2"
                             style="border-color:var(--primary);color:var(--primary)">
                         <i class="fas fa-plus me-1"></i>Tambah Bahan
                     </button>
@@ -212,7 +223,7 @@
                 <div class="card-footer border-top bg-white py-2">
                     <div class="d-flex gap-2 align-items-center flex-wrap">
                         <button type="button" id="btn-hitung"
-                                class="btn btn-success btn-sm px-3"
+                                class="btn btn-primary btn-sm px-3"
                                 style="background:var(--primary);border-color:var(--primary)" disabled>
                             <i class="fas fa-calculator me-1"></i>Hitung Estimasi
                         </button>
@@ -288,8 +299,8 @@
 
                     {{-- Ringkasan Biaya --}}
                     <div class="card border-0 shadow-sm mb-3">
-                        <div class="card-header border-0 py-2" style="background:#d1e7dd">
-                            <span class="fw-semibold small" style="color:#0a3622">
+                        <div class="card-header border-0 py-2" style="background:#daeeff">
+                            <span class="fw-semibold small" style="color:#0f4c81">
                                 <i class="fas fa-coins me-1"></i>Estimasi Biaya Produksi
                             </span>
                         </div>
@@ -402,7 +413,7 @@
                                        value="{{ isset($menuHarian) ? ($menuHarian->catatan_anggaran ?? '') : '' }}">
                             </div>
                             <div class="d-flex gap-2">
-                                <button type="button" id="btn-simpan" class="btn btn-success flex-fill"
+                                <button type="button" id="btn-simpan" class="btn btn-primary flex-fill"
                                         style="background:var(--primary);border-color:var(--primary)">
                                     @isset($menuHarian)
                                         <i class="fas fa-sync me-1"></i>Perbarui Menu
@@ -421,8 +432,10 @@
         </div>
 
     </div>
+    @endif
 </div>
 
+@if(auth()->user()->role !== 'admin')
 {{-- Template bahan-row --}}
 <template id="tpl-bahan">
     <div class="bahan-row" data-idx="">
@@ -590,7 +603,7 @@ function recalcRow(row) {
     } else if (gram > 0) {
         const biaya = gram * sajian * harga / 100;
         el.textContent = 'Rp ' + Math.round(biaya).toLocaleString('id-ID');
-        el.style.color = '#1a6b3a';
+        el.style.color = '#0f4c81';
     } else {
         el.textContent = '— /sajian';
         el.style.color = '';
@@ -705,7 +718,7 @@ function renderGizi(gizi, persenAkg) {
                 </div>
             </div>
             <div class="progress-gizi" style="background:#e9ecef;border-radius:4px;height:8px">
-                <div style="width:${barW}%;height:8px;border-radius:4px;background:${cls==='kurang'?'#dc3545':cls==='lebih'?'#ffc107':'#1a6b3a'};
+                <div style="width:${barW}%;height:8px;border-radius:4px;background:${cls==='kurang'?'#dc3545':cls==='lebih'?'#ffc107':'#0071e4'};
                             transition:width .4s ease"></div>
             </div>
         </div>`;
@@ -717,7 +730,7 @@ function renderGizi(gizi, persenAkg) {
     const badgeEl = document.getElementById('badge-gizi-summary');
     if (kurangCount === 0) {
         badgeEl.innerHTML =
-            `<span class="badge" style="background:#d1e7dd;color:#0a3622;font-size:.7rem">
+            `<span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.7rem">
                 <i class="fas fa-check-circle me-1"></i>Gizi Lengkap ✓
             </span>`;
     } else {
@@ -729,7 +742,7 @@ function renderGizi(gizi, persenAkg) {
 }
 
 const CHART_COLORS = [
-    '#1a6b3a','#2196F3','#FF9800','#9C27B0',
+    '#0f4c81','#0071e4','#FF9800','#9C27B0',
     '#F44336','#00BCD4','#795548','#607D8B','#E91E63','#FF5722',
 ];
 
@@ -758,21 +771,21 @@ function renderBiaya(b) {
 
     const selisihEl = document.getElementById('biaya-selisih');
     selisihEl.textContent = (selisih >= 0 ? '+' : '') + fmt(selisih);
-    selisihEl.style.color = selisih >= 0 ? '#1a6b3a' : '#dc3545';
+    selisihEl.style.color = selisih >= 0 ? '#0f4c81' : '#dc3545';
 
     // Rasio biaya makanan
     const rasioEl = document.getElementById('biaya-rasio');
     rasioEl.textContent   = anggaran > 0 ? persenAngg + '%' : '—';
     rasioEl.style.color   = persenAngg > 100 ? '#dc3545'
                           : persenAngg >= 85  ? '#856404'
-                          : '#1a6b3a';
+                          : '#0f4c81';
 
     // Budget bar
     const barEl = document.getElementById('budget-bar');
     barEl.style.width      = Math.min(persenAngg, 100) + '%';
     barEl.style.background = persenAngg > 100 ? '#dc3545'
                            : persenAngg >= 85  ? '#ffc107'
-                           : '#1a6b3a';
+                           : '#0071e4';
     document.getElementById('persen-anggaran').textContent = persenAngg + '%';
 
     // Alert anggaran
@@ -856,7 +869,7 @@ function renderDetail(detail) {
         const bdd = d.bdd ?? 100;
         let bddBadge;
         if (bdd >= 90) {
-            bddBadge = `<span class="badge" style="background:#d1e7dd;color:#0a3622">
+            bddBadge = `<span class="badge" style="background:#daeeff;color:#0f4c81">
                             <i class="fas fa-check-circle me-1"></i>Efisien (${bdd}%)
                         </span>`;
         } else if (bdd >= 70) {
@@ -882,7 +895,7 @@ function renderDetail(detail) {
             <td class="text-center">${bddBadge}</td>
             <td class="text-end pe-3">
                 ${d.ada_harga
-                    ? `<span style="color:#1a6b3a">${fmtRp(d.biaya)}</span>`
+                    ? `<span style="color:#0f4c81">${fmtRp(d.biaya)}</span>`
                     : `<span class="badge bg-warning text-dark">Belum ada harga</span>`}
             </td>
         </tr>`;
@@ -1031,4 +1044,5 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 });
 </script>
 @endpush
+@endif
 @endsection

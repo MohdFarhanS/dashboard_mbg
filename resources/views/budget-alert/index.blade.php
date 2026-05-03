@@ -14,11 +14,11 @@
 }
 .alert-card.over    { border-left-color: #dc3545; }
 .alert-card.warning { border-left-color: #ffc107; }
-.alert-card.aman    { border-left-color: #1a6b3a; }
+.alert-card.aman    { border-left-color: #0f4c81; }
 
 .severity-badge.over    { background:#fce4e4; color:#c62828; }
 .severity-badge.warning { background:#fff8e1; color:#f57c00; }
-.severity-badge.aman    { background:#d1e7dd; color:#0a3622; }
+.severity-badge.aman    { background:#daeeff; color:#0f4c81; }
 
 .stat-alert {
     border-radius: 12px;
@@ -45,7 +45,7 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold mb-0" style="color:#1a6b3a">
+            <h4 class="fw-bold mb-0" style="color:#0f4c81">
                 <i class="fas fa-bell me-2"></i>Budget Alert
             </h4>
             <small class="text-muted">
@@ -121,7 +121,7 @@
                             display:flex;align-items:center;justify-content:center;
                             font-size:1.3rem;flex-shrink:0;">🚨</div>
                 <div>
-                    <div style="font-size:.72rem;color:#7a9280;">Over Budget</div>
+                    <div style="font-size:.72rem;color:#6b8ba4;">Over Budget</div>
                     <div class="fw-bold fs-4" style="color:#c62828;line-height:1.1;">
                         {{ $countOver }}
                     </div>
@@ -136,7 +136,7 @@
                             display:flex;align-items:center;justify-content:center;
                             font-size:1.3rem;flex-shrink:0;">⚠️</div>
                 <div>
-                    <div style="font-size:.72rem;color:#7a9280;">Mendekati Batas</div>
+                    <div style="font-size:.72rem;color:#6b8ba4;">Mendekati Batas</div>
                     <div class="fw-bold fs-4" style="color:#f57c00;line-height:1.1;">
                         {{ $countWarning }}
                     </div>
@@ -147,12 +147,12 @@
         <div class="col-6 col-md-4">
             <a href="{{ request()->fullUrlWithQuery(['severity' => 'aman']) }}"
                class="stat-alert d-flex">
-                <div style="width:46px;height:46px;border-radius:10px;background:#d1e7dd;
+                <div style="width:46px;height:46px;border-radius:10px;background:#daeeff;
                             display:flex;align-items:center;justify-content:center;
                             font-size:1.3rem;flex-shrink:0;">✅</div>
                 <div>
-                    <div style="font-size:.72rem;color:#7a9280;">Dalam Anggaran</div>
-                    <div class="fw-bold fs-4" style="color:#1a6b3a;line-height:1.1;">
+                    <div style="font-size:.72rem;color:#6b8ba4;">Dalam Anggaran</div>
+                    <div class="fw-bold fs-4" style="color:#0f4c81;line-height:1.1;">
                         {{ $countAman }}
                     </div>
                     <div style="font-size:.7rem;color:#adb5bd;">menu bulan ini</div>
@@ -165,14 +165,14 @@
     @if(count($alerts) === 0)
     <div class="card border-0 shadow-sm">
         <div class="card-body text-center py-5 text-muted">
-            <i class="fas fa-check-circle fa-3x mb-3 d-block" style="color:#1a6b3a;opacity:.3;"></i>
+            <i class="fas fa-check-circle fa-3x mb-3 d-block" style="color:#0f4c81;opacity:.3;"></i>
             @if($severity === '' )
                 <div class="fw-semibold">Tidak ada peringatan bulan ini</div>
                 <small>Semua menu dalam batas anggaran 🎉</small>
             @else
                 <div class="fw-semibold">Tidak ada menu dengan kategori ini</div>
                 <a href="{{ route('budget-alert.index', ['bulan' => $bulan]) }}"
-                   class="btn btn-sm btn-outline-success mt-2">Tampilkan Semua</a>
+                   class="btn btn-sm btn-outline-primary mt-2">Tampilkan Semua</a>
             @endif
         </div>
     </div>
@@ -194,7 +194,7 @@
                     {{-- Row 1: Judul + Badge --}}
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
-                            <div class="fw-semibold" style="color:#1a2e1d;">
+                            <div class="fw-semibold" style="color:#0d2545;">
                                 {{ $menu->nama_menu ?? '(tanpa nama)' }}
                             </div>
                             <small class="text-muted">
@@ -220,7 +220,7 @@
                         <div class="col-4">
                             <div style="font-size:.68rem;color:#7a9280;">Cost/Porsi</div>
                             <div class="fw-bold"
-                                 style="color:{{ $a['status'] === 'over' ? '#c62828' : '#1a6b3a' }};">
+                                 style="color:{{ $a['status'] === 'over' ? '#c62828' : '#0f4c81' }};">
                                 Rp {{ number_format($a['cost_porsi'], 0, ',', '.') }}
                             </div>
                         </div>
@@ -233,7 +233,7 @@
                         <div class="col-4">
                             <div style="font-size:.68rem;color:#7a9280;">Selisih</div>
                             <div class="fw-bold"
-                                 style="color:{{ $a['selisih'] >= 0 ? '#1a6b3a' : '#c62828' }};">
+                                 style="color:{{ $a['selisih'] >= 0 ? '#0f4c81' : '#c62828' }};">
                                 {{ $a['selisih'] >= 0 ? '+' : '-' }}Rp {{ number_format(abs($a['selisih']), 0, ',', '.') }}
                             </div>
                         </div>
@@ -243,14 +243,14 @@
                     <div class="mb-1 d-flex justify-content-between">
                         <small class="text-muted">Penyerapan anggaran</small>
                         <small class="fw-semibold"
-                               style="color:{{ $a['status'] === 'over' ? '#c62828' : ($a['status'] === 'warning' ? '#f57c00' : '#1a6b3a') }};">
+                               style="color:{{ $a['status'] === 'over' ? '#c62828' : ($a['status'] === 'warning' ? '#f57c00' : '#0f4c81') }};">
                             {{ $a['persen'] }}%
                         </small>
                     </div>
                     <div class="progress progress-thin mb-3">
                         <div class="progress-bar"
                              style="width:{{ min($a['persen'], 100) }}%;
-                                    background:{{ $a['status'] === 'over' ? '#dc3545' : ($a['status'] === 'warning' ? '#ffc107' : '#1a6b3a') }};">
+                                    background:{{ $a['status'] === 'over' ? '#dc3545' : ($a['status'] === 'warning' ? '#ffc107' : '#0071e4') }};">
                         </div>
                     </div>
 
@@ -262,7 +262,7 @@
                         </a>
                         <a href="{{ route('biaya.detail-menu', $menu->id) }}"
                            class="btn btn-sm flex-fill"
-                           style="background:var(--primary-pale);color:var(--primary);border:1px solid #c3e6cb;">
+                           style="background:var(--primary-pale);color:var(--primary);border:1px solid #b5d4f5;">
                             <i class="fas fa-coins me-1"></i>Breakdown Biaya
                         </a>
                     </div>

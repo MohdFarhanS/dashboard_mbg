@@ -8,10 +8,10 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-semibold mb-0">
-            <i class="fa fa-chart-line text-success me-2"></i>Dashboard Biaya Produksi
+            <i class="fa fa-chart-line me-2" style="color:#0f4c81"></i>Dashboard Biaya Produksi
         </h4>
         @if(Auth::user()->role === 'admin')
-            <a href="{{ route('biaya.harga.index') }}" class="btn btn-sm btn-outline-success">
+            <a href="{{ route('biaya.harga.index') }}" class="btn btn-sm btn-outline-primary">
                 <i class="fa fa-tags me-1"></i>Kelola Harga Bahan
             </a>
         @endif
@@ -25,7 +25,7 @@
         </div>
 
         <div class="col-auto">
-            <button type="submit" class="btn btn-success btn-sm">
+            <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fa fa-filter me-1"></i>Tampilkan
             </button>
         </div>
@@ -37,7 +37,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small mb-1">Total Hari Menu</div>
-                    <div class="fs-4 fw-bold text-success">{{ $totalHari }}</div>
+                    <div class="fs-4 fw-bold" style="color:#0f4c81">{{ $totalHari }}</div>
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
                     <div class="text-muted small mb-1">Over/Under Budget</div>
                     <div>
                         <span class="badge bg-danger-subtle text-danger">{{ $overBudget }} over</span>
-                        <span class="badge bg-success-subtle text-success ms-1">{{ $underBudget }} under</span>
+                        <span class="badge bg-primary-subtle text-primary ms-1">{{ $underBudget }} under</span>
                     </div>
                 </div>
             </div>
@@ -100,10 +100,10 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="d-flex align-items-center p-3 bg-success-subtle rounded-3">
-                                <i class="fas fa-check-circle text-success fs-3 me-3"></i>
+                            <div class="d-flex align-items-center p-3 bg-primary-subtle rounded-3">
+                                <i class="fas fa-check-circle text-primary fs-3 me-3"></i>
                                 <div>
-                                    <div class="fw-bold fs-4 text-success">{{ $alertSummary['aman'] }}</div>
+                                    <div class="fw-bold fs-4 text-primary">{{ $alertSummary['aman'] }}</div>
                                     <div class="text-muted small">Menu Dalam Anggaran</div>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@
                             <td class="text-end">Rp {{ number_format($b['anggaran'], 0, ',', '.') }}</td>
                             <td class="text-end">
                                 @if($b['selisih'] >= 0)
-                                    <span class="text-success fw-semibold">+Rp {{ number_format($b['selisih'], 0, ',', '.') }}</span>
+                                    <span style="color:#0f4c81" class="fw-semibold">+Rp {{ number_format($b['selisih'], 0, ',', '.') }}</span>
                                 @else
                                     <span class="text-danger fw-semibold">-Rp {{ number_format(abs($b['selisih']), 0, ',', '.') }}</span>
                                 @endif
@@ -160,7 +160,7 @@
                                 @if($b['selisih'] < 0)
                                     <span class="badge bg-danger">Over Budget</span>
                                 @else
-                                    <span class="badge bg-success">On Budget</span>
+                                    <span class="badge bg-primary">On Budget</span>
                                 @endif
                             </td>
                             <td>
@@ -200,8 +200,8 @@ new Chart(ctx, {
             {
                 label: 'Cost per Porsi',
                 data: trend.map(d => d.cost_per_porsi),
-                borderColor: '#1a6b3a',
-                backgroundColor: 'rgba(26,107,58,0.08)',
+                borderColor: '#0071e4',
+                backgroundColor: 'rgba(0,113,228,0.08)',
                 fill: true,
                 tension: 0.3,
             },

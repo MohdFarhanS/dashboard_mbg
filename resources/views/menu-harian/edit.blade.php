@@ -133,8 +133,8 @@
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header border-0 d-flex justify-content-between align-items-center"
-                         style="background:#d1e7dd">
-                        <span class="fw-semibold" style="color:#0a3622">
+                         style="background:#daeeff">
+                        <span class="fw-semibold" style="color:#0f4c81">
                             <i class="fas fa-cloud-sun me-2"></i>Bahan Pangan — Makan Siang
                         </span>
                         <span class="text-muted small" id="jumlah-bahan-label">0 bahan</span>
@@ -149,7 +149,7 @@
                         </div>
                         <div id="bahan-list"></div>
                         <button type="button" id="btn-tambah-bahan"
-                                class="btn btn-outline-success btn-sm mt-3"
+                                class="btn btn-outline-primary btn-sm mt-3"
                                 style="border-color:var(--primary);color:var(--primary)">
                             <i class="fas fa-plus me-1"></i> Tambah Bahan
                         </button>

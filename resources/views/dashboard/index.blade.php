@@ -7,7 +7,7 @@
 
 {{-- Greeting --}}
 <div class="mb-4">
-    <h4 class="fw-700 mb-1" style="color:#1a2e1d;">
+    <h4 class="fw-700 mb-1" style="color:#0d2545;">
         Selamat datang, {{ Auth::user()->nama_lengkap ?? Auth::user()->name }} 👋
     </h4>
     <p class="text-muted mb-0" style="font-size:.85rem;">
@@ -21,7 +21,7 @@
     {{-- Total Menu --}}
     <div class="col-6 col-lg-3">
         <div class="stat-card">
-            <div class="stat-icon" style="background:#e8f5ee;">🍽️</div>
+            <div class="stat-icon" style="background:#daeeff;">🍽️</div>
             <div>
                 <div class="stat-label">Menu Hari Ini</div>
                 <div class="stat-value">{{ $stats['total_menu_hari_ini'] }}</div>
@@ -36,7 +36,7 @@
             <div class="stat-icon" style="background:#fff3e0;">🔥</div>
             <div>
                 <div class="stat-label">Total Kalori</div>
-                <div class="stat-value" style="color:{{ $stats['total_kalori'] > $stats['target_kalori'] ? '#c62828' : '#1a6b3a' }};">
+                <div class="stat-value" style="color:{{ $stats['total_kalori'] > $stats['target_kalori'] ? '#c62828' : '#0f4c81' }};">
                     {{ number_format($stats['total_kalori']) }}
                 </div>
                 <div class="stat-sub">Target: {{ number_format($stats['target_kalori']) }} kkal</div>
@@ -62,7 +62,7 @@
     <div class="col-6 col-lg-3">
         <div class="stat-card">
             <div class="stat-icon"
-                 style="background:{{ $stats['status_budget'] === 'aman' ? '#e8f5ee' : ($stats['status_budget'] === 'warning' ? '#fff8e1' : '#fce4e4') }};">
+                 style="background:{{ $stats['status_budget'] === 'aman' ? '#daeeff' : ($stats['status_budget'] === 'warning' ? '#fff8e1' : '#fce4e4') }};">
                 @if($stats['status_budget'] === 'aman') ✅
                 @elseif($stats['status_budget'] === 'warning') ⚠️
                 @else 🚨 @endif
@@ -87,14 +87,14 @@
     <div class="col-lg-5">
         <div class="card card-mbg h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-heart-pulse me-2" style="color:#1a6b3a;"></i> Pemenuhan Gizi Hari Ini</span>
-                <span class="badge" style="background:#e8f5ee; color:#1a6b3a; font-size:.72rem;">AKG Harian</span>
+                <span><i class="fas fa-heart-pulse me-2" style="color:#0f4c81;"></i> Pemenuhan Gizi Hari Ini</span>
+                <span class="badge" style="background:#daeeff; color:#0f4c81; font-size:.72rem;">AKG Harian</span>
             </div>
             <div class="card-body p-3">
                 @php
                     $giziItems = [
                         ['label' => 'Energi (Kalori)', 'pct' => round($stats['total_kalori'] / $stats['target_kalori'] * 100), 'color' => '#f57c00', 'icon' => '🔥', 'val' => $stats['total_kalori'].' kkal'],
-                        ['label' => 'Protein',         'pct' => $stats['persen_protein'],      'color' => '#1a6b3a', 'icon' => '🥩', 'val' => $stats['persen_protein'].'%'],
+                        ['label' => 'Protein',         'pct' => $stats['persen_protein'],      'color' => '#0f4c81', 'icon' => '🥩', 'val' => $stats['persen_protein'].'%'],
                         ['label' => 'Karbohidrat',     'pct' => $stats['persen_karbohidrat'],  'color' => '#2196f3', 'icon' => '🍚', 'val' => $stats['persen_karbohidrat'].'%'],
                         ['label' => 'Lemak',           'pct' => $stats['persen_lemak'],        'color' => '#9c27b0', 'icon' => '🧈', 'val' => $stats['persen_lemak'].'%'],
                     ];
@@ -103,10 +103,10 @@
                 @foreach($giziItems as $g)
                 <div class="mb-3">
                     <div class="d-flex justify-content-between mb-1">
-                        <span style="font-size:.8rem; font-weight:600; color:#1a2e1d;">
+                        <span style="font-size:.8rem; font-weight:600; color:#0d2545;">
                             {{ $g['icon'] }} {{ $g['label'] }}
                         </span>
-                        <span style="font-size:.78rem; color:#7a9280;">{{ $g['val'] }}</span>
+                        <span style="font-size:.78rem; color:#6b8ba4;">{{ $g['val'] }}</span>
                     </div>
                     <div class="progress">
                         <div class="progress-bar" role="progressbar"
@@ -129,7 +129,7 @@
     <div class="col-lg-7">
         <div class="card card-mbg h-100">
             <div class="card-header">
-                <i class="fas fa-chart-pie me-2" style="color:#1a6b3a;"></i> Distribusi Biaya per Kategori Bahan
+                <i class="fas fa-chart-pie me-2" style="color:#0f4c81;"></i> Distribusi Biaya per Kategori Bahan
             </div>
             <div class="card-body d-flex align-items-center justify-content-center" style="min-height:230px;">
                 @if(!empty($stats['distribusi_biaya']))
@@ -158,12 +158,12 @@
                         {{ $stats['total_alert'] }} Peringatan
                     </span>
                 @else
-                    <span class="badge" style="background:#d1e7dd; color:#0a3622;">Aman</span>
+                    <span class="badge" style="background:#daeeff; color:#0f4c81;">Aman</span>
                 @endif
             </div>
             <div class="card-body p-0">
                 @forelse($stats['alert_list'] as $alert)
-                <div class="d-flex gap-3 p-3 border-bottom" style="border-color:#eef2ef !important;">
+                <div class="d-flex gap-3 p-3 border-bottom" style="border-color:#e4eef8 !important;">
                     <div style="margin-top:.15rem;">
                         @if($alert['type'] === 'danger')
                             <span style="color:#c62828; font-size:1rem;">🚨</span>
@@ -172,19 +172,19 @@
                         @endif
                     </div>
                     <div class="flex-grow-1">
-                        <div style="font-size:.8rem; color:#1a2e1d; font-weight:500;">{{ $alert['msg'] }}</div>
+                        <div style="font-size:.8rem; color:#0d2545; font-weight:500;">{{ $alert['msg'] }}</div>
                         <div style="font-size:.7rem; color:#adb5bd; margin-top:.2rem;">{{ $alert['time'] }}</div>
                     </div>
                 </div>
                 @empty
                 <div class="text-center text-muted py-4" style="font-size:.85rem;">
-                    <i class="fas fa-check-circle text-success d-block mb-2 fs-4"></i>
+                    <i class="fas fa-check-circle text-primary d-block mb-2 fs-4"></i>
                     Semua menu dalam batas anggaran
                 </div>
                 @endforelse
                 <div class="p-3">
                     <a href="{{ route('biaya.dashboard') }}" class="btn btn-sm w-100"
-                    style="background:#e8f5ee; color:#1a6b3a; border-radius:8px; font-size:.8rem; font-weight:600;">
+                    style="background:#daeeff; color:#0f4c81; border-radius:8px; font-size:.8rem; font-weight:600;">
                         Lihat Dashboard Biaya →
                     </a>
                 </div>
@@ -196,10 +196,10 @@
     <div class="col-lg-8">
         <div class="card card-mbg">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-utensils me-2" style="color:#1a6b3a;"></i> Menu Hari Ini</span>
+                <span><i class="fas fa-utensils me-2" style="color:#0f4c81;"></i> Menu Hari Ini</span>
                 @if(auth()->user()->role === 'pengelola')
                 <a href="{{ route('menu-harian.create') }}" class="btn btn-sm"
-                style="background:#e8f5ee; color:#1a6b3a; border-radius:8px; font-size:.75rem; font-weight:600;">
+                style="background:#daeeff; color:#0f4c81; border-radius:8px; font-size:.75rem; font-weight:600;">
                     + Tambah Menu
                 </a>
                 @endif
@@ -208,12 +208,12 @@
                 @if($menusHariIni->count())
                 <div class="table-responsive">
                     <table class="table mb-0" style="font-size:.82rem;">
-                        <thead style="background:#f8fbf9;">
+                        <thead style="background:#f0f5fc;">
                             <tr>
-                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Nama Menu</th>
-                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Kalori</th>
-                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Biaya/Porsi</th>
-                                <th style="padding:.75rem 1rem; color:#7a9280; font-weight:600; font-size:.75rem; border:none;">Status</th>
+                                <th style="padding:.75rem 1rem; color:#6b8ba4; font-weight:600; font-size:.75rem; border:none;">Nama Menu</th>
+                                <th style="padding:.75rem 1rem; color:#6b8ba4; font-weight:600; font-size:.75rem; border:none;">Kalori</th>
+                                <th style="padding:.75rem 1rem; color:#6b8ba4; font-weight:600; font-size:.75rem; border:none;">Biaya/Porsi</th>
+                                <th style="padding:.75rem 1rem; color:#6b8ba4; font-weight:600; font-size:.75rem; border:none;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -224,26 +224,26 @@
                                 $status = $menu->statusAnggaran();
                             @endphp
                             <tr>
-                                <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle; font-weight:500; color:#1a2e1d;">
+                                <td style="padding:.75rem 1rem; border-color:#e8f1fc; vertical-align:middle; font-weight:500; color:#0d2545;">
                                     <a href="{{ route('menu-harian.show', $menu) }}"
                                     class="text-decoration-none text-dark">
                                         {{ $menu->nama_menu ?? '(tanpa nama)' }}
                                     </a>
                                     <div style="font-size:.7rem; color:#adb5bd;">{{ $menu->status === 'final' ? '🔒 Final' : '✏️ Draft' }}</div>
                                 </td>
-                                <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle; color:#f57c00; font-weight:600;">
+                                <td style="padding:.75rem 1rem; border-color:#e8f1fc; vertical-align:middle; color:#f57c00; font-weight:600;">
                                     {{ number_format($g['energi'], 0) }} kkal
                                 </td>
-                                <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle; font-weight:600; color:#2196f3;">
+                                <td style="padding:.75rem 1rem; border-color:#e8f1fc; vertical-align:middle; font-weight:600; color:#2196f3;">
                                     Rp {{ number_format($b['cost_per_porsi'], 0, ',', '.') }}
                                 </td>
-                                <td style="padding:.75rem 1rem; border-color:#f0f5f1; vertical-align:middle;">
+                                <td style="padding:.75rem 1rem; border-color:#e8f1fc; vertical-align:middle;">
                                     @if($status === 'over')
                                         <span class="badge" style="background:#fce4e4; color:#c62828; font-size:.72rem;">🚨 Over</span>
                                     @elseif($status === 'warning')
                                         <span class="badge" style="background:#fff8e1; color:#f57c00; font-size:.72rem;">⚠ Mendekati</span>
                                     @elseif($status === 'aman')
-                                        <span class="badge" style="background:#e8f5ee; color:#1a6b3a; font-size:.72rem;">✓ Aman</span>
+                                        <span class="badge" style="background:#daeeff; color:#0f4c81; font-size:.72rem;">✓ Aman</span>
                                     @else
                                         <span class="badge" style="background:#f0f0f0; color:#aaa; font-size:.72rem;">— Draft</span>
                                     @endif
@@ -258,8 +258,7 @@
                     <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                     <div style="font-size:.85rem;">Belum ada menu yang diinput hari ini.</div>
                     @if(auth()->user()->role === 'pengelola')
-                    <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-success mt-2"
-                    style="background:#1a6b3a; border-color:#1a6b3a;">
+                    <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary mt-2">
                         <i class="fas fa-plus me-1"></i>Input Menu Sekarang
                     </a>
                     @endif
@@ -280,7 +279,7 @@
 const distribusi = @json($stats['distribusi_biaya']);
 
 const WARNA_KATEGORI = {
-    'Serealia'  : '#2d9e5f',
+    'Serealia'  : '#0071e4',
     'Daging'    : '#e53935',
     'Ikan'      : '#1e88e5',
     'Telur'     : '#fdd835',
@@ -321,7 +320,7 @@ new Chart(ctx, {
                     usePointStyle: true,
                     pointStyle: 'circle',
                     font: { size: 11, family: 'Plus Jakarta Sans' },
-                    color: '#1a2e1d',
+                    color: '#0d2545',
                     padding: 12,
                     generateLabels: (chart) => {
                         const d = chart.data;

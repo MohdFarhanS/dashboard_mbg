@@ -4,25 +4,25 @@
 @push('styles')
 <style>
     .upload-zone {
-        border: 2px dashed #aed6b8;
+        border: 2px dashed #7db8e8;
         border-radius: 14px;
         padding: 2.5rem;
         text-align: center;
-        background: #f8fdf9;
+        background: #f5f9ff;
         transition: all .2s;
         cursor: pointer;
     }
     .upload-zone:hover, .upload-zone.dragover {
         border-color: var(--primary);
-        background: #eaf5ee;
+        background: #daeeff;
     }
     .upload-zone input[type=file] { display: none; }
     .upload-zone .icon { font-size: 2.5rem; margin-bottom: .5rem; }
 
     .mapped-tag {
         display: inline-block;
-        background: #d1e7dd;
-        color: #0a3622;
+        background: #daeeff;
+        color: #0f4c81;
         border-radius: 5px;
         padding: 1px 8px;
         font-size: .78rem;
@@ -50,7 +50,7 @@
         font-weight: 700;
         flex-shrink: 0;
     }
-    table.preview-table th { background: #1a6b3a; color: #fff; font-size: .8rem; }
+    table.preview-table th { background: #0f4c81; color: #fff; font-size: .8rem; }
     table.preview-table td { font-size: .82rem; }
 </style>
 @endpush
@@ -66,7 +66,7 @@
             </h4>
             <small class="text-muted">Upload CSV dari Tabel Komposisi Pangan Indonesia</small>
         </div>
-        <span class="badge bg-success fs-6">
+        <span class="badge bg-primary fs-6">
             {{ number_format($totalBahan) }} bahan tersimpan
         </span>
     </div>
@@ -116,14 +116,14 @@
                                    onchange="handleFileSelect(this)">
                             <button type="submit" id="btnPreview"
                                    onclick="event.stopPropagation()"  {{-- tambahkan ini --}}
-                                   class="btn btn-success btn-sm mt-2 d-none" style="pointer-events:auto">
+                                   class="btn btn-primary btn-sm mt-2 d-none" style="pointer-events:auto">
                                <i class="fas fa-eye me-1"></i>Preview Data
                            </button>
                         </div>
                     </form>
 
                     {{-- Info format kolom --}}
-                    <div class="mt-3 p-3 rounded" style="background:#f0faf4; font-size:.82rem">
+                    <div class="mt-3 p-3 rounded" style="background:#f0f5ff; font-size:.82rem">
                         <strong>Kolom yang dikenali otomatis:</strong><br>
                         <span class="mapped-tag">nama_bahan</span>
                         <span class="mapped-tag">kategori / golongan</span>
@@ -230,7 +230,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-success"
+                        <button type="submit" class="btn btn-primary"
                                 onclick="return confirm('Import {{ $totalRows }} baris data ke database?')">
                             <i class="fas fa-database me-2"></i>Import {{ $totalRows }} Baris
                         </button>
@@ -298,7 +298,7 @@
                             @if($r->user) · {{ $r->user->name }}@endif
                         </div>
                         <div class="mt-1">
-                            <span class="text-success fw-semibold">+{{ $r->inserted }} baru</span>
+                            <span style="color:#0f4c81" class="fw-semibold">+{{ $r->inserted }} baru</span>
                             <span class="text-muted mx-1">·</span>
                             <span class="text-primary">↺{{ $r->updated }} update</span>
                             <span class="text-muted mx-1">·</span>

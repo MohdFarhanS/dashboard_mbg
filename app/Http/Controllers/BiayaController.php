@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HargaBahan;
 use App\Models\BahanPangan;
 use App\Models\MenuHarian;
+use App\Models\User;
 use App\Traits\HasUnitScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -109,8 +110,10 @@ class BiayaController extends Controller
             abort(403);
         }
 
-        $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
-        return view('biaya.harga-form', compact('bahans'));
+        $bahans   = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
+        $unitList = User::where('role', 'pengelola')->whereNotNull('unit_sppg')
+                        ->distinct()->orderBy('unit_sppg')->pluck('unit_sppg');
+        return view('biaya.harga-form', compact('bahans', 'unitList'));
     }
 
     public function storeHarga(Request $request)
@@ -143,8 +146,10 @@ class BiayaController extends Controller
             abort(403);
         }
 
-        $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
-        return view('biaya.harga-form', compact('harga', 'bahans'));
+        $bahans   = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
+        $unitList = User::where('role', 'pengelola')->whereNotNull('unit_sppg')
+                        ->distinct()->orderBy('unit_sppg')->pluck('unit_sppg');
+        return view('biaya.harga-form', compact('harga', 'bahans', 'unitList'));
     }
 
     public function updateHarga(Request $request, HargaBahan $harga)
@@ -155,6 +160,7 @@ class BiayaController extends Controller
     
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
+            'unit_sppg'       => 'required|string|max:50',
             'harga_per_kg'    => 'required|numeric|min:0',
             'berlaku_mulai'   => 'required|date',
             'berlaku_sampai'  => 'nullable|date|after_or_equal:berlaku_mulai',

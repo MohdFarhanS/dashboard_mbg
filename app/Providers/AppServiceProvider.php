@@ -42,30 +42,23 @@ class AppServiceProvider extends ServiceProvider
                 $query->where('unit_sppg', $user->unit_sppg);
             }
         
-            $totalAlert = 0;
-            $navAlerts  = [];
-        
+            $totalAlert   = 0;
+            $navAlerts    = [];
+            $dismissedIds = session('dismissed_alert_ids', []);
+
             foreach ($query->get() as $menu) {
                 $s = $menu->statusAnggaran();
-                if ($s === 'over') {
-                    $totalAlert++;
-                    $navAlerts[] = [
-                        'type'    => 'danger',
-                        'msg'     => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y'))
-                                     . ' melebihi anggaran',
-                        'time'    => $menu->tanggal->format('d/m/Y'),
-                        'menu_id' => $menu->id,
-                    ];
-                } elseif ($s === 'warning') {
-                    $totalAlert++;
-                    $navAlerts[] = [
-                        'type'    => 'warning',
-                        'msg'     => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y'))
-                                     . ' mendekati batas anggaran',
-                        'time'    => $menu->tanggal->format('d/m/Y'),
-                        'menu_id' => $menu->id,
-                    ];
-                }
+                if (!in_array($s, ['over', 'warning'])) continue;
+                if (in_array($menu->id, $dismissedIds)) continue;
+
+                $totalAlert++;
+                $navAlerts[] = [
+                    'type'    => $s === 'over' ? 'danger' : 'warning',
+                    'msg'     => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y'))
+                                 . ($s === 'over' ? ' melebihi anggaran' : ' mendekati batas anggaran'),
+                    'time'    => $menu->tanggal->format('d/m/Y'),
+                    'menu_id' => $menu->id,
+                ];
             }
         
             $view->with('navAlertCount', $totalAlert);

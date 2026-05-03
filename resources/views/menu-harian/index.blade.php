@@ -105,7 +105,7 @@
                             </td>
                             <td>
                                 @if($menu->status === 'final')
-                                    <span class="badge" style="background:#d1e7dd;color:#0a3622">
+                                    <span class="badge" style="background:#daeeff;color:#0f4c81">
                                         <i class="fas fa-lock me-1"></i>Final
                                     </span>
                                 @else
@@ -126,7 +126,7 @@
                                             <i class="fas fa-exclamation-circle me-1"></i>Mendekati
                                         </span>
                                     @elseif($statusAnggaran === 'aman')
-                                        <span class="badge bg-success">
+                                        <span class="badge bg-primary">
                                             <i class="fas fa-check me-1"></i>Aman
                                         </span>
                                     @else

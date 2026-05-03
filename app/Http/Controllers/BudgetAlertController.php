@@ -13,7 +13,7 @@ class BudgetAlertController extends Controller
     {
         $user      = Auth::user();
         $bulan     = $request->input('bulan', today()->format('Y-m'));
-        $severity  = $request->input('severity', ''); // 'over' | 'warning' | ''
+        $severity  = $request->input('severity', '');
 
         [$tahun, $bulanAngka] = explode('-', $bulan);
 
@@ -32,18 +32,25 @@ class BudgetAlertController extends Controller
         $menusFinal = $query->get();
 
         // Klasifikasi tiap menu
-        $alerts = [];
-        $countOver    = 0;
-        $countWarning = 0;
-        $countAman    = 0;
+        $alerts        = [];
+        $countOver     = 0;
+        $countWarning  = 0;
+        $countAman     = 0;
+        $alertMenuIds  = [];
 
         foreach ($menusFinal as $menu) {
             $status = $menu->statusAnggaran();
             $biaya  = $menu->totalBiaya();
 
-            if ($status === 'over')         $countOver++;
-            elseif ($status === 'warning')  $countWarning++;
-            else                            $countAman++;
+            if ($status === 'over') {
+                $countOver++;
+                $alertMenuIds[] = $menu->id;
+            } elseif ($status === 'warning') {
+                $countWarning++;
+                $alertMenuIds[] = $menu->id;
+            } else {
+                $countAman++;
+            }
 
             // Filter severity
             if ($severity === 'over'    && $status !== 'over')    continue;
@@ -62,6 +69,12 @@ class BudgetAlertController extends Controller
                 'selisih'      => $biaya['selisih'],
                 'persen'       => $biaya['persen_anggaran'],
             ];
+        }
+
+        // Tandai alert bulan ini sebagai sudah dilihat (dismiss notifikasi sidebar/navbar)
+        if ($bulan === today()->format('Y-m')) {
+            $existing = session('dismissed_alert_ids', []);
+            session(['dismissed_alert_ids' => array_unique(array_merge($existing, $alertMenuIds))]);
         }
 
         // Unit list untuk filter admin

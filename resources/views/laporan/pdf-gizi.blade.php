@@ -7,8 +7,8 @@
         * { font-family: 'DejaVu Sans', sans-serif; font-size: 9pt; margin: 0; padding: 0; }
         body { padding: 15px; }
 
-        .header { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #1a6b3a; padding-bottom: 10px; }
-        .header h2 { font-size: 14pt; color: #1a6b3a; font-weight: bold; }
+        .header { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #0f4c81; padding-bottom: 10px; }
+        .header h2 { font-size: 14pt; color: #0f4c81; font-weight: bold; }
         .header p  { font-size: 9pt; color: #555; margin-top: 3px; }
 
         .meta { margin-bottom: 12px; }
@@ -26,7 +26,7 @@
             text-align: center;
         }
         .stat-box + .stat-box { margin-left: 6px; }
-        .stat-box .val { font-size: 13pt; font-weight: bold; color: #1a6b3a; }
+        .stat-box .val { font-size: 13pt; font-weight: bold; color: #0f4c81; }
         .stat-box .lbl { font-size: 7.5pt; color: #888; }
 
         table.main {
@@ -35,7 +35,7 @@
             margin-top: 4px;
         }
         table.main th {
-            background: #1a6b3a;
+            background: #0f4c81;
             color: #fff;
             padding: 5px 6px;
             text-align: center;
@@ -46,13 +46,13 @@
             border-bottom: 1px solid #eee;
             font-size: 8pt;
         }
-        table.main tr:nth-child(even) td { background: #f8fdf9; }
+        table.main tr:nth-child(even) td { background: #f0f5fc; }
         table.main tfoot td {
-            background: #e8f5ee;
+            background: #daeeff;
             font-weight: bold;
-            border-top: 2px solid #1a6b3a;
+            border-top: 2px solid #0f4c81;
         }
-        .badge-cukup  { color: #0a3622; background: #d1e7dd; padding: 1px 5px; border-radius: 3px; }
+        .badge-cukup  { color: #0f4c81; background: #daeeff; padding: 1px 5px; border-radius: 3px; }
         .badge-kurang { color: #842029; background: #f8d7da; padding: 1px 5px; border-radius: 3px; }
         .badge-lebih  { color: #664d03; background: #fff3cd; padding: 1px 5px; border-radius: 3px; }
 

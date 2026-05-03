@@ -23,7 +23,7 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             @if($menuHarian->status === 'final')
-                <span class="badge p-2" style="background:#d1e7dd;color:#0a3622;font-size:.85rem">
+                <span class="badge p-2" style="background:#daeeff;color:#0f4c81;font-size:.85rem">
                     <i class="fas fa-lock me-1"></i>Final
                 </span>
             @else
@@ -37,7 +37,7 @@
                 <form action="{{ route('menu-harian.finalize', $menuHarian) }}" method="POST"
                       onsubmit="return confirm('Finalisasi menu? Tidak bisa diedit setelah ini.')">
                     @csrf @method('PATCH')
-                    <button class="btn btn-sm btn-success"
+                    <button class="btn btn-sm btn-primary"
                             style="background:var(--primary);border-color:var(--primary)">
                         <i class="fas fa-lock me-1"></i>Finalisasi
                     </button>
@@ -58,7 +58,7 @@
         $gizi = $menuHarian->totalGizi();
         $akg  = \App\Constants\AKG::MAKAN_SIANG;
         $giziMeta = [
-            ['key'=>'energi',      'label'=>'Energi',      'unit'=>'kkal', 'color'=>'#1a6b3a', 'icon'=>'fa-fire',      'bg'=>'#e8f5ee'],
+            ['key'=>'energi',      'label'=>'Energi',      'unit'=>'kkal', 'color'=>'#0f4c81', 'icon'=>'fa-fire',      'bg'=>'#daeeff'],
             ['key'=>'protein',     'label'=>'Protein',     'unit'=>'g',    'color'=>'#0d6efd', 'icon'=>'fa-dumbbell',  'bg'=>'#e7f0ff'],
             ['key'=>'lemak',       'label'=>'Lemak',       'unit'=>'g',    'color'=>'#fd7e14', 'icon'=>'fa-droplet',   'bg'=>'#fff3e0'],
             ['key'=>'karbohidrat', 'label'=>'Karbohidrat', 'unit'=>'g',    'color'=>'#6f42c1', 'icon'=>'fa-wheat-awn', 'bg'=>'#f3eeff'],
@@ -77,7 +77,7 @@
             $barW   = min($pct, 100);
             if ($pct < 70)       $status = ['label'=>'Kurang', 'color'=>'#842029', 'bg'=>'#f8d7da'];
             elseif ($pct > 130)  $status = ['label'=>'Lebih',  'color'=>'#664d03', 'bg'=>'#fff3cd'];
-            else                 $status = ['label'=>'Cukup',  'color'=>'#0a3622', 'bg'=>'#d1e7dd'];
+            else                 $status = ['label'=>'Cukup',  'color'=>'#0f4c81', 'bg'=>'#daeeff'];
         @endphp
         <div class="col-6 col-md-4 col-lg-2">
             <div class="card border-0 shadow-sm h-100" style="overflow:hidden">
@@ -144,7 +144,7 @@
                             <i class="fas fa-exclamation-circle me-1"></i>Mendekati Batas
                         </span>
                     @else
-                        <span class="badge bg-success">
+                        <span class="badge bg-primary">
                             <i class="fas fa-check me-1"></i>Dalam Anggaran
                         </span>
                     @endif
@@ -153,7 +153,7 @@
                     <span class="fw-bold fs-5
                         @if($statusAnggaran === 'over') text-danger
                         @elseif($statusAnggaran === 'warning') text-warning
-                        @else text-success @endif">
+                        @else text-primary @endif">
                         Rp {{ number_format($costPerPorsi, 0, ',', '.') }}
                     </span>
                     <span class="text-muted small"> / Rp {{ number_format($anggaranAktif, 0, ',', '.') }}</span>
@@ -165,7 +165,7 @@
                 <div class="progress-bar
                     @if($statusAnggaran === 'over') bg-danger
                     @elseif($statusAnggaran === 'warning') bg-warning
-                    @else bg-success @endif"
+                    @else bg-primary @endif"
                     role="progressbar"
                     style="width:{{ min($persenAnggaran, 100) }}%;border-radius:8px;"
                     aria-valuenow="{{ $persenAnggaran }}"
@@ -179,7 +179,7 @@
                 <small class="fw-semibold
                     @if($statusAnggaran === 'over') text-danger
                     @elseif($statusAnggaran === 'warning') text-warning
-                    @else text-success @endif">
+                    @else text-primary @endif">
                     {{ $persenAnggaran }}% dari anggaran
                 </small>
                 <small class="text-muted">Rp {{ number_format($anggaranAktif, 0, ',', '.') }}</small>
@@ -217,8 +217,8 @@
     {{-- Tabel bahan --}}
     <div class="card border-0 shadow-sm">
         <div class="card-header border-0 d-flex justify-content-between align-items-center"
-             style="background:#d1e7dd">
-            <span class="fw-semibold" style="color:#0a3622">
+             style="background:#daeeff">
+            <span class="fw-semibold" style="color:#0f4c81">
                 <i class="fas fa-cloud-sun me-2"></i>Bahan Pangan — Makan Siang
             </span>
             <small class="text-muted">{{ $menuHarian->detailBahans->count() }} bahan</small>

@@ -15,21 +15,21 @@
 
     <style>
         :root {
-            --primary:       #1a6b3a;
-            --primary-light: #2d9e5f;
-            --primary-pale:  #e8f5ee;
+            --primary:       #0f4c81;
+            --primary-light: #0071e4;
+            --primary-pale:  #daeeff;
             --sidebar-width: 260px;
             --navbar-height: 60px;
         }
 
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: #f4f7f5; }
+        body { background: #f0f4f9; }
 
         /* ── SIDEBAR ── */
         #sidebar {
             width: var(--sidebar-width);
             min-height: 100vh;
-            background: linear-gradient(180deg, #0f4024 0%, #1a6b3a 60%, #2d9e5f 100%);
+            background: linear-gradient(180deg, #072a4e 0%, #0f4c81 60%, #0071e4 100%);
             position: fixed;
             top: 0; left: 0;
             z-index: 1000;
@@ -95,7 +95,7 @@
         #topnav {
             height: var(--navbar-height);
             background: #fff;
-            border-bottom: 1px solid #e8ede9;
+            border-bottom: 1px solid #dde8f0;
             display: flex;
             align-items: center;
             padding: 0 1.5rem;
@@ -107,7 +107,7 @@
         #topnav .page-title {
             font-weight: 700;
             font-size: 1rem;
-            color: #1a2e1d;
+            color: #0d2545;
         }
         #topnav .topnav-right {
             margin-left: auto;
@@ -160,14 +160,14 @@
         }
         .stat-card .stat-label {
             font-size: .75rem;
-            color: #7a9280;
+            color: #6b8ba4;
             font-weight: 500;
             margin-bottom: .15rem;
         }
         .stat-card .stat-value {
             font-size: 1.45rem;
             font-weight: 700;
-            color: #1a2e1d;
+            color: #0d2545;
             line-height: 1;
         }
         .stat-card .stat-sub {
@@ -185,15 +185,15 @@
         }
         .card-mbg .card-header {
             background: transparent;
-            border-bottom: 1px solid #eef2ef;
+            border-bottom: 1px solid #e4eef8;
             font-weight: 700;
             font-size: .9rem;
-            color: #1a2e1d;
+            color: #0d2545;
             padding: 1rem 1.25rem .75rem;
         }
 
         /* ── BUDGET BADGE ── */
-        .badge-budget-aman    { background: #e8f5ee; color: #1a6b3a; }
+        .badge-budget-aman    { background: #daeeff; color: #0f4c81; }
         .badge-budget-warning { background: #fff8e1; color: #f57c00; }
         .badge-budget-over    { background: #fce4e4; color: #c62828; }
 

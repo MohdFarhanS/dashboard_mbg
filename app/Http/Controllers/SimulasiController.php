@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class SimulasiController extends Controller
 {
+    public function __construct()
+    {
+        if (auth()->check() && auth()->user()->role !== 'pengelola') {
+            abort(403);
+        }
+    }
+
     public function index()
     {
         return view('simulasi.index');
@@ -20,6 +27,10 @@ class SimulasiController extends Controller
 
     public function kalkulasi(Request $request)
     {
+        if (Auth::user()->role === 'admin') {
+            return response()->json(['message' => 'Admin tidak dapat menggunakan fitur simulasi.'], 403);
+        }
+
         $request->validate([
             'bahans'         => 'required|array|min:1',
             'bahans.*.id'    => 'required|exists:bahan_pangans,id',
@@ -52,16 +63,8 @@ class SimulasiController extends Controller
                 $giziItem[$k]   = $val;
             }
 
-            $harga = HargaBahan::where('bahan_pangan_id', $b->id)
-                ->where('berlaku_mulai', '<=', $tanggal)
-                ->where(function ($q) use ($tanggal) {
-                    $q->whereNull('berlaku_sampai')
-                      ->orWhere('berlaku_sampai', '>=', $tanggal);
-                })
-                ->orderByDesc('berlaku_mulai')
-                ->value('harga_per_100g');
-
-            $biayaItem  = $harga ? ($gram * $porsi / 100) * $harga : 0;
+            $hargaVal   = HargaBahan::hargaAktif($b->id, $unit, $tanggal);
+            $biayaItem  = $hargaVal > 0 ? ($gram * $porsi / 100) * $hargaVal : 0;
             $biayaTotal += $biayaItem;
 
             $detail[] = [
@@ -73,9 +76,9 @@ class SimulasiController extends Controller
                 'porsi'    => $porsi,
                 'bdd'      => $b->bdd,
                 'gizi'     => $giziItem,
-                'harga_per_100g' => $harga ?? 0,
+                'harga_per_100g' => $hargaVal,
                 'biaya'    => round($biayaItem, 0),
-                'ada_harga'=> $harga !== null,
+                'ada_harga'=> $hargaVal > 0,
             ];
         }
 
@@ -110,7 +113,10 @@ class SimulasiController extends Controller
     public function editMenu(MenuHarian $menuHarian)
     {
         $user = Auth::user();
-        if ($user->role !== 'admin' && $user->unit_sppg !== $menuHarian->unit_sppg) {
+        if ($user->role === 'admin') {
+            abort(403, 'Admin tidak dapat mengedit menu harian.');
+        }
+        if ($user->unit_sppg !== $menuHarian->unit_sppg) {
             abort(403);
         }
         if ($menuHarian->status === 'final') {
@@ -139,6 +145,10 @@ class SimulasiController extends Controller
 
     public function simpan(Request $request)
     {
+        if (Auth::user()->role === 'admin') {
+            return response()->json(['error' => 'Admin tidak dapat menyimpan menu harian.'], 403);
+        }
+
         $request->validate([
             'tanggal'        => 'required|date',
             'nama_menu'      => 'nullable|string|max:100',

@@ -161,10 +161,10 @@
                             <td>
                                 @php
                                     $katStyles = [
-                                        'Serealia' => ['bg'=>'#d1e7dd', 'text'=>'#0a3622'],  // hijau
+                                        'Serealia' => ['bg'=>'#daeeff', 'text'=>'#0f4c81'],  // biru
                                         'Umbi'     => ['bg'=>'#fff3cd', 'text'=>'#664d03'],  // kuning
                                         'Kacang'   => ['bg'=>'#cff4fc', 'text'=>'#055160'],  // biru muda
-                                        'Sayuran'  => ['bg'=>'#d1e7dd', 'text'=>'#0a3622'],  // hijau
+                                        'Sayuran'  => ['bg'=>'#d4f7e0', 'text'=>'#146e35'],  // hijau untuk sayuran
                                         'Buah'     => ['bg'=>'#f8d7da', 'text'=>'#58151c'],  // merah muda
                                         'Daging'   => ['bg'=>'#e2e3e5', 'text'=>'#2b2d2f'],  // abu
                                         'Ikan'     => ['bg'=>'#cfe2ff', 'text'=>'#052c65'],  // biru
@@ -192,7 +192,7 @@
                             <td class="text-center text-muted small">{{ $bahan->bdd !== null ? $bahan->bdd : '—' }}</td>
                             <td class="text-center">
                                 @if($bahan->is_active)
-                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                    <span class="badge bg-primary-subtle text-primary">Aktif</span>
                                 @else
                                     <span class="badge bg-secondary-subtle text-secondary">Nonaktif</span>
                                 @endif

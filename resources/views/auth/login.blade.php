@@ -8,7 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #1a6b3a 0%, #2d9e5f 50%, #4caf50 100%);
+            background: #0071e4;
+            /* background: #0f4c81; */
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -20,7 +21,8 @@
             overflow: hidden;
         }
         .login-header {
-            background: linear-gradient(135deg, #1a6b3a, #2d9e5f);
+            /* background: #0071e4; */
+            background: #0f4c81;
             padding: 2rem;
             text-align: center;
             color: white;
@@ -30,7 +32,7 @@
             margin-bottom: 0.5rem;
         }
         .btn-login {
-            background: linear-gradient(135deg, #1a6b3a, #2d9e5f);
+            background: #0071e4;
             border: none;
             color: white;
             font-weight: 600;
@@ -42,16 +44,16 @@
         .btn-login:hover {
             opacity: 0.9;
             transform: translateY(-1px);
-            color: white;
+            color: #0071e4;
         }
         .form-control:focus {
-            border-color: #2d9e5f;
+            border-color: #0071e4;
             box-shadow: 0 0 0 0.2rem rgba(45,158,95,.25);
         }
         .input-group-text {
-            background: #f0faf3;
-            border-color: #dee2e6;
-            color: #2d9e5f;
+            background: #b5e0ea;
+            border-color: #b5e0ea;
+            color: #0071e4;
         }
     </style>
 </head>
@@ -61,7 +63,7 @@
         <div class="col-md-5 col-lg-4">
             <div class="card login-card">
                 <div class="login-header">
-                    <div class="logo-icon">🍱</div>
+                    <img src="{{ asset('images/logo_bgn.png') }}" alt="Logo" width="120">
                     <h4 class="fw-bold mb-1">Dashboard MBG</h4>
                     <small class="opacity-75">Monitoring Gizi & Biaya Produksi</small>
                 </div>

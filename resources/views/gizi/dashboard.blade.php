@@ -5,24 +5,24 @@
 @push('styles')
 <style>
 .gizi-card {
-    border-left: 4px solid #1a6b3a;
+    border-left: 4px solid #0f4c81;
     transition: transform .2s;
 }
 .gizi-card:hover { transform: translateY(-2px); }
 
 .progress-gizi { height: 12px; border-radius: 6px; }
 .progress-bar-kurang  { background: #dc3545; }
-.progress-bar-cukup   { background: #1a6b3a; }
+.progress-bar-cukup   { background: #0071e4; }
 .progress-bar-lebih   { background: #ffc107; }
 
 .badge-status-kurang  { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
-.badge-status-cukup   { background: #d1e7dd; color: #0a3622; border: 1px solid #1a6b3a; }
+.badge-status-cukup   { background: #daeeff; color: #0f4c81; border: 1px solid #0071e4; }
 .badge-status-lebih   { background: #f8d7da; color: #842029; border: 1px solid #dc3545; }
 
 .chart-container { position: relative; height: 300px; }
 .nutrisi-icon { width: 36px; height: 36px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(26,107,58,.1); color: #1a6b3a; font-size: .9rem; }
+    background: rgba(0,113,228,.1); color: #0f4c81; font-size: .9rem; }
 </style>
 @endpush
 
@@ -34,7 +34,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold" style="color:#1a6b3a">
+        <h4 class="mb-0 fw-bold" style="color:#0f4c81">
             <i class="fas fa-chart-line me-2"></i>Dashboard Monitoring Gizi
         </h4>
         <small class="text-muted">Unit SPPG: {{ Auth::user()->unit_sppg }}</small>
@@ -59,7 +59,7 @@
         @endif
 
         @if(Auth::user()->role === 'pengelola')
-        <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-success">
+        <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary">
             <i class="fas fa-plus me-1"></i>Input Menu
         </a>
         @endif
@@ -68,7 +68,7 @@
 
 {{-- ═══ STATUS HARI INI ════════════════════════════════════════════ --}}
 <div class="card shadow-sm mb-4">
-    <div class="card-header py-2 fw-semibold" style="background:#1a6b3a;color:#fff">
+    <div class="card-header py-2 fw-semibold" style="background:#0f4c81;color:#fff">
         <i class="fas fa-calendar-day me-2"></i>Status Gizi Hari Ini
         — {{ now()->translatedFormat('d F Y') }}
     </div>
@@ -120,7 +120,7 @@
                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                 Belum ada menu yang diinput hari ini.
                 <div class="mt-2">
-                    <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-success">
+                    <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary">
                         <i class="fas fa-plus me-1"></i>Input Menu Sekarang
                     </a>
                 </div>
@@ -134,7 +134,7 @@
     <div class="col-md-8">
         <div class="card shadow-sm h-100">
             <div class="card-header py-2 fw-semibold border-bottom">
-                <i class="fas fa-chart-bar me-2 text-success"></i>
+                <i class="fas fa-chart-bar me-2" style="color:#0f4c81"></i>
                 Rata-rata Gizi vs. AKG Makan Siang
                 <span class="badge bg-secondary ms-2">{{ $jumlahHari }} hari</span>
             </div>
@@ -149,7 +149,7 @@
     <div class="col-md-4">
         <div class="card shadow-sm h-100">
             <div class="card-header py-2 fw-semibold border-bottom">
-                <i class="fas fa-list-check me-2 text-success"></i>Detail Rata-rata
+                <i class="fas fa-list-check me-2" style="color:#0f4c81"></i>Detail Rata-rata
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
@@ -164,7 +164,7 @@
                     <div class="list-group-item px-3 py-2">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="small fw-semibold">
-                                <i class="fas {{ $info['icon'] }} me-1 text-success opacity-75"></i>
+                                <i class="fas {{ $info['icon'] }} me-1 opacity-75" style="color:#0071e4"></i>
                                 {{ $info['label'] }}
                             </span>
                             <span class="badge badge-status-{{ $cls }}">{{ $pct }}%</span>
@@ -188,7 +188,7 @@
 <div class="card shadow-sm mb-4">
     <div class="card-header py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center">
         <span>
-            <i class="fas fa-list me-2 text-success"></i>Rincian Menu Bulan Ini
+            <i class="fas fa-list me-2" style="color:#0f4c81"></i>Rincian Menu Bulan Ini
         </span>
         <span class="badge bg-secondary">{{ $menus->count() }} menu</span>
     </div>
@@ -255,7 +255,7 @@
 @if(count($trendData) > 0)
 <div class="card shadow-sm mb-4">
     <div class="card-header py-2 fw-semibold border-bottom">
-        <i class="fas fa-chart-line me-2 text-success"></i>Tren Energi Harian
+        <i class="fas fa-chart-line me-2" style="color:#0f4c81"></i>Tren Energi Harian
         <span class="text-muted fw-normal small ms-2">
             ({{ \Carbon\Carbon::createFromFormat('Y-m',$bulan)->translatedFormat('F Y') }})
         </span>
@@ -280,10 +280,10 @@ const persenAkg = @json($persenAkg);
 const trendData = @json($trendData);
 const akgSiang  = @json(\App\Constants\AKG::MAKAN_SIANG);
 
-const GREEN  = '#1a6b3a';
+const GREEN  = '#0071e4';
 const YELLOW = '#ffc107';
 const RED    = '#dc3545';
-const GRAY   = 'rgba(26,107,58,.15)';
+const GRAY   = 'rgba(0,113,228,.15)';
 
 // ─── Helper: warna berdasarkan persen ────────────────────────────
 function warnaPct(pct) {
@@ -348,7 +348,7 @@ new Chart(document.getElementById('chartTrend'), {
                 label: 'Energi (kkal)',
                 data: trendData.map(d => d.energi),
                 borderColor: GREEN,
-                backgroundColor: 'rgba(26,107,58,.1)',
+                backgroundColor: 'rgba(0,113,228,.1)',
                 fill: true,
                 tension: 0.3,
                 pointBackgroundColor: GREEN,

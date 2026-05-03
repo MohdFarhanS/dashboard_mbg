@@ -1,7 +1,7 @@
 <div id="topnav">
     {{-- Toggle mobile --}}
     <button onclick="toggleSidebar()" class="btn btn-sm d-md-none"
-            style="color:#1a6b3a; background:var(--primary-pale); border:none; border-radius:8px; padding:.4rem .65rem;">
+            style="color:#0f4c81; background:var(--primary-pale); border:none; border-radius:8px; padding:.4rem .65rem;">
         <i class="fas fa-bars"></i>
     </button>
 
@@ -10,7 +10,7 @@
 
     {{-- Tanggal --}}
     <span class="d-none d-md-flex align-items-center"
-          style="font-size:.78rem; color:#7a9280; background:var(--primary-pale);
+          style="font-size:.78rem; color:#6b8ba4; background:var(--primary-pale);
                  padding:.3rem .85rem; border-radius:20px; gap:.4rem; margin-left:.5rem;">
         <i class="fas fa-calendar-day" style="color:var(--primary);"></i>
         <span id="tanggal-hari-ini"></span>
@@ -39,7 +39,7 @@
             {{-- Header --}}
             <li class="px-3 py-2 d-flex justify-content-between align-items-center"
                 style="background:var(--primary-pale); border-bottom:1px solid #dee2e6;">
-                <span style="font-size:.82rem; font-weight:700; color:var(--primary);">
+                <span style="font-size:.82rem; font-weight:700; color:var(--primary)">
                     <i class="fas fa-bell me-1"></i> Notifikasi
                 </span>
                 @if(isset($navAlertCount) && $navAlertCount > 0)
@@ -53,7 +53,7 @@
             @if(isset($navAlerts) && count($navAlerts) > 0)
                 @foreach($navAlerts as $alert)
                 <li>
-                    <a href="{{ route('menu-harian.show', $alert['menu_id']) }}"
+                    <a href="{{ route('budget-alert.index') }}"
                     class="dropdown-item py-2 px-3"
                     style="border-bottom:1px solid #f5f5f5; white-space:normal;">
                         <div class="d-flex gap-2 align-items-start">
@@ -74,17 +74,17 @@
                 @endforeach
             @else
                 <li class="text-center py-4 text-muted">
-                    <i class="fas fa-check-circle text-success d-block mb-1" style="font-size:1.3rem;"></i>
+                    <i class="fas fa-check-circle text-primary d-block mb-1" style="font-size:1.3rem;"></i>
                     <span style="font-size:.8rem;">Semua menu dalam batas anggaran</span>
                 </li>
             @endif
 
             {{-- Footer --}}
             <li style="border-top:1px solid #f0f0f0;">
-                <a href="{{ route('biaya.dashboard') }}"
+                <a href="{{ route('budget-alert.index') }}"
                 class="dropdown-item text-center py-2"
                 style="font-size:.8rem; font-weight:600; color:var(--primary);">
-                    Lihat Dashboard Biaya →
+                    Lihat Budget Alert →
                 </a>
             </li>
         </ul>

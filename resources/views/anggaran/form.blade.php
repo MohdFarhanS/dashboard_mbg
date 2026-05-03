@@ -6,13 +6,17 @@
 <div class="container-fluid px-4">
     <div class="row justify-content-center">
         <div class="col-lg-6">
+
+            <div class="d-flex align-items-center mb-4 gap-3">
+                <a href="{{ route('anggaran.index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h4 class="fw-bold mb-0" style="color:var(--primary)">
+                    {{ isset($anggaran) ? 'Edit Anggaran' : 'Tetapkan Anggaran Baru' }}
+                </h4>
+            </div>
+
             <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-wallet me-2"></i>
-                        {{ isset($anggaran) ? 'Edit Anggaran' : 'Tetapkan Anggaran Baru' }}
-                    </h5>
-                </div>
                 <div class="card-body">
                     <form action="{{ isset($anggaran) ? route('anggaran.update', $anggaran) : route('anggaran.store') }}"
                           method="POST">
@@ -47,7 +51,7 @@
                         </div>
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>Simpan
                             </button>
                             <a href="{{ route('anggaran.index') }}" class="btn btn-secondary">Batal</a>

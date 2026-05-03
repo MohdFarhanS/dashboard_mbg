@@ -7,7 +7,7 @@
         <a href="{{ route('biaya.dashboard') }}" class="btn btn-sm btn-outline-secondary">
             <i class="fa fa-arrow-left"></i>
         </a>
-        <h5 class="fw-bold mb-0" style="color:#1a6b3a">Detail Biaya: {{ $menu->nama_menu }}</h5>
+        <h5 class="fw-bold mb-0" style="color:#0f4c81">Detail Biaya: {{ $menu->nama_menu }}</h5>
     </div>
 
     {{-- Ringkasan --}}
@@ -27,7 +27,7 @@
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center py-3">
                 <div class="text-muted small">Cost/Porsi</div>
-                <div class="fw-bold fs-5 {{ $biaya['selisih'] < 0 ? 'text-danger' : 'text-success' }}">
+                <div class="fw-bold fs-5 {{ $biaya['selisih'] < 0 ? 'text-danger' : 'text-primary' }}">
                     Rp {{ number_format($biaya['cost_per_porsi'], 0, ',', '.') }}
                 </div>
             </div>
@@ -98,7 +98,7 @@
                     </tr>
                     <tr>
                         <td colspan="3" class="text-end">Cost per Porsi (÷{{ $biaya['jumlah_porsi'] }} porsi)</td>
-                        <td class="text-end" style="color:#1a6b3a">
+                        <td class="text-end" style="color:#0f4c81">
                             Rp {{ number_format($biaya['cost_per_porsi'], 0, ',', '.') }}
                         </td>
                     </tr>

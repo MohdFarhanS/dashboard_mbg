@@ -5,10 +5,10 @@
 @section('content')
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-success mb-0">
+        <h4 class="fw-bold mb-0" style="color:#0f4c81">
             <i class="fas fa-wallet me-2"></i>Kelola Anggaran Per Porsi
         </h4>
-        <a href="{{ route('anggaran.create') }}" class="btn btn-success btn-sm">
+        <a href="{{ route('anggaran.create') }}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i>Tetapkan Anggaran Baru
         </a>
     </div>
@@ -23,7 +23,7 @@
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-                    <thead class="table-success">
+                    <thead class="table-primary">
                         <tr>
                             <th>Anggaran/Porsi</th>
                             <th>Berlaku Mulai</th>

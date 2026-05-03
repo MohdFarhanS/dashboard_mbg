@@ -68,7 +68,7 @@
                         @endif
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>
                                 {{ isset($user) ? 'Simpan Perubahan' : 'Buat User' }}
                             </button>

@@ -10,7 +10,7 @@
             </h4>
             <small class="text-muted">Kelola akses pengguna sistem Dashboard MBG</small>
         </div>
-        <a href="{{ route('users.create') }}" class="btn btn-success btn-sm">
+        <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i>Tambah User
         </a>
     </div>
@@ -57,7 +57,7 @@
                                     <i class="fas fa-shield-halved me-1"></i>Admin
                                 </span>
                             @else
-                                <span class="badge" style="background:#d1e7dd;color:#0a3622">
+                                <span class="badge" style="background:#daeeff;color:#0f4c81">
                                     <i class="fas fa-user me-1"></i>Pengelola
                                 </span>
                             @endif

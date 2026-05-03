@@ -6,13 +6,9 @@
 <div class="container-fluid py-4">
 
     {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb small">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('bahan-pangan.index') }}">Bahan Pangan</a></li>
-            <li class="breadcrumb-item active">{{ $title }}</li>
-        </ol>
-    </nav>
+    <a href="{{ route('bahan-pangan.index') }}" class="btn btn-sm btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
 
     <div class="card border-0 shadow-sm" style="max-width: 900px; margin: 0 auto;">
         <div class="card-header bg-white border-bottom py-3">
@@ -35,7 +31,8 @@
             <form method="POST"
                   action="{{ $bahan ? route('bahan-pangan.update', $bahan) : route('bahan-pangan.store') }}">
                 @csrf
-                @if($bahan) @method('PUT') @endif
+                @if($bahan) @method('PUT')
+                @endif
 
                 {{-- === INFO DASAR === --}}
                 <h6 class="fw-semibold text-muted text-uppercase mb-3 border-bottom pb-2" style="font-size:.75rem; letter-spacing:.05em;">
