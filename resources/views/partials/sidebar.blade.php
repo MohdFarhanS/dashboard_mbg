@@ -36,12 +36,6 @@
             class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
             <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
         </a>
-        @if(Auth::user()->role === 'pengelola')
-            <a href="{{ route('simulasi.index') }}"
-                class="nav-link {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
-                <i class="fas fa-flask"></i> Simulasi Menu
-            </a>
-        @endif
         <div class="nav-section">Monitoring</div>
 
         <a href="{{ route('gizi.dashboard') }}"
@@ -71,20 +65,12 @@
                 class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                 <i class="fas fa-users"></i> Kelola Pengguna
             </a>
-            <a href="{{ route('import-tkpi.index') }}"
-                class="nav-link {{ request()->routeIs('import-tkpi.*') ? 'active' : '' }}">
-                <i class="fas fa-file-import"></i> Import TKPI
-            </a>
         @endif
 
         <div class="nav-section">Laporan</div>
         <a href="{{ route('laporan.index', ['jenis' => 'gizi']) }}"
             class="nav-link {{ request()->routeIs('laporan.*') && request('jenis','gizi') === 'gizi' ? 'active' : '' }}">
-            <i class="fas fa-chart-bar"></i> Laporan Gizi
-        </a>
-        <a href="{{ route('laporan.index', ['jenis' => 'biaya']) }}"
-            class="nav-link {{ request()->routeIs('laporan.*') && request('jenis') === 'biaya' ? 'active' : '' }}">
-            <i class="fas fa-file-invoice-dollar"></i> Laporan Biaya
+            <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
         </a>
 
         {{-- Spacer bawah supaya item terakhir tidak nempel logout --}}
