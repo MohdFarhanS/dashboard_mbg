@@ -14,7 +14,6 @@
                     Detail Menu — {{ $menuHarian->tanggal->translatedFormat('d F Y') }}
                 </h4>
                 <small class="text-muted">
-                    {{ $menuHarian->unit_sppg }}
                     @if($menuHarian->nama_menu)
                         · <span class="fw-semibold">{{ $menuHarian->nama_menu }}</span>
                     @endif

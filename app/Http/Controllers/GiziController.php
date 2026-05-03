@@ -4,36 +4,20 @@ namespace App\Http\Controllers;
 use App\Constants\AKG;
 use App\Models\MenuHarian;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class GiziController extends Controller
 {
     public function dashboard(Request $request)
     {
-        $user = Auth::user();
-        $isAdmin = $user->role === 'admin';
-
-        // Periode filter — default: bulan ini
         $bulan = $request->input('bulan', now()->format('Y-m'));
         [$tahun, $bln] = explode('-', $bulan);
 
-        // FIX: Admin lihat semua unit, pengelola hanya unitnya
         $query = MenuHarian::with('detailBahans.bahanPangan')
             ->whereYear('tanggal', $tahun)
             ->whereMonth('tanggal', $bln)
             ->where('status', 'final')
             ->orderBy('tanggal');
-
-        if (!$isAdmin) {
-            $query->where('unit_sppg', $user->unit_sppg);
-        }
-
-        // FIX: Admin bisa filter per unit via dropdown
-        $filterUnit = $request->input('unit_sppg', '');
-        if ($isAdmin && $filterUnit) {
-            $query->where('unit_sppg', $filterUnit);
-        }
 
         $menus = $query->get();
 
@@ -74,53 +58,29 @@ class GiziController extends Controller
             $persenAkg[$k] = $acuan > 0 ? min(round(($rataGizi[$k] / $acuan) * 100, 1), 200) : 0;
         }
 
-        // FIX: Status hari ini — admin lihat semua, pengelola unitnya saja
-        $queryHariIni = MenuHarian::with('detailBahans.bahanPangan')
-            ->whereDate('tanggal', today());
-
-        if (!$isAdmin) {
-            $queryHariIni->where('unit_sppg', $user->unit_sppg);
-        } elseif ($filterUnit) {
-            $queryHariIni->where('unit_sppg', $filterUnit);
-        }
-
-        $menuHariIni = $queryHariIni->first();
+        $menuHariIni = MenuHarian::with('detailBahans.bahanPangan')
+            ->whereDate('tanggal', today())
+            ->first();
         $giziHariIni = $menuHariIni ? $menuHariIni->totalGizi() : null;
-
-        // FIX: List unit untuk dropdown filter (admin only)
-        $unitList = $isAdmin
-            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
-            : collect();
 
         return view('gizi.dashboard', compact(
             'bulan', 'menus', 'trendData', 'rataGizi',
             'persenAkg', 'giziHariIni', 'menuHariIni',
-            'jumlahHari', 'unitList', 'filterUnit'
+            'jumlahHari'
         ));
     }
 
     // API endpoint untuk chart AJAX
     public function apiTrend(Request $request)
     {
-        $user   = Auth::user();
-        $isAdmin = $user->role === 'admin';
-        $bulan  = $request->input('bulan', now()->format('Y-m'));
+        $bulan = $request->input('bulan', now()->format('Y-m'));
         [$tahun, $bln] = explode('-', $bulan);
 
-        // FIX: Admin lihat semua unit
         $query = MenuHarian::with('detailBahans.bahanPangan')
             ->whereYear('tanggal', $tahun)
             ->whereMonth('tanggal', $bln)
             ->where('status', 'final')
             ->orderBy('tanggal');
-
-        if (!$isAdmin) {
-            $query->where('unit_sppg', $user->unit_sppg);
-        }
-
-        if ($isAdmin && $request->input('unit_sppg')) {
-            $query->where('unit_sppg', $request->input('unit_sppg'));
-        }
 
         $menus = $query->get();
 

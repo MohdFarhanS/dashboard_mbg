@@ -67,22 +67,6 @@
                            class="form-control form-control-sm" onchange="this.form.submit()">
                 </div>
 
-                @if($unitList->count())
-                <div class="col-md-3">
-                    <label class="form-label small fw-semibold mb-1">Unit SPPG</label>
-                    <select name="unit_sppg" class="form-select form-select-sm"
-                            onchange="this.form.submit()">
-                        <option value="">— Semua Unit —</option>
-                        @foreach($unitList as $unit)
-                            <option value="{{ $unit }}"
-                                {{ request('unit_sppg') === $unit ? 'selected' : '' }}>
-                                {{ $unit }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
-
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold mb-1">Tingkat Keparahan</label>
                     <select name="severity" class="form-select form-select-sm"
@@ -199,11 +183,6 @@
                             </div>
                             <small class="text-muted">
                                 {{ $menu->tanggal->translatedFormat('d F Y') }}
-                                @if(auth()->user()->role === 'admin')
-                                    · <span class="badge bg-secondary-subtle text-secondary">
-                                        {{ $menu->unit_sppg }}
-                                    </span>
-                                @endif
                             </small>
                         </div>
                         <span class="badge severity-badge {{ $a['status'] }} px-2 py-1"

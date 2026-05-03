@@ -203,9 +203,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if(!auth()->user()->unit_sppg)
-                                    <span class="text-muted small">—</span>
-                                @elseif(isset($hargaMap[$bahan->id]))
+                                @if(isset($hargaMap[$bahan->id]))
                                     <span class="small fw-semibold text-dark">
                                         Rp {{ number_format($hargaMap[$bahan->id] * 10, 0, ',', '.') }}
                                     </span>

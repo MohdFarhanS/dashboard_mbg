@@ -25,23 +25,6 @@
                 @csrf
                 @if(isset($harga)) @method('PUT') @endif
 
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Unit SPPG <span class="text-danger">*</span></label>
-                    <select name="unit_sppg" class="form-select @error('unit_sppg') is-invalid @enderror" required>
-                        <option value="">— Pilih Unit SPPG —</option>
-                        @foreach($unitList as $unit)
-                            <option value="{{ $unit }}"
-                                {{ old('unit_sppg', $harga->unit_sppg ?? '') === $unit ? 'selected' : '' }}>
-                                {{ $unit }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="form-text">Pilih unit SPPG yang harga bahan ini berlaku.</div>
-                    @error('unit_sppg')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
                 <div class="mb-3 position-relative">
                     <label class="form-label fw-medium">Bahan Pangan <span class="text-danger">*</span></label>
                     <input type="hidden" name="bahan_pangan_id" id="bahan-pangan-id"

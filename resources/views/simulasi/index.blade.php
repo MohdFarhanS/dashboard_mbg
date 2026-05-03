@@ -154,7 +154,6 @@
                     <div class="alert alert-info py-2 mb-3 d-flex align-items-center gap-2" style="font-size:.85rem">
                         <i class="fas fa-pen-to-square"></i>
                         Mode Edit — <strong>{{ $menuHarian->tanggal->translatedFormat('d F Y') }}</strong>
-                        &nbsp;·&nbsp;{{ $menuHarian->unit_sppg }}
                         <a href="{{ route('menu-harian.show', $menuHarian) }}"
                            class="btn btn-sm btn-outline-secondary ms-auto py-0">
                             <i class="fas fa-times me-1"></i>Batal

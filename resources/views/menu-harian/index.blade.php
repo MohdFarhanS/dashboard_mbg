@@ -9,7 +9,6 @@
             <h4 class="fw-bold mb-0" style="color: var(--primary)">
                 <i class="fas fa-utensils me-2"></i>Menu Harian
             </h4>
-            <small class="text-muted">Unit: {{ auth()->user()->unit_sppg }}</small>
         </div>
         @if(auth()->user()->role === 'pengelola')
         <a href="{{ route('simulasi.index') }}" class="btn btn-primary"

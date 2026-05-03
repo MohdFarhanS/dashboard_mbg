@@ -5,15 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\HargaBahan;
 use App\Models\BahanPangan;
 use App\Models\MenuHarian;
-use App\Models\User;
-use App\Traits\HasUnitScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BiayaController extends Controller
 {
-    use HasUnitScope;
-
     // ─── Dashboard ─────────────────────────────────────────────────────────────
     public function dashboard(Request $request)
     {
@@ -29,10 +25,6 @@ class BiayaController extends Controller
             ->where('status', 'final')
             ->orderBy('tanggal');
 
-            if ($user->role !== 'admin') {
-                $query->where('unit_sppg', $user->unit_sppg);
-            }
-
         $menus = $query->get();
 
         foreach ($menus as $menu) {
@@ -43,11 +35,10 @@ class BiayaController extends Controller
         }
 
         $rekapBiaya = $menus->map(fn($m) => [
-            'menu_id'   => $m->id,
-            'tanggal'   => $m->tanggal->format('d/m/Y'),
-            'menu'      => $m->nama_menu,
-            'unit_sppg' => $m->unit_sppg,   // FIX: tampilkan unit di admin
-            'biaya'     => $m->totalBiaya(),
+            'menu_id' => $m->id,
+            'tanggal' => $m->tanggal->format('d/m/Y'),
+            'menu'    => $m->nama_menu,
+            'biaya'   => $m->totalBiaya(),
         ]);
 
         $totalHari       = $menus->count();
@@ -64,23 +55,11 @@ class BiayaController extends Controller
         $overBudget  = $rekapBiaya->filter(fn($r) => $r['biaya']['selisih'] < 0)->count();
         $underBudget = $rekapBiaya->filter(fn($r) => $r['biaya']['selisih'] >= 0)->count();
 
-        // FIX: List unit untuk filter (khusus admin)
-        $unitList = $user->role === 'admin'
-            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
-            : collect([$user->unit_sppg]);
-
-        $filterUnit = $request->input('unit_sppg', '');
-
-        // FIX: Filter by unit jika admin memilih unit tertentu
-        if ($user->role === 'admin' && $filterUnit) {
-            $rekapBiaya = $rekapBiaya->filter(fn($r) => $r['unit_sppg'] === $filterUnit)->values();
-        }
-
         return view('biaya.dashboard', compact(
             'bulan', 'rekapBiaya', 'trendBiaya',
             'totalHari', 'totalBiayaBulan', 'rataCostPorsi',
             'rataAnggaran', 'overBudget', 'underBudget',
-            'unitList', 'filterUnit', 'alertSummary', 'bulan',
+            'alertSummary',
         ));
     }
 
@@ -110,10 +89,8 @@ class BiayaController extends Controller
             abort(403);
         }
 
-        $bahans   = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
-        $unitList = User::where('role', 'pengelola')->whereNotNull('unit_sppg')
-                        ->distinct()->orderBy('unit_sppg')->pluck('unit_sppg');
-        return view('biaya.harga-form', compact('bahans', 'unitList'));
+        $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
+        return view('biaya.harga-form', compact('bahans'));
     }
 
     public function storeHarga(Request $request)
@@ -124,7 +101,6 @@ class BiayaController extends Controller
 
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
-            'unit_sppg'       => 'required|string|max:50',
             'harga_per_kg'    => 'required|numeric|min:0',
             'berlaku_mulai'   => 'required|date',
             'berlaku_sampai'  => 'nullable|date|after_or_equal:berlaku_mulai',
@@ -146,10 +122,8 @@ class BiayaController extends Controller
             abort(403);
         }
 
-        $bahans   = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
-        $unitList = User::where('role', 'pengelola')->whereNotNull('unit_sppg')
-                        ->distinct()->orderBy('unit_sppg')->pluck('unit_sppg');
-        return view('biaya.harga-form', compact('harga', 'bahans', 'unitList'));
+        $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
+        return view('biaya.harga-form', compact('harga', 'bahans'));
     }
 
     public function updateHarga(Request $request, HargaBahan $harga)
@@ -157,10 +131,9 @@ class BiayaController extends Controller
         if (auth()->user()->role !== 'admin') {
             abort(403);
         }
-    
+
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
-            'unit_sppg'       => 'required|string|max:50',
             'harga_per_kg'    => 'required|numeric|min:0',
             'berlaku_mulai'   => 'required|date',
             'berlaku_sampai'  => 'nullable|date|after_or_equal:berlaku_mulai',
@@ -190,9 +163,6 @@ class BiayaController extends Controller
     // ─── Detail Biaya per Menu ─────────────────────────────────────────────────
     public function detailMenu(MenuHarian $menu)
     {
-        // FIX: Pengelola hanya bisa lihat detail menu unitnya sendiri
-        $this->authorizeUnit($menu->unit_sppg);
-
         $menu->load('detailBahans.bahanPangan');
         $biaya = $menu->totalBiaya();
         return view('biaya.detail-menu', compact('menu', 'biaya'));
@@ -201,14 +171,9 @@ class BiayaController extends Controller
     // ─── API Estimasi ──────────────────────────────────────────────────────────
     public function apiEstimasi(Request $request)
     {
-        $user    = Auth::user();
         $tanggal = $request->input('tanggal', today()->toDateString());
         $items   = $request->input('items', []);
         $porsi   = max((int) $request->input('jumlah_porsi', 1), 1);
-        // FIX: gunakan unit_sppg dari request jika admin, fallback ke milik user
-        $unit    = ($user->role === 'admin' && $request->input('unit_sppg'))
-                    ? $request->input('unit_sppg')
-                    : $user->unit_sppg;
 
         $total  = 0;
         $detail = [];
@@ -218,7 +183,7 @@ class BiayaController extends Controller
             $gram = (float) ($item['jumlah_gram'] ?? 0);
             if (!$id || !$gram) continue;
 
-            $harga = HargaBahan::hargaAktif($id, $unit, $tanggal);
+            $harga = HargaBahan::hargaAktif($id, $tanggal);
             $biaya = ($gram / 100) * $harga;
             $total += $biaya;
 
@@ -239,16 +204,8 @@ class BiayaController extends Controller
         ]);
     }
 
-    // ─── Helper ────────────────────────────────────────────────────────────────
-    /**
-     * Lempar 403 jika pengelola mencoba akses data unit lain.
-     * Admin selalu diizinkan.
-     */
     private function authorizeUnit(string $unitSppg): void
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin' && $user->unit_sppg !== $unitSppg) {
-            abort(403, 'Anda tidak memiliki akses ke data unit ini.');
-        }
+        // Single SPPG — semua pengguna terautentikasi boleh akses
     }
 }

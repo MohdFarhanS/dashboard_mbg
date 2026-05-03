@@ -22,6 +22,9 @@ class SimulasiController extends Controller
 
     public function index()
     {
+        if (auth()->check() && auth()->user()->role !== 'pengelola') {
+            abort(403);
+        }
         return view('simulasi.index');
     }
 
@@ -42,7 +45,6 @@ class SimulasiController extends Controller
 
         $jumlahPorsi = (int) $request->jumlah_porsi;
         $tanggal     = $request->tanggal ?? today()->toDateString();
-        $unit        = Auth::user()->unit_sppg;
 
         $giziTotal  = ['energi'=>0,'protein'=>0,'lemak'=>0,'karbohidrat'=>0,
                         'serat'=>0,'kalsium'=>0,'besi'=>0,'vit_c'=>0];
@@ -63,7 +65,7 @@ class SimulasiController extends Controller
                 $giziItem[$k]   = $val;
             }
 
-            $hargaVal   = HargaBahan::hargaAktif($b->id, $unit, $tanggal);
+            $hargaVal   = HargaBahan::hargaAktif($b->id, $tanggal);
             $biayaItem  = $hargaVal > 0 ? ($gram * $porsi / 100) * $hargaVal : 0;
             $biayaTotal += $biayaItem;
 
@@ -116,9 +118,6 @@ class SimulasiController extends Controller
         if ($user->role === 'admin') {
             abort(403, 'Admin tidak dapat mengedit menu harian.');
         }
-        if ($user->unit_sppg !== $menuHarian->unit_sppg) {
-            abort(403);
-        }
         if ($menuHarian->status === 'final') {
             return redirect()->route('menu-harian.show', $menuHarian)
                 ->with('error', 'Menu sudah final, tidak bisa diedit.');
@@ -126,19 +125,21 @@ class SimulasiController extends Controller
 
         $menuHarian->load('detailBahans.bahanPangan');
 
-        $existingBahans = $menuHarian->detailBahans->map(fn($d) => [
-            'id'           => $d->bahanPangan->id,
-            'kode'         => $d->bahanPangan->kode,
-            'nama_bahan'   => $d->bahanPangan->nama_bahan,
-            'kategori'     => $d->bahanPangan->kategori,
-            'energi'       => $d->bahanPangan->energi,
-            'protein'      => $d->bahanPangan->protein,
-            'lemak'        => $d->bahanPangan->lemak,
-            'karbohidrat'  => $d->bahanPangan->karbohidrat,
-            'bdd'          => $d->bahanPangan->bdd,
-            'jumlah_gram'  => $d->jumlah_gram,
-            'jumlah_porsi' => $d->jumlah_porsi,
-        ]);
+        $existingBahans = $menuHarian->detailBahans
+            ->filter(fn($d) => $d->bahanPangan)
+            ->map(fn($d) => [
+                'id'           => $d->bahanPangan->id,
+                'kode'         => $d->bahanPangan->kode,
+                'nama_bahan'   => $d->bahanPangan->nama_bahan,
+                'kategori'     => $d->bahanPangan->kategori,
+                'energi'       => $d->bahanPangan->energi,
+                'protein'      => $d->bahanPangan->protein,
+                'lemak'        => $d->bahanPangan->lemak,
+                'karbohidrat'  => $d->bahanPangan->karbohidrat,
+                'bdd'          => $d->bahanPangan->bdd,
+                'jumlah_gram'  => $d->jumlah_gram,
+                'jumlah_porsi' => $d->jumlah_porsi,
+            ])->values();
 
         return view('simulasi.index', compact('menuHarian', 'existingBahans'));
     }
@@ -164,10 +165,6 @@ class SimulasiController extends Controller
         // ── Mode edit: perbarui menu yang sudah ada ─────────────────────────
         if ($request->filled('menu_id')) {
             $menu = MenuHarian::findOrFail($request->menu_id);
-
-            if (Auth::user()->role !== 'admin' && Auth::user()->unit_sppg !== $menu->unit_sppg) {
-                return response()->json(['error' => 'Akses ditolak.'], 403);
-            }
 
             DB::transaction(function () use ($request, $menu) {
                 $menu->update([
@@ -196,9 +193,7 @@ class SimulasiController extends Controller
         }
 
         // ── Mode tambah baru ─────────────────────────────────────────────────
-        $existing = MenuHarian::where('unit_sppg', Auth::user()->unit_sppg)
-            ->whereDate('tanggal', $request->tanggal)
-            ->first();
+        $existing = MenuHarian::whereDate('tanggal', $request->tanggal)->first();
 
         if ($existing) {
             return response()->json([
@@ -209,7 +204,6 @@ class SimulasiController extends Controller
 
         DB::transaction(function () use ($request) {
             $menu = MenuHarian::create([
-                'unit_sppg'          => Auth::user()->unit_sppg,
                 'tanggal'            => $request->tanggal,
                 'nama_menu'          => $request->nama_menu,
                 'catatan_anggaran'   => $request->catatan,

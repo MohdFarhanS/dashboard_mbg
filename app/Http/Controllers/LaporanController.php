@@ -17,8 +17,7 @@ class LaporanController extends Controller
 {
     public function index(Request $request)
     {
-        $user    = Auth::user();
-        $bulan   = $request->input('bulan', now()->format('Y-m'));
+        $bulan = $request->input('bulan', now()->format('Y-m'));
         $jenis   = $request->input('jenis', 'gizi'); // gizi | biaya
 
         [$tahun, $bln] = explode('-', $bulan);
@@ -29,34 +28,24 @@ class LaporanController extends Controller
             ->where('status', 'final')
             ->orderBy('tanggal');
 
-        if ($user->role !== 'admin') {
-            $query->where('unit_sppg', $user->unit_sppg);
-        }
-
         $menus = $query->get();
 
-        // Hitung ringkasan
-        $totalMenu    = $menus->count();
-        $rataGizi     = $this->hitungRataGizi($menus);
-        $totalBiaya   = $menus->sum(fn($m) => $m->totalBiaya()['total_seluruh']);
-        $rataCost     = $totalMenu > 0
+        $totalMenu  = $menus->count();
+        $rataGizi   = $this->hitungRataGizi($menus);
+        $totalBiaya = $menus->sum(fn($m) => $m->totalBiaya()['total_seluruh']);
+        $rataCost   = $totalMenu > 0
             ? $menus->avg(fn($m) => $m->totalBiaya()['cost_per_porsi'])
             : 0;
-
-        $unitList = $user->role === 'admin'
-            ? MenuHarian::distinct()->pluck('unit_sppg')->sort()->values()
-            : collect();
 
         return view('laporan.index', compact(
             'menus', 'bulan', 'jenis',
             'totalMenu', 'rataGizi', 'totalBiaya', 'rataCost',
-            'unitList', 'tahun', 'bln'
+            'tahun', 'bln'
         ));
     }
 
     public function exportExcel(Request $request)
     {
-        $user  = Auth::user();
         $bulan = $request->input('bulan', now()->format('Y-m'));
         $jenis = $request->input('jenis', 'gizi');
         $nama  = "Laporan_" . ucfirst($jenis) . "_" . $bulan . ".xlsx";
@@ -68,10 +57,6 @@ class LaporanController extends Controller
             ->whereMonth('tanggal', $bln)
             ->where('status', 'final')
             ->orderBy('tanggal');
-
-        if ($user->role !== 'admin') {
-            $query->where('unit_sppg', $user->unit_sppg);
-        }
 
         $menus = $query->get();
 
@@ -87,7 +72,6 @@ class LaporanController extends Controller
                 return [
                     'No'                  => $i + 1,
                     'Tanggal'             => $menu->tanggal->format('d/m/Y'),
-                    'Unit SPPG'           => $menu->unit_sppg,
                     'Nama Menu'           => $menu->nama_menu ?? '-',
                     'Jumlah Porsi'        => $menu->jumlah_porsi ?? 1,
                     'Total Biaya (Rp)'    => round($b['total_seluruh']),
@@ -105,7 +89,6 @@ class LaporanController extends Controller
                 return [
                     'No'              => $i + 1,
                     'Tanggal'         => $menu->tanggal->format('d/m/Y'),
-                    'Unit SPPG'       => $menu->unit_sppg,
                     'Nama Menu'       => $menu->nama_menu ?? '-',
                     'Energi (kkal)'   => round($g['energi'], 1),
                     '% AKG Energi'    => round($g['energi'] / $akgRef['energi'] * 100) . '%',
@@ -136,10 +119,6 @@ class LaporanController extends Controller
             ->whereMonth('tanggal', $bln)
             ->where('status', 'final')
             ->orderBy('tanggal');
-
-        if ($user->role !== 'admin') {
-            $query->where('unit_sppg', $user->unit_sppg);
-        }
 
         $menus     = $query->get();
         $rataGizi  = $this->hitungRataGizi($menus);

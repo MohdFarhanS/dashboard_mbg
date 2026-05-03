@@ -13,15 +13,10 @@ class DashboardController extends Controller
         $user   = Auth::user();
         $today  = today();
 
-        // ── Menu hari ini (filter per unit jika pengelola) ──
-        $query = MenuHarian::with('detailBahans.bahanPangan')
-            ->whereDate('tanggal', $today);
-
-        if ($user->role === 'pengelola') {
-            $query->where('unit_sppg', $user->unit_sppg);
-        }
-
-        $menusHariIni = $query->get();
+        // ── Menu hari ini ──
+        $menusHariIni = MenuHarian::with('detailBahans.bahanPangan')
+            ->whereDate('tanggal', $today)
+            ->get();
 
         // ── Akumulasi gizi hari ini ──
         $totalKalori    = 0;
@@ -73,15 +68,10 @@ class DashboardController extends Controller
             : ($persenBiaya >= 85 ? 'warning' : 'aman');
 
         // ── Budget Alert: hitung menu final bulan ini yang over/warning ──
-        $alertQuery = MenuHarian::where('status', 'final')
+        $menusFinal = MenuHarian::where('status', 'final')
             ->whereYear('tanggal',  $today->year)
-            ->whereMonth('tanggal', $today->month);
-
-        if ($user->role === 'pengelola') {
-            $alertQuery->where('unit_sppg', $user->unit_sppg);
-        }
-
-        $menusFinal      = $alertQuery->get();
+            ->whereMonth('tanggal', $today->month)
+            ->get();
         $alertOver       = 0;
         $alertWarning    = 0;
         $alertList       = [];
@@ -114,11 +104,11 @@ class DashboardController extends Controller
 
         foreach ($menusHariIni as $menu) {
             foreach ($menu->detailBahans as $detail) {
-                $bahan    = $detail->bahanPangan;
+                $bahan = $detail->bahanPangan;
+                if (!$bahan) continue;
                 $kategori = $bahan->kategori ?? 'Lainnya';
-    
+
                 $harga = \App\Models\HargaBahan::where('bahan_pangan_id', $bahan->id)
-                    ->where('unit_sppg', $menu->unit_sppg)
                     ->where('berlaku_mulai', '<=', today())
                     ->where(function ($q) {
                         $q->whereNull('berlaku_sampai')
