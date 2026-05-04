@@ -20,9 +20,20 @@
                 </small>
             </div>
         </div>
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            {{-- Badge kelompok --}}
+            @if($menuHarian->kelompok === 'balita_sd3')
+                <span class="badge p-2" style="background:#daeeff;color:#0f4c81;font-size:.8rem">
+                    <i class="fas fa-child me-1"></i>Balita s/d Kelas 3 SD
+                </span>
+            @else
+                <span class="badge p-2" style="background:#d1f0e0;color:#1a6640;font-size:.8rem">
+                    <i class="fas fa-user-graduate me-1"></i>Kelas 4 SD s/d Ibu Menyusui
+                </span>
+            @endif
+
             @if($menuHarian->status === 'final')
-                <span class="badge p-2" style="background:#daeeff;color:#0f4c81;font-size:.85rem">
+                <span class="badge p-2" style="background:#e2e8f0;color:#475569;font-size:.85rem">
                     <i class="fas fa-lock me-1"></i>Final
                 </span>
             @else
@@ -131,9 +142,18 @@
 
             {{-- Header row --}}
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                     <i class="fas fa-wallet" style="color:var(--primary)"></i>
                     <span class="fw-semibold">Realisasi Biaya vs Anggaran Per Porsi</span>
+                    @if($menuHarian->kelompok === 'balita_sd3')
+                        <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.72rem">
+                            <i class="fas fa-child me-1"></i>Balita s/d Kelas 3 SD
+                        </span>
+                    @else
+                        <span class="badge" style="background:#d1f0e0;color:#1a6640;font-size:.72rem">
+                            <i class="fas fa-user-graduate me-1"></i>Kelas 4 SD s/d Ibu Menyusui
+                        </span>
+                    @endif
                     @if($statusAnggaran === 'over')
                         <span class="badge bg-danger">
                             <i class="fas fa-exclamation-triangle me-1"></i>Melebihi Anggaran

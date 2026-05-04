@@ -25,6 +25,7 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-primary">
                         <tr>
+                            <th>Kelompok Penerima</th>
                             <th>Anggaran/Porsi</th>
                             <th>Berlaku Mulai</th>
                             <th>Keterangan</th>
@@ -34,13 +35,26 @@
                     <tbody>
                         @forelse($riwayat as $item)
                         <tr>
+                            <td>
+                                @if($item->kelompok === 'balita_sd3')
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-child me-1"></i>Balita s/d Kelas 3 SD
+                                    </span>
+                                @elseif($item->kelompok === 'sd4_ibu_menyusui')
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-user-graduate me-1"></i>Kelas 4 SD s/d Ibu Menyusui
+                                    </span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="fw-semibold">Rp {{ number_format($item->anggaran_per_porsi, 0, ',', '.') }}</td>
                             <td>{{ $item->berlaku_mulai->format('d/m/Y') }}</td>
                             <td>{{ $item->keterangan ?? '-' }}</td>
                             <td>{{ $item->createdBy->name ?? '-' }}</td>
                         </tr>
                         @empty
-                        <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada data anggaran.</td></tr>
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada data anggaran.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

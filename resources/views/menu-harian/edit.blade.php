@@ -65,6 +65,20 @@
                             <textarea name="catatan" class="form-control" rows="2"
                                       placeholder="Opsional...">{{ old('catatan', $menuHarian->catatan) }}</textarea>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kelompok Penerima</label>
+                            <select name="kelompok" class="form-select">
+                                <option value="balita_sd3"
+                                    {{ ($menuHarian->kelompok ?? 'sd4_ibu_menyusui') === 'balita_sd3' ? 'selected' : '' }}>
+                                    <i class="fas fa-child"></i> Balita s/d Kelas 3 SD
+                                </option>
+                                <option value="sd4_ibu_menyusui"
+                                    {{ ($menuHarian->kelompok ?? 'sd4_ibu_menyusui') === 'sd4_ibu_menyusui' ? 'selected' : '' }}>
+                                    Kelas 4 SD s/d Ibu Menyusui
+                                </option>
+                            </select>
+                            <div class="form-text">Mempengaruhi batas anggaran per porsi.</div>
+                        </div>
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Status</label>
                             <select name="status" class="form-select">

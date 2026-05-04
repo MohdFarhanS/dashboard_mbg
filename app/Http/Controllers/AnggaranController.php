@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggaranPorsi;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AnggaranController extends Controller
 {
     public function __construct()
     {
-        // Semua method di controller ini hanya untuk admin
         if (auth()->check() && auth()->user()->role !== 'admin') {
             abort(403);
         }
@@ -17,9 +17,9 @@ class AnggaranController extends Controller
 
     public function index()
     {
-        if (auth()->user()->role !== 'admin') abort(403);
         $riwayat = AnggaranPorsi::with('createdBy')
             ->orderByDesc('berlaku_mulai')
+            ->orderBy('kelompok')
             ->paginate(20);
 
         return view('anggaran.index', compact('riwayat'));
@@ -34,20 +34,37 @@ class AnggaranController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'anggaran_per_porsi' => 'required|numeric|min:1000',
-            'berlaku_mulai'      => 'required|date',
-            'keterangan'         => 'nullable|string|max:200',
+            'anggaran_balita_sd3'       => 'required|numeric|min:1000',
+            'anggaran_sd4_ibu_menyusui' => 'required|numeric|min:1000',
+            'berlaku_mulai'             => 'required|date',
+            'keterangan'                => 'nullable|string|max:200',
         ]);
 
-        $data['created_by'] = auth()->id();
+        $berlakuMulai = Carbon::parse($data['berlaku_mulai']);
+        $berlakuSampaiLama = $berlakuMulai->clone()->subDay()->toDateString();
 
-        // Tutup anggaran aktif sebelumnya (set berlaku_sampai = berlaku_mulai baru - 1 hari)
-        AnggaranPorsi::whereNull('berlaku_sampai')
-            ->update(['berlaku_sampai' => \Carbon\Carbon::parse($data['berlaku_mulai'])->subDay()->toDateString()]);
+        $kelompokList = [
+            'balita_sd3'       => (float) $data['anggaran_balita_sd3'],
+            'sd4_ibu_menyusui' => (float) $data['anggaran_sd4_ibu_menyusui'],
+        ];
 
-        AnggaranPorsi::create($data);
+        foreach ($kelompokList as $kelompok => $anggaran) {
+            // Tutup record aktif sebelumnya untuk kelompok ini
+            AnggaranPorsi::where('kelompok', $kelompok)
+                ->whereNull('berlaku_sampai')
+                ->update(['berlaku_sampai' => $berlakuSampaiLama]);
+
+            AnggaranPorsi::create([
+                'kelompok'         => $kelompok,
+                'anggaran_per_porsi' => $anggaran,
+                'berlaku_mulai'    => $data['berlaku_mulai'],
+                'berlaku_sampai'   => null,
+                'keterangan'       => $data['keterangan'] ?? null,
+                'created_by'       => auth()->id(),
+            ]);
+        }
 
         return redirect()->route('anggaran.index')
-            ->with('success', 'Anggaran baru berhasil ditetapkan.');
+            ->with('success', 'Anggaran baru berhasil ditetapkan untuk kedua kelompok.');
     }
 }

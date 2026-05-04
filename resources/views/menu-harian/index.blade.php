@@ -76,6 +76,7 @@
                         <tr>
                             <th class="ps-4">Tanggal</th>
                             <th>Nama Menu</th>
+                            <th>Kelompok</th>
                             <th>Jumlah Bahan</th>
                             <th>Estimasi Energi</th>
                             <th>Status</th>
@@ -95,6 +96,17 @@
                                 @endif
                             </td>
                             <td>{{ $menu->nama_menu ?? '-' }}</td>
+                            <td>
+                                @if($menu->kelompok === 'balita_sd3')
+                                    <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.72rem">
+                                        <i class="fas fa-child me-1"></i>Balita s/d Kls 3 SD
+                                    </span>
+                                @else
+                                    <span class="badge" style="background:#d1f0e0;color:#1a6640;font-size:.72rem">
+                                        <i class="fas fa-user-graduate me-1"></i>Kls 4 SD s/d Ibu Menyusui
+                                    </span>
+                                @endif
+                            </td>
                             <td class="text-muted">{{ $menu->detailBahans->count() }} bahan</td>
                             <td>
                                 <span class="fw-semibold" style="color:var(--primary)">
@@ -158,7 +170,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
+                            <td colspan="8" class="text-center text-muted py-5">
                                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                                 Belum ada menu untuk bulan ini.
                                 @if(auth()->user()->role === 'pengelola')
