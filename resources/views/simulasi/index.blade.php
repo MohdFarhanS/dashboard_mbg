@@ -305,25 +305,31 @@
                         </div>
                         <div class="card-body pb-3">
 
-                            {{-- Pemilih tingkatan anggaran per porsi BGN --}}
+                            {{-- Pemilih kelompok penerima --}}
                             <div class="mb-3">
                                 <div class="small fw-semibold mb-2 text-muted">
-                                    <i class="fas fa-layer-group me-1"></i>Tingkatan Anggaran per porsi BGN
+                                    <i class="fas fa-layer-group me-1"></i>Kelompok Penerima (Anggaran per Porsi)
                                 </div>
                                 <div class="d-flex flex-column gap-1">
                                     <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
-                                           id="label-tier-13">
-                                        <input type="radio" name="bgn-tier" value="13000"
+                                           id="label-tier-balita">
+                                        <input type="radio" name="bgn-tier" value="balita_sd3"
                                                class="form-check-input mt-0 flex-shrink-0">
-                                        <span>Balita hingga Kelas 3 SD —
-                                            <strong>Rp13.000/porsi</strong></span>
+                                        <span>
+                                            <i class="fas fa-child me-1 text-primary"></i>
+                                            Balita s/d Kelas 3 SD —
+                                            <strong id="label-angg-balita">Rp {{ number_format($anggaranBalitaSd3, 0, ',', '.') }}/porsi</strong>
+                                        </span>
                                     </label>
                                     <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
-                                           id="label-tier-15">
-                                        <input type="radio" name="bgn-tier" value="15000"
+                                           id="label-tier-sd4">
+                                        <input type="radio" name="bgn-tier" value="sd4_ibu_menyusui"
                                                class="form-check-input mt-0 flex-shrink-0" checked>
-                                        <span>Kelas 4 SD hingga Ibu Menyusui —
-                                            <strong>Rp15.000/porsi</strong></span>
+                                        <span>
+                                            <i class="fas fa-user-graduate me-1 text-success"></i>
+                                            Kelas 4 SD s/d Ibu Menyusui —
+                                            <strong id="label-angg-sd4">Rp {{ number_format($anggaranSd4IbuMenyusui, 0, ',', '.') }}/porsi</strong>
+                                        </span>
                                     </label>
                                 </div>
                             </div>
@@ -641,10 +647,14 @@ document.getElementById('btn-hitung').addEventListener('click', async () => {
 
     if (!bahans.length) return;
 
+    const kelompokDipilih = document.querySelector('input[name="bgn-tier"]:checked')?.value
+        || 'sd4_ibu_menyusui';
+
     const payload = {
         bahans,
         jumlah_porsi : parseInt(document.getElementById('sim-porsi').value) || 1,
         tanggal      : document.getElementById('sim-tanggal').value,
+        kelompok     : kelompokDipilih,
         _token       : document.querySelector('meta[name="csrf-token"]')?.content
                         || '{{ csrf_token() }}',
     };
@@ -748,9 +758,26 @@ const CHART_COLORS = [
 function renderBiaya(b) {
     const fmt = v => 'Rp ' + Math.round(v).toLocaleString('id-ID');
 
-    // Baca anggaran dari radio yang dipilih (override server value)
+    // Update label anggaran per kelompok jika server mengembalikan nilai terbaru
+    if (b.anggaran_per_kelompok) {
+        const fmtK = v => 'Rp ' + Math.round(v).toLocaleString('id-ID') + '/porsi';
+        document.getElementById('label-angg-balita').textContent =
+            fmtK(b.anggaran_per_kelompok.balita_sd3);
+        document.getElementById('label-angg-sd4').textContent =
+            fmtK(b.anggaran_per_kelompok.sd4_ibu_menyusui);
+
+        // Update value radio agar re-render berikutnya menggunakan nilai yang benar
+        document.querySelector('input[name="bgn-tier"][value="balita_sd3"]').dataset.anggaran =
+            b.anggaran_per_kelompok.balita_sd3;
+        document.querySelector('input[name="bgn-tier"][value="sd4_ibu_menyusui"]').dataset.anggaran =
+            b.anggaran_per_kelompok.sd4_ibu_menyusui;
+    }
+
+    // Baca anggaran dari data-anggaran radio yang dipilih, fallback ke nilai server
     const checkedTier = document.querySelector('input[name="bgn-tier"]:checked');
-    const anggaran    = checkedTier ? parseInt(checkedTier.value) : b.anggaran;
+    const anggaran    = checkedTier?.dataset.anggaran
+        ? parseFloat(checkedTier.dataset.anggaran)
+        : b.anggaran;
 
     // Hitung ulang berdasarkan anggaran yang dipilih
     const costPerPorsi  = b.cost_per_porsi;
@@ -932,6 +959,7 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
         nama_menu    : document.getElementById('sim-nama-menu').value,
         catatan      : document.getElementById('sim-catatan').value,
         jumlah_porsi : parseInt(document.getElementById('sim-porsi').value) || 1,
+        kelompok     : document.querySelector('input[name="bgn-tier"]:checked')?.value || 'sd4_ibu_menyusui',
         bahans,
         _token       : '{{ csrf_token() }}',
         @isset($menuHarian)
@@ -977,15 +1005,26 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TIER ANGGARAN BGN — re-render biaya saat radio berubah
+// KELOMPOK — re-render biaya saat radio berubah
 // ═══════════════════════════════════════════════════════════════════════════════
 document.querySelectorAll('input[name="bgn-tier"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        if (hasilKalkulasi?.biaya) renderBiaya(hasilKalkulasi.biaya);
+        if (!hasilKalkulasi?.biaya) return;
+
+        const kelompok = radio.value;
+        // Gunakan nilai anggaran dari data-anggaran jika sudah di-populate
+        if (radio.dataset.anggaran) {
+            renderBiaya(hasilKalkulasi.biaya);
+        } else if (hasilKalkulasi.biaya.anggaran_per_kelompok?.[kelompok] !== undefined) {
+            renderBiaya(hasilKalkulasi.biaya);
+        } else {
+            // Belum ada data kelompok ini dari server — re-hitung
+            document.getElementById('btn-hitung').click();
+        }
     });
 });
 
-// Set label aktif awal (tier 15000 checked by default)
+// Set label aktif awal (sd4_ibu_menyusui checked by default)
 document.querySelectorAll('.tier-label').forEach(el => {
     if (el.querySelector('input[name="bgn-tier"]')?.checked) el.classList.add('active');
 });
@@ -995,6 +1034,15 @@ document.querySelectorAll('.tier-label').forEach(el => {
 // ═══════════════════════════════════════════════════════════════════════════════
 @isset($menuHarian)
 document.addEventListener('DOMContentLoaded', () => {
+    // Pre-select kelompok sesuai menu yang diedit
+    const kelompokMenu = '{{ $menuHarian->kelompok ?? 'sd4_ibu_menyusui' }}';
+    const radioKelompok = document.querySelector(`input[name="bgn-tier"][value="${kelompokMenu}"]`);
+    if (radioKelompok) {
+        radioKelompok.checked = true;
+        document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
+        radioKelompok.closest('.tier-label')?.classList.add('active');
+    }
+
     const bahansEdit = @json($existingBahans);
     bahansEdit.forEach(b => {
         tambahBahan(true); // skipFocus agar tidak scroll ke tiap baris

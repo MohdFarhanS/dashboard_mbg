@@ -13,19 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class SimulasiController extends Controller
 {
-    public function __construct()
-    {
-        if (auth()->check() && auth()->user()->role !== 'pengelola') {
-            abort(403);
-        }
-    }
-
     public function index()
     {
-        if (auth()->check() && auth()->user()->role !== 'pengelola') {
-            abort(403);
-        }
-        return view('simulasi.index');
+        $today = today()->toDateString();
+        $anggaranBalitaSd3       = AnggaranPorsi::aktif($today, 'balita_sd3');
+        $anggaranSd4IbuMenyusui  = AnggaranPorsi::aktif($today, 'sd4_ibu_menyusui');
+        return view('simulasi.index', compact('anggaranBalitaSd3', 'anggaranSd4IbuMenyusui'));
     }
 
     public function kalkulasi(Request $request)
@@ -41,6 +34,7 @@ class SimulasiController extends Controller
             'bahans.*.porsi' => 'required|integer|min:1',
             'jumlah_porsi'   => 'required|integer|min:1',
             'tanggal'        => 'nullable|date',
+            'kelompok'       => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
         ]);
 
         $jumlahPorsi = (int) $request->jumlah_porsi;
@@ -85,7 +79,16 @@ class SimulasiController extends Controller
         }
 
         $costPerPorsi = $jumlahPorsi > 0 ? $biayaTotal / $jumlahPorsi : 0;
-        $anggaran     = AnggaranPorsi::aktif($tanggal);
+
+        $anggaranPerKelompok = [
+            'balita_sd3'       => AnggaranPorsi::aktif($tanggal, 'balita_sd3'),
+            'sd4_ibu_menyusui' => AnggaranPorsi::aktif($tanggal, 'sd4_ibu_menyusui'),
+        ];
+        // Gunakan kelompok yang dipilih dari request, fallback ke sd4_ibu_menyusui
+        $kelompokDipilih = in_array($request->kelompok, array_keys($anggaranPerKelompok))
+            ? $request->kelompok
+            : 'sd4_ibu_menyusui';
+        $anggaran     = $anggaranPerKelompok[$kelompokDipilih];
         $totalAngg    = $anggaran * $jumlahPorsi;
         $selisih      = $totalAngg - $biayaTotal;
         $persenAngg   = $totalAngg > 0
@@ -103,11 +106,12 @@ class SimulasiController extends Controller
             'persen_akg' => $persenAkg,
             'detail'     => $detail,
             'biaya'      => [
-                'total'           => round($biayaTotal, 0),
-                'cost_per_porsi'  => round($costPerPorsi, 0),
-                'anggaran'        => $anggaran,
-                'selisih'         => round($selisih, 0),
-                'persen_anggaran' => $persenAngg,
+                'total'                => round($biayaTotal, 0),
+                'cost_per_porsi'       => round($costPerPorsi, 0),
+                'anggaran'             => $anggaran,
+                'selisih'              => round($selisih, 0),
+                'persen_anggaran'      => $persenAngg,
+                'anggaran_per_kelompok'=> $anggaranPerKelompok,
             ],
         ]);
     }
@@ -141,7 +145,14 @@ class SimulasiController extends Controller
                 'jumlah_porsi' => $d->jumlah_porsi,
             ])->values();
 
-        return view('simulasi.index', compact('menuHarian', 'existingBahans'));
+        $today = $menuHarian->tanggal->toDateString();
+        $anggaranBalitaSd3      = AnggaranPorsi::aktif($today, 'balita_sd3');
+        $anggaranSd4IbuMenyusui = AnggaranPorsi::aktif($today, 'sd4_ibu_menyusui');
+
+        return view('simulasi.index', compact(
+            'menuHarian', 'existingBahans',
+            'anggaranBalitaSd3', 'anggaranSd4IbuMenyusui'
+        ));
     }
 
     public function simpan(Request $request)
@@ -160,18 +171,22 @@ class SimulasiController extends Controller
             'bahans.*.gram'  => 'required|numeric|min:1',
             'bahans.*.porsi' => 'required|integer|min:1',
             'menu_id'        => 'nullable|integer|exists:menu_harians,id',
+            'kelompok'       => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
         ]);
+
+        $kelompok = $request->kelompok ?? 'sd4_ibu_menyusui';
 
         // ── Mode edit: perbarui menu yang sudah ada ─────────────────────────
         if ($request->filled('menu_id')) {
             $menu = MenuHarian::findOrFail($request->menu_id);
 
-            DB::transaction(function () use ($request, $menu) {
+            DB::transaction(function () use ($request, $menu, $kelompok) {
                 $menu->update([
                     'nama_menu'          => $request->nama_menu,
                     'catatan_anggaran'   => $request->catatan,
                     'jumlah_porsi'       => $request->jumlah_porsi,
-                    'anggaran_per_porsi' => AnggaranPorsi::aktif($menu->tanggal->toDateString()),
+                    'kelompok'           => $kelompok,
+                    'anggaran_per_porsi' => AnggaranPorsi::aktif($menu->tanggal->toDateString(), $kelompok),
                 ]);
 
                 $menu->detailBahans()->delete();
@@ -202,15 +217,17 @@ class SimulasiController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request, $kelompok) {
             $menu = MenuHarian::create([
                 'tanggal'            => $request->tanggal,
                 'nama_menu'          => $request->nama_menu,
                 'catatan_anggaran'   => $request->catatan,
                 'jumlah_porsi'       => $request->jumlah_porsi,
-                'anggaran_per_porsi' => AnggaranPorsi::aktif($request->tanggal),
-                'status'  => 'draft',
-                'user_id' => Auth::id(),
+                'kelompok'           => $kelompok,
+                'anggaran_per_porsi' => AnggaranPorsi::aktif($request->tanggal, $kelompok),
+                'status'             => 'draft',
+                'user_id'            => Auth::id(),
+                'unit_sppg'          => Auth::user()->unit_sppg,
             ]);
 
             foreach ($request->bahans as $item) {

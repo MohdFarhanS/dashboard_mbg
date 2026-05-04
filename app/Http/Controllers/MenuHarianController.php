@@ -89,18 +89,24 @@ class MenuHarianController extends Controller
             'nama_menu'        => 'nullable|string|max:200',
             'catatan'          => 'nullable|string|max:200',
             'status'           => 'required|in:draft,final',
+            'kelompok'         => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
             'bahans'           => 'nullable|array',
             'bahans.*.bahan_pangan_id' => 'required_with:bahans|exists:bahan_pangans,id',
             'bahans.*.jumlah_gram'     => 'required_with:bahans|numeric|min:0.01',
             'bahans.*.jumlah_porsi'    => 'nullable|integer|min:1',
         ]);
 
-        $bahans = $data['bahans'] ?? [];
+        $bahans   = $data['bahans'] ?? [];
+        $kelompok = $data['kelompok'] ?? $menuHarian->kelompok ?? 'sd4_ibu_menyusui';
 
         $menuHarian->update([
             'nama_menu' => $data['nama_menu'] ?? $menuHarian->nama_menu,
             'catatan'   => $data['catatan'] ?? null,
             'status'    => $data['status'],
+            'kelompok'  => $kelompok,
+            'anggaran_per_porsi' => \App\Models\AnggaranPorsi::aktif(
+                $menuHarian->tanggal->toDateString(), $kelompok
+            ),
         ]);
 
         $menuHarian->detailBahans()->delete();

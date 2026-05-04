@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MenuHarian extends Model
 {
     protected $fillable = [
-        'tanggal', 'user_id', 'nama_menu', 'status', 'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
+        'tanggal', 'user_id', 'unit_sppg', 'nama_menu', 'status', 'kelompok',
+        'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
     ];
 
     protected $casts = ['tanggal' => 'date'];
@@ -71,7 +72,7 @@ class MenuHarian extends Model
 
         $jumlahPorsi = max($this->jumlah_porsi, 1);
 
-        $anggaran = \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString());
+        $anggaran = \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString(), $this->kelompok);
 
         return [
             'total_seluruh'   => round($totalBiayaSeluruh, 0),
@@ -96,7 +97,12 @@ class MenuHarian extends Model
      */
     public function anggaranAktif(): float
     {
-        return (float) \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString());
+        return (float) \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString(), $this->kelompok);
+    }
+
+    public function getLabelKelompokAttribute(): string
+    {
+        return \App\Models\AnggaranPorsi::KELOMPOK_LABELS[$this->kelompok] ?? '-';
     }
 
     /**
