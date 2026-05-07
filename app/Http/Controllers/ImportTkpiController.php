@@ -43,9 +43,7 @@ class ImportTkpiController extends Controller
     
     public function index()
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // Route dilindungi middleware role:ketua_sppg
         $totalBahan = BahanPangan::count();
         $riwayat    = ImportLog::with('user')->latest()->limit(10)->get();
         return view('import-tkpi.index', compact('totalBahan', 'riwayat'));

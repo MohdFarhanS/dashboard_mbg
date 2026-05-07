@@ -23,10 +23,7 @@ class SimulasiController extends Controller
 
     public function kalkulasi(Request $request)
     {
-        if (Auth::user()->role === 'admin') {
-            return response()->json(['message' => 'Admin tidak dapat menggunakan fitur simulasi.'], 403);
-        }
-
+        // Route dilindungi middleware role:ahli_gizi
         $request->validate([
             'bahans'         => 'required|array|min:1',
             'bahans.*.id'    => 'required|exists:bahan_pangans,id',
@@ -118,10 +115,7 @@ class SimulasiController extends Controller
 
     public function editMenu(MenuHarian $menuHarian)
     {
-        $user = Auth::user();
-        if ($user->role === 'admin') {
-            abort(403, 'Admin tidak dapat mengedit menu harian.');
-        }
+        // Route dilindungi middleware role:ahli_gizi
         if ($menuHarian->status === 'final') {
             return redirect()->route('menu-harian.show', $menuHarian)
                 ->with('error', 'Menu sudah final, tidak bisa diedit.');
@@ -157,10 +151,7 @@ class SimulasiController extends Controller
 
     public function simpan(Request $request)
     {
-        if (Auth::user()->role === 'admin') {
-            return response()->json(['error' => 'Admin tidak dapat menyimpan menu harian.'], 403);
-        }
-
+        // Route dilindungi middleware role:ahli_gizi
         $request->validate([
             'tanggal'        => 'required|date',
             'nama_menu'      => 'nullable|string|max:100',

@@ -245,12 +245,12 @@ class BahanPanganController extends Controller
     }
 
     /**
-     * Helper untuk authorize admin saja
+     * Helper cadangan — route sudah dilindungi middleware role:ketua_sppg
      */
     private function checkAdminRole(): void
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Akses ditolak. Fitur ini hanya untuk admin.');
+        if (auth()->user()->role !== 'ketua_sppg') {
+            abort(403, 'Akses ditolak. Fitur ini hanya untuk Ketua SPPG.');
         }
     }
 }

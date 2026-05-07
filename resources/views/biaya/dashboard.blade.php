@@ -10,7 +10,7 @@
         <h4 class="fw-semibold mb-0">
             <i class="fa fa-chart-line me-2" style="color:#0f4c81"></i>Dashboard Biaya Produksi
         </h4>
-        @if(Auth::user()->role === 'admin')
+        @if(Auth::user()->hasAnyRole(['ketua_sppg', 'akuntan']))
             <a href="{{ route('biaya.harga.index') }}" class="btn btn-sm btn-outline-primary">
                 <i class="fa fa-tags me-1"></i>Kelola Harga Bahan
             </a>

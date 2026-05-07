@@ -9,45 +9,34 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
-    // Cek admin setiap method
-    private function adminOnly()
-    {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-    }
+    // Seluruh method dilindungi oleh route middleware 'role:superadmin'
 
     public function index()
     {
-        $this->adminOnly();
         $users = User::orderBy('role')->orderBy('name')->paginate(20);
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        $this->adminOnly();
         return view('users.form');
     }
 
     public function store(Request $request)
     {
-        $this->adminOnly();
-
         $data = $request->validate([
             'name'     => 'required|string|max:100',
             'email'    => 'required|email|unique:users,email',
-            'role'     => 'required|in:admin,pengelola',
+            'role'     => 'required|in:superadmin,ketua_sppg,ahli_gizi,akuntan',
             'password' => ['required', Password::min(8)],
         ]);
 
-        // unit_sppg diambil dari config atau hardcode nama SPPG
         User::create([
-            'name'       => $data['name'],
-            'email'      => $data['email'],
-            'role'       => $data['role'],
-            'unit_sppg'  => config('app.unit_sppg', 'SPPG Utama'),
-            'password'   => Hash::make($data['password']),
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'role'      => $data['role'],
+            'unit_sppg' => config('app.unit_sppg', 'SPPG Utama'),
+            'password'  => Hash::make($data['password']),
         ]);
 
         return redirect()->route('users.index')
@@ -56,18 +45,15 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $this->adminOnly();
         return view('users.form', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
-        $this->adminOnly();
-
         $data = $request->validate([
             'name'  => 'required|string|max:100',
             'email' => 'required|email|unique:users,email,'.$user->id,
-            'role'  => 'required|in:admin,pengelola',
+            'role'  => 'required|in:superadmin,ketua_sppg,ahli_gizi,akuntan',
         ]);
 
         $user->update($data);
@@ -78,9 +64,6 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $this->adminOnly();
-
-        // Tidak boleh hapus diri sendiri
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak bisa menghapus akun sendiri.');
         }
@@ -91,8 +74,6 @@ class UserController extends Controller
 
     public function resetPassword(Request $request, User $user)
     {
-        $this->adminOnly();
-
         $data = $request->validate([
             'password' => ['required', Password::min(8), 'confirmed'],
         ]);

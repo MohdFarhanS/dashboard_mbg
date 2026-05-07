@@ -51,15 +51,18 @@
                         </td>
                         <td class="text-muted">{{ $user->email }}</td>
                         <td>
-                            @if($user->role === 'admin')
-                                <span class="badge" style="background:#cff4fc;color:#055160">
-                                    <i class="fas fa-shield-halved me-1"></i>Admin
-                                </span>
-                            @else
-                                <span class="badge" style="background:#daeeff;color:#0f4c81">
-                                    <i class="fas fa-user me-1"></i>Pengelola
-                                </span>
-                            @endif
+                            @php
+                                $roleStyles = [
+                                    'superadmin' => ['bg' => '#f0e6ff', 'color' => '#5b21b6', 'icon' => 'fa-shield-halved', 'label' => 'Super Admin'],
+                                    'ketua_sppg' => ['bg' => '#cff4fc', 'color' => '#055160', 'icon' => 'fa-crown',         'label' => 'Ketua SPPG'],
+                                    'ahli_gizi'  => ['bg' => '#d1fae5', 'color' => '#065f46', 'icon' => 'fa-heart-pulse',   'label' => 'Ahli Gizi'],
+                                    'akuntan'    => ['bg' => '#fef3c7', 'color' => '#92400e', 'icon' => 'fa-calculator',    'label' => 'Akuntan'],
+                                ];
+                                $rs = $roleStyles[$user->role] ?? ['bg' => '#e5e7eb', 'color' => '#374151', 'icon' => 'fa-user', 'label' => $user->role];
+                            @endphp
+                            <span class="badge" style="background:{{ $rs['bg'] }};color:{{ $rs['color'] }}">
+                                <i class="fas {{ $rs['icon'] }} me-1"></i>{{ $rs['label'] }}
+                            </span>
                         </td>
                         <td class="text-muted small">{{ $user->created_at->format('d/m/Y') }}</td>
                         <td class="text-center">

@@ -197,7 +197,7 @@
         <div class="card card-mbg">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-utensils me-2" style="color:#0f4c81;"></i> Menu Hari Ini</span>
-                @if(auth()->user()->role === 'pengelola')
+                @if(auth()->user()->role === 'ahli_gizi')
                 <a href="{{ route('menu-harian.create') }}" class="btn btn-sm"
                 style="background:#daeeff; color:#0f4c81; border-radius:8px; font-size:.75rem; font-weight:600;">
                     + Tambah Menu
@@ -257,7 +257,7 @@
                 <div class="text-center text-muted py-5">
                     <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                     <div style="font-size:.85rem;">Belum ada menu yang diinput hari ini.</div>
-                    @if(auth()->user()->role === 'pengelola')
+                    @if(auth()->user()->role === 'ahli_gizi')
                     <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary mt-2">
                         <i class="fas fa-plus me-1"></i>Input Menu Sekarang
                     </a>

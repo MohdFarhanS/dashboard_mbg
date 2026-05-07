@@ -19,84 +19,114 @@ Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware('auth')->group(function () {
 
-    Route::prefix('bahan-pangan')->name('bahan-pangan.')->group(function () {
-        Route::get('/',                      [BahanPanganController::class, 'index'])->name('index');
-        Route::get('/create',                [BahanPanganController::class, 'create'])->name('create');
-        Route::post('/',                     [BahanPanganController::class, 'store'])->name('store');
-        Route::get('/{bahanPangan}',         [BahanPanganController::class, 'show'])->name('show');
-        Route::get('/{bahanPangan}/edit',    [BahanPanganController::class, 'edit'])->name('edit');
-        Route::put('/{bahanPangan}',         [BahanPanganController::class, 'update'])->name('update');
-        Route::delete('/{bahanPangan}',      [BahanPanganController::class, 'destroy'])->name('destroy');
-        Route::patch('/{bahanPangan}/status',  [BahanPanganController::class, 'toggleStatus'])->name('toggle-status');
+    // ── Superadmin: hanya manajemen akun ─────────────────────────────────────
+    Route::middleware('role:superadmin')->group(function () {
+        Route::resource('users', UserController::class);
+        Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+                ->name('users.reset-password');
     });
 
-    Route::get('/api/bahan-pangan/search', [BahanPanganController::class, 'apiSearch'])
-         ->name('api.bahan-pangan.search');
-         
-    Route::prefix('menu-harian')->name('menu-harian.')->group(function () {
-        Route::get('/',                        [MenuHarianController::class, 'index'])->name('index');
-        Route::get('/create',                  [MenuHarianController::class, 'create'])->name('create');
-        Route::post('/',                       [MenuHarianController::class, 'store'])->name('store');
-        Route::get('/{menuHarian}',            [MenuHarianController::class, 'show'])->name('show');
-        Route::get('/{menuHarian}/edit',       [MenuHarianController::class, 'edit'])->name('edit');
-        Route::put('/{menuHarian}',            [MenuHarianController::class, 'update'])->name('update');
-        Route::delete('/{menuHarian}',         [MenuHarianController::class, 'destroy'])->name('destroy');
-        Route::patch('/{menuHarian}/finalize', [MenuHarianController::class, 'finalize'])->name('finalize');
-    });
+    // ── Semua role operasional (bukan superadmin) ─────────────────────────────
+    Route::middleware('role:ketua_sppg,ahli_gizi,akuntan')->group(function () {
 
-    Route::prefix('gizi')->name('gizi.')->group(function () {
-        Route::get('/dashboard', [GiziController::class, 'dashboard'])->name('dashboard');
-        Route::get('/api/trend', [GiziController::class, 'apiTrend'])->name('api.trend');
-    });
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::prefix('biaya')->name('biaya.')->group(function () {
-        Route::get('/dashboard',          [BiayaController::class, 'dashboard'])->name('dashboard');
-        Route::get('/detail/{menu}',      [BiayaController::class, 'detailMenu'])->name('detail-menu');
+        // API autocomplete bahan pangan (semua role operasional bisa)
+        Route::get('/api/bahan-pangan/search', [BahanPanganController::class, 'apiSearch'])
+             ->name('api.bahan-pangan.search');
 
-        Route::prefix('harga')->name('harga.')->group(function () {
-            Route::get('/',             [BiayaController::class, 'indexHarga'])->name('index');
-            Route::get('/tambah',       [BiayaController::class, 'createHarga'])->name('create');
-            Route::post('/',            [BiayaController::class, 'storeHarga'])->name('store');
-            Route::get('/{harga}/edit', [BiayaController::class, 'editHarga'])->name('edit');
-            Route::put('/{harga}',      [BiayaController::class, 'updateHarga'])->name('update');
-            Route::delete('/{harga}',   [BiayaController::class, 'destroyHarga'])->name('destroy');
+        // ── Bahan Pangan ──────────────────────────────────────────────────────
+        Route::prefix('bahan-pangan')->name('bahan-pangan.')->group(function () {
+            // View: semua role operasional
+            Route::get('/',              [BahanPanganController::class, 'index'])->name('index');
+            Route::get('/{bahanPangan}', [BahanPanganController::class, 'show'])->name('show');
+
+            // Manajemen: ketua_sppg saja (controller juga memverifikasi)
+            Route::middleware('role:ketua_sppg')->group(function () {
+                Route::get('/create',             [BahanPanganController::class, 'create'])->name('create');
+                Route::post('/',                  [BahanPanganController::class, 'store'])->name('store');
+                Route::get('/{bahanPangan}/edit', [BahanPanganController::class, 'edit'])->name('edit');
+                Route::put('/{bahanPangan}',      [BahanPanganController::class, 'update'])->name('update');
+                Route::delete('/{bahanPangan}',   [BahanPanganController::class, 'destroy'])->name('destroy');
+                Route::patch('/{bahanPangan}/status', [BahanPanganController::class, 'toggleStatus'])
+                     ->name('toggle-status');
+            });
         });
-    
-        Route::post('/api/estimasi', [BiayaController::class, 'apiEstimasi'])->name('api.estimasi');
+
+        // ── Menu Harian ───────────────────────────────────────────────────────
+        Route::prefix('menu-harian')->name('menu-harian.')->group(function () {
+            // View: semua role operasional
+            Route::get('/',              [MenuHarianController::class, 'index'])->name('index');
+            Route::get('/{menuHarian}',  [MenuHarianController::class, 'show'])->name('show');
+
+            // Input & manajemen: ahli_gizi saja
+            Route::middleware('role:ahli_gizi')->group(function () {
+                Route::get('/create',                  [MenuHarianController::class, 'create'])->name('create');
+                Route::post('/',                       [MenuHarianController::class, 'store'])->name('store');
+                Route::get('/{menuHarian}/edit',       [MenuHarianController::class, 'edit'])->name('edit');
+                Route::put('/{menuHarian}',            [MenuHarianController::class, 'update'])->name('update');
+                Route::delete('/{menuHarian}',         [MenuHarianController::class, 'destroy'])->name('destroy');
+                Route::patch('/{menuHarian}/finalize', [MenuHarianController::class, 'finalize'])->name('finalize');
+            });
+        });
+
+        // ── Simulasi Menu: ahli_gizi saja ─────────────────────────────────────
+        Route::middleware('role:ahli_gizi')->prefix('simulasi')->name('simulasi.')->group(function () {
+            Route::get('/',                  [SimulasiController::class, 'index'])->name('index');
+            Route::get('/{menuHarian}/edit', [SimulasiController::class, 'editMenu'])->name('edit-simulasi');
+            Route::post('/kalkulasi',        [SimulasiController::class, 'kalkulasi'])->name('kalkulasi');
+            Route::post('/simpan',           [SimulasiController::class, 'simpan'])->name('simpan');
+        });
+
+        // ── Monitoring Gizi: ketua_sppg + ahli_gizi ───────────────────────────
+        Route::middleware('role:ketua_sppg,ahli_gizi')->prefix('gizi')->name('gizi.')->group(function () {
+            Route::get('/dashboard', [GiziController::class, 'dashboard'])->name('dashboard');
+            Route::get('/api/trend', [GiziController::class, 'apiTrend'])->name('api.trend');
+        });
+
+        // ── Biaya Produksi: ketua_sppg + akuntan ──────────────────────────────
+        Route::middleware('role:ketua_sppg,akuntan')->prefix('biaya')->name('biaya.')->group(function () {
+            Route::get('/dashboard',     [BiayaController::class, 'dashboard'])->name('dashboard');
+            Route::get('/detail/{menu}', [BiayaController::class, 'detailMenu'])->name('detail-menu');
+            Route::post('/api/estimasi', [BiayaController::class, 'apiEstimasi'])->name('api.estimasi');
+
+            // Harga Bahan: ketua_sppg + akuntan
+            Route::prefix('harga')->name('harga.')->group(function () {
+                Route::get('/',             [BiayaController::class, 'indexHarga'])->name('index');
+                Route::get('/tambah',       [BiayaController::class, 'createHarga'])->name('create');
+                Route::post('/',            [BiayaController::class, 'storeHarga'])->name('store');
+                Route::get('/{harga}/edit', [BiayaController::class, 'editHarga'])->name('edit');
+                Route::put('/{harga}',      [BiayaController::class, 'updateHarga'])->name('update');
+                Route::delete('/{harga}',   [BiayaController::class, 'destroyHarga'])->name('destroy');
+            });
+        });
+
+        // ── Anggaran Porsi: ketua_sppg saja ──────────────────────────────────
+        Route::middleware('role:ketua_sppg')->prefix('anggaran')->name('anggaran.')->group(function () {
+            Route::get('/',       [AnggaranController::class, 'index'])->name('index');
+            Route::get('/tambah', [AnggaranController::class, 'create'])->name('create');
+            Route::post('/',      [AnggaranController::class, 'store'])->name('store');
+        });
+
+        // ── Laporan: semua role operasional ───────────────────────────────────
+        Route::prefix('laporan')->name('laporan.')->group(function () {
+            Route::get('/',              [LaporanController::class, 'index'])->name('index');
+            Route::get('/export-excel', [LaporanController::class, 'exportExcel'])->name('export-excel');
+            Route::get('/export-pdf',   [LaporanController::class, 'exportPdf'])->name('export-pdf');
+        });
+
+        // ── Import TKPI: ketua_sppg saja ──────────────────────────────────────
+        Route::middleware('role:ketua_sppg')->prefix('import-tkpi')->name('import-tkpi.')->group(function () {
+            Route::get('/',         [ImportTkpiController::class, 'index'])->name('index');
+            Route::post('/preview', [ImportTkpiController::class, 'preview'])->name('preview');
+            Route::post('/import',  [ImportTkpiController::class, 'import'])->name('import');
+        });
+
+        // ── Budget Alert: ketua_sppg + akuntan ────────────────────────────────
+        Route::middleware('role:ketua_sppg,akuntan')
+             ->get('/budget-alert', [BudgetAlertController::class, 'index'])
+             ->name('budget-alert.index');
     });
-
-    Route::prefix('anggaran')->name('anggaran.')->middleware('auth')->group(function () {
-        Route::get('/',       [AnggaranController::class, 'index'])->name('index');
-        Route::get('/tambah', [AnggaranController::class, 'create'])->name('create');
-        Route::post('/',      [AnggaranController::class, 'store'])->name('store');
-    });
-
-    Route::prefix('simulasi')->name('simulasi.')->middleware('auth')->group(function () {
-        Route::get('/',                        [SimulasiController::class, 'index'])->name('index');
-        Route::get('/{menuHarian}/edit',       [SimulasiController::class, 'editMenu'])->name('edit-simulasi');
-        Route::post('/kalkulasi',              [SimulasiController::class, 'kalkulasi'])->name('kalkulasi');
-        Route::post('/simpan',                 [SimulasiController::class, 'simpan'])->name('simpan');
-    });
-
-    Route::prefix('laporan')->name('laporan.')->middleware('auth')->group(function () {
-        Route::get('/',              [LaporanController::class, 'index'])->name('index');
-        Route::get('/export-excel', [LaporanController::class, 'exportExcel'])->name('export-excel');
-        Route::get('/export-pdf',   [LaporanController::class, 'exportPdf'])->name('export-pdf');
-    });
-
-    Route::prefix('import-tkpi')->name('import-tkpi.')->middleware(['auth'])->group(function () {
-        Route::get('/',         [ImportTkpiController::class, 'index'])->name('index');
-        Route::post('/preview', [ImportTkpiController::class, 'preview'])->name('preview');
-        Route::post('/import',  [ImportTkpiController::class, 'import'])->name('import');
-    });
-
-    Route::get('/budget-alert', [BudgetAlertController::class, 'index'])
-        ->name('budget-alert.index');
-
-    Route::resource('users', UserController::class);
-    Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
-            ->name('users.reset-password');
 });

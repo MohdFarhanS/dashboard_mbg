@@ -13,7 +13,7 @@
             </h4>
             <small class="text-muted">Tabel Komposisi Pangan Indonesia — {{ number_format($stats['total']) }} bahan pangan</small>
         </div>
-        @if(auth()->user()->role === 'admin')
+        @if(auth()->user()->role === 'ketua_sppg')
         <div class="d-flex gap-2">
             <a href="{{ route('import-tkpi.index') }}" class="btn btn-outline-success btn-sm px-3">
                 <i class="fas fa-file-csv me-1"></i> Import CSV
@@ -217,7 +217,7 @@
                                        class="btn btn-outline-primary btn-xs" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    @if(auth()->user()->role === 'admin')
+                                    @if(auth()->user()->role === 'ketua_sppg')
                                     <a href="{{ route('bahan-pangan.edit', $bahan) }}"
                                        class="btn btn-outline-warning btn-xs" title="Edit">
                                         <i class="fas fa-edit"></i>

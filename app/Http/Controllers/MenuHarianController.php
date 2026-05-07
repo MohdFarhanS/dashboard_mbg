@@ -48,11 +48,7 @@ class MenuHarianController extends Controller
 
     public function edit(MenuHarian $menuHarian)
     {
-        // Cek akses
-        if (auth()->user()->role !== 'pengelola') {
-            abort(403);
-        }
-
+        // Route dilindungi middleware role:ahli_gizi
         // Cek status
         if ($menuHarian->status === 'final') {
             return redirect()->route('menu-harian.show', $menuHarian)
@@ -139,11 +135,7 @@ class MenuHarianController extends Controller
 
     public function finalize(MenuHarian $menuHarian)
     {
-        // Hanya pengelola yang boleh finalisasi
-        if (auth()->user()->role !== 'pengelola') {
-            abort(403);
-        }
-
+        // Route dilindungi middleware role:ahli_gizi
         // Hanya bisa finalisasi kalau masih draft
         if ($menuHarian->status !== 'draft') {
             return redirect()->route('menu-harian.show', $menuHarian)
