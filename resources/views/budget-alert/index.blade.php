@@ -75,13 +75,13 @@
                             Semua Peringatan
                         </option>
                         <option value="over"    {{ $severity === 'over'    ? 'selected' : '' }}>
-                            🚨 Over Budget Saja
+                            🚨 Over Budget
                         </option>
                         <option value="warning" {{ $severity === 'warning' ? 'selected' : '' }}>
-                            ⚠️ Mendekati Batas Saja
+                            ⚠️ Mendekati Batas
                         </option>
                         <option value="aman"    {{ $severity === 'aman'    ? 'selected' : '' }}>
-                            ✅ Aman Saja
+                            ✅ Aman
                         </option>
                     </select>
                 </div>
@@ -235,10 +235,12 @@
 
                     {{-- Row 4: Aksi --}}
                     <div class="d-flex gap-2">
+                        @if(!auth()->user()->isAkuntan())
                         <a href="{{ route('menu-harian.show', $menu) }}"
                            class="btn btn-sm btn-outline-secondary flex-fill">
                             <i class="fas fa-eye me-1"></i>Detail Menu
                         </a>
+                        @endif
                         <a href="{{ route('biaya.detail-menu', $menu->id) }}"
                            class="btn btn-sm flex-fill"
                            style="background:var(--primary-pale);color:var(--primary);border:1px solid #b5d4f5;">

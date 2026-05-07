@@ -52,10 +52,6 @@
                class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}">
                 <i class="fas fa-wallet"></i> Kelola Anggaran
             </a>
-            <a href="{{ route('import-tkpi.index') }}"
-               class="nav-link {{ request()->routeIs('import-tkpi.*') ? 'active' : '' }}">
-                <i class="fas fa-file-import"></i> Import TKPI
-            </a>
 
             <div class="nav-section">Monitoring</div>
             <a href="{{ route('biaya.dashboard') }}"
@@ -103,7 +99,7 @@
             <div class="nav-section">Laporan</div>
             <a href="{{ route('laporan.index', ['jenis' => 'gizi']) }}"
                class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
-                <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
+                <i class="fas fa-chart-bar"></i> Laporan Gizi
             </a>
 
         {{-- ── Akuntan ───────────────────────────────────────────────── --}}
@@ -144,7 +140,7 @@
             <div class="nav-section">Laporan</div>
             <a href="{{ route('laporan.index', ['jenis' => 'biaya']) }}"
                class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
-                <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
+                <i class="fas fa-chart-bar"></i> Laporan Biaya
             </a>
         @endif
 

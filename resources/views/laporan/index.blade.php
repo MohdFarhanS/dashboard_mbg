@@ -26,6 +26,10 @@
 @endpush
 
 @section('content')
+@php
+    $isAhliGiziLap = auth()->user()->isAhliGizi();
+    $isAkuntanLap  = auth()->user()->isAkuntan();
+@endphp
 <div class="container-fluid">
 
     {{-- Header --}}
@@ -51,14 +55,18 @@
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold">Jenis Laporan</label>
                     <div class="tab-jenis d-flex gap-1">
+                        @if(!$isAkuntanLap)
                         <a href="{{ request()->fullUrlWithQuery(['jenis' => 'gizi']) }}"
                            class="btn btn-sm btn-outline-primary {{ $jenis === 'gizi' ? 'active' : '' }}">
                             <i class="fas fa-heart-pulse me-1"></i>Gizi
                         </a>
+                        @endif
+                        @if(!$isAhliGiziLap)
                         <a href="{{ request()->fullUrlWithQuery(['jenis' => 'biaya']) }}"
                            class="btn btn-sm btn-outline-primary {{ $jenis === 'biaya' ? 'active' : '' }}">
                             <i class="fas fa-coins me-1"></i>Biaya
                         </a>
+                        @endif
                     </div>
                 </div>
 
@@ -90,6 +98,7 @@
                 </div>
             </div>
         </div>
+        @if(!$isAkuntanLap)
         <div class="col-6 col-md-3">
             <div class="stat-laporan">
                 <div class="icon" style="background:#fff3e0">🔥</div>
@@ -101,6 +110,8 @@
                 </div>
             </div>
         </div>
+        @endif
+        @if(!$isAhliGiziLap)
         <div class="col-6 col-md-3">
             <div class="stat-laporan">
                 <div class="icon" style="background:#e3f2fd">💰</div>
@@ -123,6 +134,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     {{-- Tabel --}}
