@@ -126,17 +126,6 @@
         </a>
     </div>
 
-    @if(auth()->user()->role === 'admin')
-    <div class="card border-0 shadow-sm">
-        <div class="card-body text-center py-5">
-            <i class="fas fa-ban fa-3x mb-3 d-block" style="color:#dc3545;opacity:.4"></i>
-            <div class="fw-semibold h5 mb-2">Akses Tidak Tersedia</div>
-            <p class="text-muted mb-0">
-                Fitur Simulasi Menu hanya dapat digunakan oleh <strong>Pengelola SPPG</strong>.<br>
-            </p>
-        </div>
-    </div>
-    @else
     <div class="row g-4">
 
         {{-- ═══ KOLOM KIRI: Input ══════════════════════════════════════════════ --}}
@@ -437,10 +426,8 @@
         </div>
 
     </div>
-    @endif
 </div>
 
-@if(auth()->user()->role !== 'admin')
 {{-- Template bahan-row --}}
 <template id="tpl-bahan">
     <div class="bahan-row" data-idx="">
@@ -1091,5 +1078,4 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 });
 </script>
 @endpush
-@endif
 @endsection

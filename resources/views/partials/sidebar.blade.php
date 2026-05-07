@@ -6,79 +6,162 @@
         <small>Monitoring Gizi & Biaya Produksi</small>
     </div>
 
-    {{-- Unit info --}}
+    {{-- User info --}}
     <div style="flex-shrink:0; padding:.75rem 1.25rem; background:rgba(255,255,255,.07); margin:.75rem; border-radius:10px;">
-        <div style="font-size:.68rem; color:rgba(255,255,255,.45); font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Unit SPPG</div>
+        <div style="font-size:.68rem; color:rgba(255,255,255,.45); font-weight:600; text-transform:uppercase; letter-spacing:.06em;">
+            {{ \App\Models\User::roleLabel(Auth::user()->role) }}
+        </div>
         <div style="font-size:.82rem; color:#fff; font-weight:600; margin-top:.2rem;">
-            {{ config('app.unit_sppg', 'SPPG') }}
+            {{ Auth::user()->name }}
         </div>
     </div>
 
-    {{-- Navigation — area ini yang scroll --}}
+    {{-- Navigation --}}
     <nav class="flex-grow-1 mt-1" style="overflow-y:auto; overflow-x:hidden; min-height:0;
         scrollbar-width:thin;
         scrollbar-color:rgba(255,255,255,.2) transparent;">
 
-        <div class="nav-section">Menu Utama</div>
+        @php $role = Auth::user()->role; @endphp
 
-        <a href="{{ route('dashboard') }}"
-           class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <i class="fas fa-gauge-high"></i> Dashboard
-        </a>
+        {{-- ── Superadmin: hanya manajemen akun ─────────────────────── --}}
+        @if($role === 'superadmin')
+            <div class="nav-section">Administrasi</div>
+            <a href="{{ route('users.index') }}"
+               class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                <i class="fas fa-users"></i> Kelola Pengguna
+            </a>
 
-        <div class="nav-section">Manajemen Menu</div>
+        {{-- ── Ketua SPPG ─────────────────────────────────────────────── --}}
+        @elseif($role === 'ketua_sppg')
+            <div class="nav-section">Menu Utama</div>
+            <a href="{{ route('dashboard') }}"
+               class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-gauge-high"></i> Dashboard
+            </a>
 
-        <a href="{{ route('menu-harian.index') }}"
-            class="nav-link {{ request()->routeIs('menu-harian.*') ? 'active' : '' }}">
-            <i class="fas fa-utensils"></i> Menu Harian
-        </a>
-        <a href="{{ route('bahan-pangan.index') }}"
-            class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
-            <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
-        </a>
-        <div class="nav-section">Monitoring</div>
-
-        <a href="{{ route('gizi.dashboard') }}"
-            class="nav-link {{ request()->routeIs('gizi.*') ? 'active' : '' }}">
-            <i class="fas fa-heart-pulse"></i> Monitor Gizi
-        </a>
-        <a href="{{ route('biaya.dashboard') }}"
-            class="nav-link {{ request()->routeIs('biaya.*') ? 'active' : '' }}">
-            <i class="fas fa-coins"></i> Biaya Produksi
-        </a>
-        <a href="{{ route('budget-alert.index') }}"
-            class="nav-link {{ request()->routeIs('budget-alert.*') ? 'active' : '' }}">
-            <i class="fas fa-bell"></i> Budget Alert
-            @if(isset($navAlertCount) && $navAlertCount > 0)
-            <span class="badge ms-auto" style="background:rgba(255,100,100,.85); font-size:.65rem;">
-                {{ $navAlertCount }}
-            </span>
-            @endif
-        </a>
-        @if(Auth::user()->role === 'admin')
-            <div class="nav-section">Admin Panel</div>
-            <a class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}"
-                href="{{ route('anggaran.index') }}">
+            <div class="nav-section">Manajemen Data</div>
+            <a href="{{ route('menu-harian.index') }}"
+               class="nav-link {{ request()->routeIs('menu-harian.*') ? 'active' : '' }}">
+                <i class="fas fa-utensils"></i> Menu Harian
+            </a>
+            <a href="{{ route('bahan-pangan.index') }}"
+               class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
+                <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
+            </a>
+            <a href="{{ route('anggaran.index') }}"
+               class="nav-link {{ request()->routeIs('anggaran.*') ? 'active' : '' }}">
                 <i class="fas fa-wallet"></i> Kelola Anggaran
             </a>
-            <a href="{{ route('users.index') }}"
-                class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                <i class="fas fa-users"></i> Kelola Pengguna
+            <a href="{{ route('import-tkpi.index') }}"
+               class="nav-link {{ request()->routeIs('import-tkpi.*') ? 'active' : '' }}">
+                <i class="fas fa-file-import"></i> Import TKPI
+            </a>
+
+            <div class="nav-section">Monitoring</div>
+            <a href="{{ route('gizi.dashboard') }}"
+               class="nav-link {{ request()->routeIs('gizi.*') ? 'active' : '' }}">
+                <i class="fas fa-heart-pulse"></i> Monitor Gizi
+            </a>
+            <a href="{{ route('biaya.dashboard') }}"
+               class="nav-link {{ request()->routeIs('biaya.dashboard') || request()->routeIs('biaya.detail-menu') ? 'active' : '' }}">
+                <i class="fas fa-coins"></i> Biaya Produksi
+            </a>
+            <a href="{{ route('biaya.harga.index') }}"
+               class="nav-link {{ request()->routeIs('biaya.harga.*') ? 'active' : '' }}">
+                <i class="fas fa-tags"></i> Harga Bahan
+            </a>
+            <a href="{{ route('budget-alert.index') }}"
+               class="nav-link {{ request()->routeIs('budget-alert.*') ? 'active' : '' }}">
+                <i class="fas fa-bell"></i> Budget Alert
+                @if(isset($navAlertCount) && $navAlertCount > 0)
+                <span class="badge ms-auto" style="background:rgba(255,100,100,.85); font-size:.65rem;">
+                    {{ $navAlertCount }}
+                </span>
+                @endif
+            </a>
+
+            <div class="nav-section">Laporan</div>
+            <a href="{{ route('laporan.index', ['jenis' => 'gizi']) }}"
+               class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
+            </a>
+
+        {{-- ── Ahli Gizi ─────────────────────────────────────────────── --}}
+        @elseif($role === 'ahli_gizi')
+            <div class="nav-section">Menu Utama</div>
+            <a href="{{ route('dashboard') }}"
+               class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-gauge-high"></i> Dashboard
+            </a>
+
+            <div class="nav-section">Input Menu</div>
+            <a href="{{ route('menu-harian.index') }}"
+               class="nav-link {{ request()->routeIs('menu-harian.*') ? 'active' : '' }}">
+                <i class="fas fa-utensils"></i> Menu Harian
+            </a>
+            <a href="{{ route('bahan-pangan.index') }}"
+               class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
+                <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
+            </a>
+
+            <div class="nav-section">Monitoring</div>
+            <a href="{{ route('gizi.dashboard') }}"
+               class="nav-link {{ request()->routeIs('gizi.*') ? 'active' : '' }}">
+                <i class="fas fa-heart-pulse"></i> Monitor Gizi
+            </a>
+
+            <div class="nav-section">Laporan</div>
+            <a href="{{ route('laporan.index', ['jenis' => 'gizi']) }}"
+               class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
+            </a>
+
+        {{-- ── Akuntan ───────────────────────────────────────────────── --}}
+        @elseif($role === 'akuntan')
+            <div class="nav-section">Menu Utama</div>
+            <a href="{{ route('dashboard') }}"
+               class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-gauge-high"></i> Dashboard
+            </a>
+
+            <div class="nav-section">Referensi</div>
+            <a href="{{ route('bahan-pangan.index') }}"
+               class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
+                <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
+            </a>
+
+            <div class="nav-section">Kelola Biaya</div>
+            <a href="{{ route('biaya.harga.index') }}"
+               class="nav-link {{ request()->routeIs('biaya.harga.*') ? 'active' : '' }}">
+                <i class="fas fa-tags"></i> Harga Bahan
+            </a>
+
+            <div class="nav-section">Monitoring</div>
+            <a href="{{ route('biaya.dashboard') }}"
+               class="nav-link {{ request()->routeIs('biaya.dashboard') || request()->routeIs('biaya.detail-menu') ? 'active' : '' }}">
+                <i class="fas fa-coins"></i> Biaya Produksi
+            </a>
+            <a href="{{ route('budget-alert.index') }}"
+               class="nav-link {{ request()->routeIs('budget-alert.*') ? 'active' : '' }}">
+                <i class="fas fa-bell"></i> Budget Alert
+                @if(isset($navAlertCount) && $navAlertCount > 0)
+                <span class="badge ms-auto" style="background:rgba(255,100,100,.85); font-size:.65rem;">
+                    {{ $navAlertCount }}
+                </span>
+                @endif
+            </a>
+
+            <div class="nav-section">Laporan</div>
+            <a href="{{ route('laporan.index', ['jenis' => 'biaya']) }}"
+               class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
             </a>
         @endif
 
-        <div class="nav-section">Laporan</div>
-        <a href="{{ route('laporan.index', ['jenis' => 'gizi']) }}"
-            class="nav-link {{ request()->routeIs('laporan.*') && request('jenis','gizi') === 'gizi' ? 'active' : '' }}">
-            <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
-        </a>
-
-        {{-- Spacer bawah supaya item terakhir tidak nempel logout --}}
         <div style="height:.75rem;"></div>
-
     </nav>
 
-    {{-- Logout — selalu terlihat di bawah, tidak ikut scroll --}}
+    {{-- Logout --}}
     <div style="flex-shrink:0; padding:.75rem; border-top:1px solid rgba(255,255,255,.1);">
         <form action="{{ route('logout') }}" method="POST">
             @csrf

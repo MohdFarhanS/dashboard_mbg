@@ -8,12 +8,8 @@ use Illuminate\Http\Request;
 
 class AnggaranController extends Controller
 {
-    public function __construct()
-    {
-        if (auth()->check() && auth()->user()->role !== 'admin') {
-            abort(403);
-        }
-    }
+    // Route dilindungi middleware role:ketua_sppg — tidak perlu cek manual
+    public function __construct() {}
 
     public function index()
     {
@@ -27,7 +23,6 @@ class AnggaranController extends Controller
 
     public function create()
     {
-        if (auth()->user()->role !== 'admin') abort(403);
         return view('anggaran.form');
     }
 

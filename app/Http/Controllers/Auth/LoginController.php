@@ -32,6 +32,11 @@ class LoginController extends Controller
                 return back()->withErrors(['email' => 'Akun Anda dinonaktifkan.']);
             }
 
+            // Superadmin diarahkan ke manajemen pengguna, bukan dashboard
+            if ($user->isSuperAdmin()) {
+                return redirect()->route('users.index');
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

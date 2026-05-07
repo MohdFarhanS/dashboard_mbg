@@ -47,11 +47,17 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
                             <select name="role" class="form-select @error('role') is-invalid @enderror" required>
-                                <option value="pengelola" {{ old('role', $user->role ?? '') === 'pengelola' ? 'selected' : '' }}>
-                                    Pengelola (input & kelola menu)
+                                <option value="superadmin" {{ old('role', $user->role ?? '') === 'superadmin' ? 'selected' : '' }}>
+                                    Super Admin (manajemen akun)
                                 </option>
-                                <option value="admin" {{ old('role', $user->role ?? '') === 'admin' ? 'selected' : '' }}>
-                                    Admin (akses penuh)
+                                <option value="ketua_sppg" {{ old('role', $user->role ?? '') === 'ketua_sppg' ? 'selected' : '' }}>
+                                    Ketua SPPG (akses operasional penuh)
+                                </option>
+                                <option value="ahli_gizi" {{ old('role', $user->role ?? '') === 'ahli_gizi' ? 'selected' : '' }}>
+                                    Ahli Gizi (input menu & monitoring gizi)
+                                </option>
+                                <option value="akuntan" {{ old('role', $user->role ?? '') === 'akuntan' ? 'selected' : '' }}>
+                                    Akuntan (harga bahan & monitoring biaya)
                                 </option>
                             </select>
                             @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror

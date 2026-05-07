@@ -66,9 +66,7 @@ class BiayaController extends Controller
     // ─── Manajemen Harga ───────────────────────────────────────────────────────
     public function indexHarga(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // dilindungi middleware role:ketua_sppg,akuntan
 
         $q = $request->input('q');
 
@@ -85,9 +83,7 @@ class BiayaController extends Controller
 
     public function createHarga()
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // dilindungi middleware role:ketua_sppg,akuntan
 
         $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
         return view('biaya.harga-form', compact('bahans'));
@@ -95,9 +91,7 @@ class BiayaController extends Controller
 
     public function storeHarga(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // dilindungi middleware role:ketua_sppg,akuntan
 
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
@@ -118,9 +112,7 @@ class BiayaController extends Controller
 
     public function editHarga(HargaBahan $harga)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // dilindungi middleware role:ketua_sppg,akuntan
 
         $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
         return view('biaya.harga-form', compact('harga', 'bahans'));
@@ -128,9 +120,7 @@ class BiayaController extends Controller
 
     public function updateHarga(Request $request, HargaBahan $harga)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // dilindungi middleware role:ketua_sppg,akuntan
 
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
@@ -151,9 +141,7 @@ class BiayaController extends Controller
 
     public function destroyHarga(HargaBahan $harga)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
+        // dilindungi middleware role:ketua_sppg,akuntan
     
         $harga->delete();
         return redirect()->route('biaya.harga.index')

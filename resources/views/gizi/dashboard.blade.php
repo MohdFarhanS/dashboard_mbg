@@ -99,7 +99,7 @@
             <div class="text-center text-muted py-4">
                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                 Belum ada menu yang diinput hari ini.
-                @if(Auth::user()->role === 'pengelola')
+                @if(Auth::user()->role === 'ahli_gizi')
                 <div class="mt-2">
                     <a href="{{ route('menu-harian.create') }}" class="btn btn-sm btn-primary">
                         <i class="fas fa-plus me-1"></i>Input Menu Sekarang

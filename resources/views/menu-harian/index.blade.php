@@ -10,7 +10,7 @@
                 <i class="fas fa-utensils me-2"></i>Menu Harian
             </h4>
         </div>
-        @if(auth()->user()->role === 'pengelola')
+        @if(auth()->user()->role === 'ahli_gizi')
         <a href="{{ route('simulasi.index') }}" class="btn btn-primary"
            style="background:var(--primary);border-color:var(--primary)">
             <i class="fas fa-flask me-1"></i> Buat Menu Baru
@@ -152,7 +152,7 @@
                                    class="btn btn-sm btn-outline-secondary me-1">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                @if(auth()->user()->role === 'pengelola' && $menu->status !== 'final')
+                                @if(auth()->user()->role === 'ahli_gizi' && $menu->status !== 'final')
                                 <a href="{{ route('simulasi.edit-simulasi', $menu) }}"
                                    class="btn btn-sm btn-outline-primary me-1">
                                     <i class="fas fa-edit"></i>
@@ -173,7 +173,7 @@
                             <td colspan="8" class="text-center text-muted py-5">
                                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                                 Belum ada menu untuk bulan ini.
-                                @if(auth()->user()->role === 'pengelola')
+                                @if(auth()->user()->role === 'ahli_gizi')
                                     <a href="{{ route('simulasi.index') }}">Buat menu via Simulasi</a>
                                 @endif
                             </td>

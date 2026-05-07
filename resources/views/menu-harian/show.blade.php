@@ -40,7 +40,7 @@
                 <span class="badge p-2" style="background:#fff3cd;color:#664d03;font-size:.85rem">
                     <i class="fas fa-pencil me-1"></i>Draft
                 </span>
-                @if(auth()->user()->role === 'pengelola')
+                @if(auth()->user()->role === 'ahli_gizi')
                 <a href="{{ route('simulasi.edit-simulasi', $menuHarian) }}" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-edit me-1"></i>Edit
                 </a>
