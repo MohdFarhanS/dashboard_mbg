@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('menu_harians', function (Blueprint $table) {
             $table->id();
             $table->date('tanggal');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // pengelola yg input
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // ahli_gizi yg input
             $table->string('nama_menu')->nullable();
             $table->enum('status', ['draft', 'final'])->default('draft');
             $table->text('catatan')->nullable();

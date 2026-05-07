@@ -1036,16 +1036,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('bahan-list');
         const row  = list.lastElementChild;
         pilihBahan({
-            id           : b.id,
-            kode         : b.kode,
-            nama_bahan   : b.nama_bahan,
-            kategori     : b.kategori,
-            energi       : b.energi,
-            protein      : b.protein,
-            lemak        : b.lemak,
-            karbohidrat  : b.karbohidrat,
-            bdd          : b.bdd,
-            harga_per_100g: null,
+            id             : b.id,
+            kode           : b.kode,
+            nama_bahan     : b.nama_bahan,
+            kategori       : b.kategori,
+            energi         : b.energi,
+            protein        : b.protein,
+            lemak          : b.lemak,
+            karbohidrat    : b.karbohidrat,
+            bdd            : b.bdd,
+            harga_per_100g : b.harga_per_100g,
         }, row, null);
         row.querySelector('.input-gram').value   = b.jumlah_gram;
         row.querySelector('.input-sajian').value = b.jumlah_porsi;

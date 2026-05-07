@@ -35,7 +35,7 @@ class UserController extends Controller
             'name'      => $data['name'],
             'email'     => $data['email'],
             'role'      => $data['role'],
-            'unit_sppg' => config('app.unit_sppg', 'SPPG Utama'),
+            'unit_sppg' => $data['role'] === 'superadmin' ? null : config('app.unit_sppg', 'SPPG Utama'),
             'password'  => Hash::make($data['password']),
         ]);
 

@@ -133,7 +133,7 @@
 
 <div class="ttd">
     <p>{{ config('app.unit_sppg', 'SPPG') }}, {{ now()->translatedFormat('d F Y') }}</p>
-    <p>Pengelola SPPG,</p>
+    <p>{{ \App\Models\User::roleLabel($user->role) }},</p>
     <div class="garis"></div>
     <p style="margin-top:3px">{{ $user->name }}</p>
 </div>

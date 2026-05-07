@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MenuHarian extends Model
 {
     protected $fillable = [
-        'tanggal', 'user_id', 'unit_sppg', 'nama_menu', 'status', 'kelompok',
+        'tanggal', 'user_id', 'nama_menu', 'status', 'kelompok',
         'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
     ];
 

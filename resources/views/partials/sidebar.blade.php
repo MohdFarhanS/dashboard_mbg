@@ -58,10 +58,6 @@
             </a>
 
             <div class="nav-section">Monitoring</div>
-            <a href="{{ route('gizi.dashboard') }}"
-               class="nav-link {{ request()->routeIs('gizi.*') ? 'active' : '' }}">
-                <i class="fas fa-heart-pulse"></i> Monitor Gizi
-            </a>
             <a href="{{ route('biaya.dashboard') }}"
                class="nav-link {{ request()->routeIs('biaya.dashboard') || request()->routeIs('biaya.detail-menu') ? 'active' : '' }}">
                 <i class="fas fa-coins"></i> Biaya Produksi
@@ -102,12 +98,6 @@
             <a href="{{ route('bahan-pangan.index') }}"
                class="nav-link {{ request()->routeIs('bahan-pangan.*') ? 'active' : '' }}">
                 <i class="fas fa-carrot"></i> Bahan Pangan (TKPI)
-            </a>
-
-            <div class="nav-section">Monitoring</div>
-            <a href="{{ route('gizi.dashboard') }}"
-               class="nav-link {{ request()->routeIs('gizi.*') ? 'active' : '' }}">
-                <i class="fas fa-heart-pulse"></i> Monitor Gizi
             </a>
 
             <div class="nav-section">Laporan</div>
