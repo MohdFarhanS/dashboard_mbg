@@ -17,8 +17,12 @@ class LaporanController extends Controller
 {
     public function index(Request $request)
     {
+        $user  = Auth::user();
         $bulan = $request->input('bulan', now()->format('Y-m'));
-        $jenis   = $request->input('jenis', 'gizi'); // gizi | biaya
+        $jenis = $request->input('jenis', $user->isAkuntan() ? 'biaya' : 'gizi');
+
+        if ($user->isAkuntan())    $jenis = 'biaya';
+        if ($user->isAhliGizi())   $jenis = 'gizi';
 
         [$tahun, $bln] = explode('-', $bulan);
 
@@ -46,8 +50,12 @@ class LaporanController extends Controller
 
     public function exportExcel(Request $request)
     {
+        $user  = Auth::user();
         $bulan = $request->input('bulan', now()->format('Y-m'));
-        $jenis = $request->input('jenis', 'gizi');
+        $jenis = $request->input('jenis', $user->isAkuntan() ? 'biaya' : 'gizi');
+
+        if ($user->isAkuntan())  $jenis = 'biaya';
+        if ($user->isAhliGizi()) $jenis = 'gizi';
         $nama  = "Laporan_" . ucfirst($jenis) . "_" . $bulan . ".xlsx";
 
         [$tahun, $bln] = explode('-', $bulan);
@@ -110,7 +118,10 @@ class LaporanController extends Controller
     {
         $user  = Auth::user();
         $bulan = $request->input('bulan', now()->format('Y-m'));
-        $jenis = $request->input('jenis', 'gizi');
+        $jenis = $request->input('jenis', $user->isAkuntan() ? 'biaya' : 'gizi');
+
+        if ($user->isAkuntan())  $jenis = 'biaya';
+        if ($user->isAhliGizi()) $jenis = 'gizi';
 
         [$tahun, $bln] = explode('-', $bulan);
 

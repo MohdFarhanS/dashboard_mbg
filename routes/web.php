@@ -59,9 +59,11 @@ Route::middleware('auth')->group(function () {
 
         // ── Menu Harian ───────────────────────────────────────────────────────
         Route::prefix('menu-harian')->name('menu-harian.')->group(function () {
-            // View: semua role operasional
-            Route::get('/',              [MenuHarianController::class, 'index'])->name('index');
-            Route::get('/{menuHarian}',  [MenuHarianController::class, 'show'])->name('show');
+            // View: ketua_sppg + ahli_gizi (akuntan tidak punya akses)
+            Route::middleware('role:ketua_sppg,ahli_gizi')->group(function () {
+                Route::get('/',             [MenuHarianController::class, 'index'])->name('index');
+                Route::get('/{menuHarian}', [MenuHarianController::class, 'show'])->name('show');
+            });
 
             // Input & manajemen: ahli_gizi saja
             Route::middleware('role:ahli_gizi')->group(function () {

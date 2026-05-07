@@ -50,7 +50,7 @@
 <div class="row g-3 mb-4">
 
     {{-- Total Menu Final --}}
-    <div class="col-6 {{ $isAhliGizi ? '' : 'col-lg-3' }}">
+    <div class="col-6 {{ $isAhliGizi ? '' : ($isAkuntan ? 'col-lg-4' : 'col-lg-3') }}">
         <div class="stat-card">
             <div class="stat-icon" style="background:#daeeff;">🍽️</div>
             <div>
@@ -61,7 +61,8 @@
         </div>
     </div>
 
-    {{-- Rata-rata Kalori --}}
+    {{-- Rata-rata Kalori (disembunyikan dari akuntan) --}}
+    @if(!$isAkuntan)
     <div class="col-6 {{ $isAhliGizi ? '' : 'col-lg-3' }}">
         <div class="stat-card">
             <div class="stat-icon" style="background:#fff3e0;">🔥</div>
@@ -74,10 +75,11 @@
             </div>
         </div>
     </div>
+    @endif
 
     @if(!$isAhliGizi)
     {{-- Total Biaya Bulanan --}}
-    <div class="col-6 col-lg-3">
+    <div class="col-6 {{ $isAkuntan ? 'col-lg-4' : 'col-lg-3' }}">
         <div class="stat-card">
             <div class="stat-icon" style="background:#e3f2fd;">💰</div>
             <div>
@@ -97,7 +99,7 @@
     </div>
 
     {{-- Status Budget --}}
-    <div class="col-6 col-lg-3">
+    <div class="col-6 {{ $isAkuntan ? 'col-lg-4' : 'col-lg-3' }}">
         @php
             $sbg = $stats['status_budget'];
             $sbgIcon = $sbg === 'aman' ? '✅' : ($sbg === 'warning' ? '⚠️' : ($sbg === 'over' ? '🚨' : '—'));
@@ -261,7 +263,11 @@
                                 <th style="padding:.65rem 1rem;color:#6b8ba4;font-weight:600;font-size:.75rem;border:none;text-align:right;">Biaya/Porsi</th>
                                 <th style="padding:.65rem 1rem;color:#6b8ba4;font-weight:600;font-size:.75rem;border:none;text-align:center;">Budget</th>
                                 @endif
+                                @if(!$isAkuntan)
                                 <th style="padding:.65rem 1rem;color:#6b8ba4;font-weight:600;font-size:.75rem;border:none;text-align:center;width:50px;">Aksi</th>
+                                @else
+                                <th style="width:20px;border:none;"></th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -280,9 +286,13 @@
                                     {{ $menu->tanggal->translatedFormat('d M Y') }}
                                 </td>
                                 <td style="padding:.65rem 1rem;border-color:#e8f1fc;font-weight:500;color:#0d2545;">
+                                    @if(!$isAkuntan)
                                     <a href="{{ route('menu-harian.show', $menu) }}" class="text-decoration-none text-dark">
                                         {{ $menu->nama_menu ?: '(tanpa nama)' }}
                                     </a>
+                                    @else
+                                    {{ $menu->nama_menu ?: '(tanpa nama)' }}
+                                    @endif
                                     <div style="font-size:.7rem;color:#adb5bd;">{{ $menu->status === 'final' ? '🔒 Final' : '✏️ Draft' }}</div>
                                 </td>
                                 <td style="padding:.65rem 1rem;border-color:#e8f1fc;">
@@ -326,12 +336,16 @@
                                     @endif
                                 </td>
                                 @endif
+                                @if(!$isAkuntan)
                                 <td style="padding:.65rem 1rem;border-color:#e8f1fc;text-align:center;">
                                     <a href="{{ route('menu-harian.show', $menu) }}"
                                        class="btn btn-outline-secondary btn-sm py-0 px-2" title="Lihat detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
+                                @else
+                                <td></td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>

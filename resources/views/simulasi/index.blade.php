@@ -119,7 +119,7 @@
             <h4 class="fw-bold mb-0" style="color:var(--primary)">
                 <i class="fas fa-flask me-2"></i>Simulasi Menu
             </h4>
-            <small class="text-muted">Rakit kombinasi bahan pangan dan lihat estimasi gizi + biaya secara real-time</small>
+            <small class="text-muted">Rakit kombinasi bahan pangan dan lihat estimasi gizi secara real-time</small>
         </div>
         <a href="{{ route('menu-harian.index') }}" class="btn btn-sm btn-outline-secondary">
             <i class="fas fa-arrow-left me-1"></i>Kembali
@@ -190,9 +190,8 @@
                     <div class="row g-2 mb-2 px-1 d-none d-md-flex">
                         <div class="col-md-5"><small class="fw-semibold text-muted">Nama Bahan</small></div>
                         <div class="col-md-2"><small class="fw-semibold text-muted">Gram/sajian</small></div>
-                        <div class="col-md-2"><small class="fw-semibold text-muted">Jumlah sajian</small></div>
-                        <div class="col-md-2"><small class="fw-semibold text-muted">Est. Biaya</small></div>
-                        <div class="col-md-1"></div>
+                        <div class="col-md-3"><small class="fw-semibold text-muted">Jumlah sajian</small></div>
+                        <div class="col-md-2"></div>
                     </div>
 
                     <div id="bahan-list">
@@ -239,9 +238,7 @@
                                     <th class="text-end">Gram</th>
                                     <th class="text-end">Sajian</th>
                                     <th class="text-end">% Energi</th>
-                                    <th class="text-end">Biaya/kkal</th>
-                                    <th class="text-center">Status BDD</th>
-                                    <th class="text-end pe-3">Biaya</th>
+                                    <th class="text-center pe-3">Status BDD</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-detail"></tbody>
@@ -285,107 +282,34 @@
                         </div>
                     </div>
 
-                    {{-- Ringkasan Biaya --}}
+                    {{-- Kelompok Penerima --}}
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-header border-0 py-2" style="background:#daeeff">
                             <span class="fw-semibold small" style="color:#0f4c81">
-                                <i class="fas fa-coins me-1"></i>Estimasi Biaya Produksi
+                                <i class="fas fa-layer-group me-1"></i>Kelompok Penerima
                             </span>
                         </div>
                         <div class="card-body pb-3">
-
-                            {{-- Pemilih kelompok penerima --}}
-                            <div class="mb-3">
-                                <div class="small fw-semibold mb-2 text-muted">
-                                    <i class="fas fa-layer-group me-1"></i>Kelompok Penerima (Anggaran per Porsi)
-                                </div>
-                                <div class="d-flex flex-column gap-1">
-                                    <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
-                                           id="label-tier-balita">
-                                        <input type="radio" name="bgn-tier" value="balita_sd3"
-                                               class="form-check-input mt-0 flex-shrink-0">
-                                        <span>
-                                            <i class="fas fa-child me-1 text-primary"></i>
-                                            Balita s/d Kelas 3 SD —
-                                            <strong id="label-angg-balita">Rp {{ number_format($anggaranBalitaSd3, 0, ',', '.') }}/porsi</strong>
-                                        </span>
-                                    </label>
-                                    <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
-                                           id="label-tier-sd4">
-                                        <input type="radio" name="bgn-tier" value="sd4_ibu_menyusui"
-                                               class="form-check-input mt-0 flex-shrink-0" checked>
-                                        <span>
-                                            <i class="fas fa-user-graduate me-1 text-success"></i>
-                                            Kelas 4 SD s/d Ibu Menyusui —
-                                            <strong id="label-angg-sd4">Rp {{ number_format($anggaranSd4IbuMenyusui, 0, ',', '.') }}/porsi</strong>
-                                        </span>
-                                    </label>
-                                </div>
+                            <div class="d-flex flex-column gap-1">
+                                <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
+                                       id="label-tier-balita">
+                                    <input type="radio" name="bgn-tier" value="balita_sd3"
+                                           class="form-check-input mt-0 flex-shrink-0">
+                                    <span>
+                                        <i class="fas fa-child me-1 text-primary"></i>
+                                        Balita s/d Kelas 3 SD
+                                    </span>
+                                </label>
+                                <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
+                                       id="label-tier-sd4">
+                                    <input type="radio" name="bgn-tier" value="sd4_ibu_menyusui"
+                                           class="form-check-input mt-0 flex-shrink-0" checked>
+                                    <span>
+                                        <i class="fas fa-user-graduate me-1 text-success"></i>
+                                        Kelas 4 SD s/d Ibu Menyusui
+                                    </span>
+                                </label>
                             </div>
-
-                            {{-- 5 kotak metrik --}}
-                            <div class="row g-2 mb-3 text-center">
-                                <div class="col-6">
-                                    <div class="border rounded-2 p-2">
-                                        <div class="text-muted small">Total Bahan</div>
-                                        <div class="fw-bold" id="biaya-total">Rp 0</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded-2 p-2">
-                                        <div class="text-muted small">Cost / Porsi</div>
-                                        <div class="fw-bold" id="biaya-cost-porsi" style="color:var(--primary)">Rp 0</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded-2 p-2">
-                                        <div class="text-muted small">Anggaran / Porsi</div>
-                                        <div class="fw-bold" id="biaya-anggaran">Rp 0</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded-2 p-2">
-                                        <div class="text-muted small">Selisih</div>
-                                        <div class="fw-bold" id="biaya-selisih">—</div>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="border rounded-2 p-2" style="background:#f8f9fa">
-                                        <div class="text-muted small">Rasio Biaya Makanan</div>
-                                        <div class="fw-bold fs-5" id="biaya-rasio">—</div>
-                                        <div style="font-size:.7rem;color:#aaa">
-                                            cost per porsi ÷ anggaran × 100%
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Budget progress bar --}}
-                            <div class="mb-1 d-flex justify-content-between">
-                                <small class="text-muted">Penyerapan anggaran</small>
-                                <small class="fw-semibold" id="persen-anggaran">0%</small>
-                            </div>
-                            <div class="budget-bar-wrap">
-                                <div class="budget-bar-fill" id="budget-bar" style="width:0%;background:var(--primary)"></div>
-                            </div>
-                            <div class="alert mt-3 mb-3 py-2 d-none" id="alert-budget">
-                                <i class="fas fa-circle-info me-1"></i>
-                                <span id="alert-budget-text"></span>
-                            </div>
-
-                            {{-- Grafik stacked bar proporsi biaya per kategori --}}
-                            <div id="chart-kategori-wrap" class="d-none">
-                                <div class="small fw-semibold text-muted mb-2">
-                                    <i class="fas fa-chart-bar me-1"></i>Proporsi Biaya per Kategori
-                                </div>
-                                <div id="chart-kategori-bar"
-                                     style="display:flex;height:22px;border-radius:5px;overflow:hidden;background:#e9ecef">
-                                </div>
-                                <div id="chart-kategori-legend"
-                                     style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
-                                </div>
-                            </div>
-
                         </div>
                     </div>
 
@@ -451,9 +375,6 @@
             <div class="col-md-2">
                 <input type="number" class="form-control form-control-sm input-sajian"
                        placeholder="sajian" min="1" value="1">
-            </div>
-            <div class="col-md-2">
-                <small class="biaya-preview text-muted">— /sajian</small>
             </div>
             <div class="col-md-1 text-end">
                 <button type="button" class="btn btn-sm btn-outline-danger btn-hapus py-0">
@@ -578,28 +499,6 @@ function pilihBahan(b, row, acList) {
 }
 
 function recalcRow(row) {
-    const gram   = parseFloat(row.querySelector('.input-gram').value)  || 0;
-    const sajian = parseInt(row.querySelector('.input-sajian').value)  || 1;
-    const harga  = parseFloat(row.querySelector('.bahan-harga').value) || 0;
-    const el     = row.querySelector('.biaya-preview');
-
-    if (!row.querySelector('.bahan-id').value) {
-        el.textContent = '— /sajian';
-        el.style.color = '';
-        updateCountAndBtn();
-        return;
-    }
-    if (harga <= 0) {
-        el.textContent = 'Belum ada harga';
-        el.style.color = '#aaa';
-    } else if (gram > 0) {
-        const biaya = gram * sajian * harga / 100;
-        el.textContent = 'Rp ' + Math.round(biaya).toLocaleString('id-ID');
-        el.style.color = '#0f4c81';
-    } else {
-        el.textContent = '— /sajian';
-        el.style.color = '';
-    }
     updateCountAndBtn();
 }
 
@@ -737,148 +636,22 @@ function renderGizi(gizi, persenAkg) {
     }
 }
 
-const CHART_COLORS = [
-    '#0f4c81','#0071e4','#FF9800','#9C27B0',
-    '#F44336','#00BCD4','#795548','#607D8B','#E91E63','#FF5722',
-];
-
 function renderBiaya(b) {
-    const fmt = v => 'Rp ' + Math.round(v).toLocaleString('id-ID');
-
-    // Update label anggaran per kelompok jika server mengembalikan nilai terbaru
-    if (b.anggaran_per_kelompok) {
-        const fmtK = v => 'Rp ' + Math.round(v).toLocaleString('id-ID') + '/porsi';
-        document.getElementById('label-angg-balita').textContent =
-            fmtK(b.anggaran_per_kelompok.balita_sd3);
-        document.getElementById('label-angg-sd4').textContent =
-            fmtK(b.anggaran_per_kelompok.sd4_ibu_menyusui);
-
-        // Update value radio agar re-render berikutnya menggunakan nilai yang benar
-        document.querySelector('input[name="bgn-tier"][value="balita_sd3"]').dataset.anggaran =
-            b.anggaran_per_kelompok.balita_sd3;
-        document.querySelector('input[name="bgn-tier"][value="sd4_ibu_menyusui"]').dataset.anggaran =
-            b.anggaran_per_kelompok.sd4_ibu_menyusui;
-    }
-
-    // Baca anggaran dari data-anggaran radio yang dipilih, fallback ke nilai server
     const checkedTier = document.querySelector('input[name="bgn-tier"]:checked');
-    const anggaran    = checkedTier?.dataset.anggaran
-        ? parseFloat(checkedTier.dataset.anggaran)
-        : b.anggaran;
-
-    // Hitung ulang berdasarkan anggaran yang dipilih
-    const costPerPorsi  = b.cost_per_porsi;
-    const selisih       = anggaran - costPerPorsi;
-    const persenAngg    = anggaran > 0
-        ? Math.round(costPerPorsi / anggaran * 1000) / 10   // 1 desimal
-        : 0;
-
-    // Highlight label aktif
     document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
     if (checkedTier) checkedTier.closest('.tier-label')?.classList.add('active');
-
-    // Kotak metrik
-    document.getElementById('biaya-total').textContent      = fmt(b.total);
-    document.getElementById('biaya-cost-porsi').textContent = fmt(costPerPorsi);
-    document.getElementById('biaya-anggaran').textContent   = fmt(anggaran);
-
-    const selisihEl = document.getElementById('biaya-selisih');
-    selisihEl.textContent = (selisih >= 0 ? '+' : '') + fmt(selisih);
-    selisihEl.style.color = selisih >= 0 ? '#0f4c81' : '#dc3545';
-
-    // Rasio biaya makanan
-    const rasioEl = document.getElementById('biaya-rasio');
-    rasioEl.textContent   = anggaran > 0 ? persenAngg + '%' : '—';
-    rasioEl.style.color   = persenAngg > 100 ? '#dc3545'
-                          : persenAngg >= 85  ? '#856404'
-                          : '#0f4c81';
-
-    // Budget bar
-    const barEl = document.getElementById('budget-bar');
-    barEl.style.width      = Math.min(persenAngg, 100) + '%';
-    barEl.style.background = persenAngg > 100 ? '#dc3545'
-                           : persenAngg >= 85  ? '#ffc107'
-                           : '#0071e4';
-    document.getElementById('persen-anggaran').textContent = persenAngg + '%';
-
-    // Alert anggaran
-    const alertEl = document.getElementById('alert-budget');
-    const txtEl   = document.getElementById('alert-budget-text');
-    alertEl.classList.remove('d-none', 'alert-danger', 'alert-warning', 'alert-success');
-    if (anggaran === 0) {
-        alertEl.classList.add('d-none');
-    } else if (persenAngg > 100) {
-        alertEl.classList.add('alert-danger');
-        txtEl.textContent = `Over budget! Melebihi anggaran sebesar ${fmt(Math.abs(selisih))}.`;
-    } else if (persenAngg >= 85) {
-        alertEl.classList.add('alert-warning');
-        txtEl.textContent = `Mendekati batas anggaran (${persenAngg}%). Sisa ${fmt(selisih)}.`;
-    } else {
-        alertEl.classList.add('alert-success');
-        txtEl.textContent = `Anggaran aman. Sisa ${fmt(selisih)} (${persenAngg}% terpakai).`;
-    }
-
-    // Grafik stacked bar per kategori
-    if (hasilKalkulasi?.detail?.length) {
-        renderKategoriChart(hasilKalkulasi.detail);
-    }
-}
-
-function renderKategoriChart(detail) {
-    // Kelompokkan & jumlahkan biaya per kategori (hanya yang ada harga)
-    const map = {};
-    let totalBiaya = 0;
-    detail.forEach(d => {
-        if (!d.ada_harga || d.biaya <= 0) return;
-        const kat = d.kategori || 'Lainnya';
-        map[kat]   = (map[kat] || 0) + d.biaya;
-        totalBiaya += d.biaya;
-    });
-
-    const wrap  = document.getElementById('chart-kategori-wrap');
-    const barEl = document.getElementById('chart-kategori-bar');
-    const legEl = document.getElementById('chart-kategori-legend');
-
-    if (totalBiaya === 0) { wrap.classList.add('d-none'); return; }
-    wrap.classList.remove('d-none');
-
-    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
-
-    let barHtml = '';
-    let legHtml = '';
-    entries.forEach(([kat, biaya], i) => {
-        const pct   = (biaya / totalBiaya * 100).toFixed(1);
-        const color = CHART_COLORS[i % CHART_COLORS.length];
-        barHtml += `<div class="chart-bar-segment" style="width:${pct}%;background:${color}"
-                        title="${kat}: Rp ${Math.round(biaya).toLocaleString('id-ID')} (${pct}%)"></div>`;
-        legHtml += `
-            <div style="display:flex;align-items:center;gap:4px;font-size:.72rem">
-                <div style="width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></div>
-                <span class="text-muted">${kat}&ensp;<strong>${pct}%</strong></span>
-            </div>`;
-    });
-
-    barEl.innerHTML = barHtml;
-    legEl.innerHTML = legHtml;
 }
 
 function renderDetail(detail) {
-    const fmtRp = v => v > 0 ? 'Rp ' + Math.round(v).toLocaleString('id-ID') : '—';
+    // Hitung total energi untuk persentase
+    let totE = 0;
+    detail.forEach(d => { totE += d.gizi.energi; });
 
-    // Pass 1: hitung total energi & biaya untuk persentase
-    let totE = 0, totBiaya = 0;
-    detail.forEach(d => { totE += d.gizi.energi; totBiaya += d.biaya; });
-
-    // Pass 2: render baris
     let rowsHtml = '';
     detail.forEach(d => {
-        const energi      = d.gizi.energi;
-        const pctEnergi   = totE > 0 ? (energi / totE * 100).toFixed(1) : '0.0';
-        const biayaPerKkal = (d.ada_harga && energi > 0)
-            ? 'Rp ' + (d.biaya / energi).toFixed(0)
-            : '—';
+        const energi    = d.gizi.energi;
+        const pctEnergi = totE > 0 ? (energi / totE * 100).toFixed(1) : '0.0';
 
-        // Status BDD
         const bdd = d.bdd ?? 100;
         let bddBadge;
         if (bdd >= 90) {
@@ -904,13 +677,7 @@ function renderDetail(detail) {
             <td class="text-end">${d.gram}g</td>
             <td class="text-end">${d.porsi}x</td>
             <td class="text-end fw-semibold" style="color:var(--primary)">${pctEnergi}%</td>
-            <td class="text-end text-muted small">${biayaPerKkal}</td>
-            <td class="text-center">${bddBadge}</td>
-            <td class="text-end pe-3">
-                ${d.ada_harga
-                    ? `<span style="color:#0f4c81">${fmtRp(d.biaya)}</span>`
-                    : `<span class="badge bg-warning text-dark">Belum ada harga</span>`}
-            </td>
+            <td class="text-center pe-3">${bddBadge}</td>
         </tr>`;
     });
 
@@ -919,9 +686,7 @@ function renderDetail(detail) {
         <tr class="fw-semibold">
             <td class="ps-3" colspan="3">Total</td>
             <td class="text-end" style="color:var(--primary)">${totE.toFixed(1)} kkal</td>
-            <td class="text-end">—</td>
             <td></td>
-            <td class="text-end pe-3" style="color:var(--primary)">Rp ${Math.round(totBiaya).toLocaleString('id-ID')}</td>
         </tr>`;
 }
 
@@ -996,18 +761,8 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 document.querySelectorAll('input[name="bgn-tier"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        if (!hasilKalkulasi?.biaya) return;
-
-        const kelompok = radio.value;
-        // Gunakan nilai anggaran dari data-anggaran jika sudah di-populate
-        if (radio.dataset.anggaran) {
-            renderBiaya(hasilKalkulasi.biaya);
-        } else if (hasilKalkulasi.biaya.anggaran_per_kelompok?.[kelompok] !== undefined) {
-            renderBiaya(hasilKalkulasi.biaya);
-        } else {
-            // Belum ada data kelompok ini dari server — re-hitung
-            document.getElementById('btn-hitung').click();
-        }
+        document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
+        radio.closest('.tier-label')?.classList.add('active');
     });
 });
 

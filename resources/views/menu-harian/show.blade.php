@@ -6,7 +6,8 @@
 
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center">
-            <a href="{{ route('menu-harian.index') }}" class="btn btn-sm btn-outline-secondary me-3">
+            <a href="{{ auth()->user()->isAkuntan() ? route('dashboard') : route('menu-harian.index') }}"
+               class="btn btn-sm btn-outline-secondary me-3">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
@@ -65,6 +66,7 @@
     @endif
 
     @php
+        $isAkuntan = auth()->user()->isAkuntan();
         $gizi = $menuHarian->totalGizi();
         $akg  = \App\Constants\AKG::MAKAN_SIANG;
         $giziMeta = [
@@ -78,6 +80,7 @@
     @endphp
 
     {{-- Stat gizi --}}
+    @if(!$isAkuntan)
     <div class="row g-3 mb-4">
         @foreach($giziMeta as $m)
         @php
@@ -123,6 +126,7 @@
         </div>
         @endforeach
     </div>
+    @endif
 
     {{-- ============================================================ --}}
     {{-- BUDGET ALERT — tampil di antara stat gizi dan tabel bahan    --}}
@@ -136,7 +140,7 @@
         $selisih        = $biaya['selisih'];
     @endphp
 
-    @if($statusAnggaran !== 'belum_ada_data')
+    @if(!auth()->user()->isAhliGizi() && $statusAnggaran !== 'belum_ada_data')
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body py-3 px-4">
 
@@ -252,12 +256,14 @@
                             <th class="text-end">Gram</th>
                             <th class="text-end">Porsi</th>
                             <th class="text-end">BDD</th>
+                            @if(!$isAkuntan)
                             <th class="text-end">Energi</th>
                             <th class="text-end">Protein</th>
                             <th class="text-end">Lemak</th>
                             <th class="text-end">Karbo</th>
                             <th class="text-end">Serat</th>
                             <th class="text-end pe-4">Vit. C</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -275,6 +281,7 @@
                             <td class="text-end">{{ $detail->jumlah_gram }}g</td>
                             <td class="text-end">{{ $detail->jumlah_porsi }}x</td>
                             <td class="text-end text-muted small">{{ $b->bdd }}%</td>
+                            @if(!$isAkuntan)
                             <td class="text-end fw-semibold" style="color:var(--primary)">
                                 {{ number_format($f * ($b->energi ?? 0), 1) }}
                             </td>
@@ -283,14 +290,15 @@
                             <td class="text-end">{{ number_format($f * ($b->karbohidrat ?? 0), 2) }}</td>
                             <td class="text-end">{{ number_format($f * ($b->serat ?? 0), 2) }}</td>
                             <td class="text-end pe-4">{{ number_format($f * ($b->vit_c ?? 0), 2) }}</td>
+                            @endif
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center text-muted py-4">Belum ada bahan.</td>
+                            <td colspan="{{ $isAkuntan ? 5 : 11 }}" class="text-center text-muted py-4">Belum ada bahan.</td>
                         </tr>
                         @endforelse
                     </tbody>
-                    @if($menuHarian->detailBahans->count())
+                    @if($menuHarian->detailBahans->count() && !$isAkuntan)
                     <tfoot style="background:var(--primary-pale)">
                         <tr class="fw-semibold">
                             <td class="ps-4" colspan="5">Total Gizi</td>

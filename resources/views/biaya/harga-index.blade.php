@@ -19,9 +19,11 @@
         </div>
     
         <!-- Kanan: tombol tambah -->
+        @if(Auth::user()->isAkuntan())
         <a href="{{ route('biaya.harga.create') }}" class="btn btn-primary btn-sm">
             <i class="fa fa-plus me-1"></i>Tambah Harga
-        </a>   
+        </a>
+        @endif
     </div>
 
     {{-- Search --}}
