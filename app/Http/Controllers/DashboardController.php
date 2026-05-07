@@ -4,150 +4,127 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuHarian;
 use App\Constants\AKG;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $user   = Auth::user();
-        $today  = today();
+        $user  = Auth::user();
+        $bulan = $request->input('bulan', now()->format('Y-m'));
+        [$tahun, $bln] = explode('-', $bulan);
 
-        // ── Menu hari ini ──
-        $menusHariIni = MenuHarian::with('detailBahans.bahanPangan')
-            ->whereDate('tanggal', $today)
+        $keys = ['energi','protein','lemak','karbohidrat','serat','kalsium','besi','vit_c'];
+
+        $menus = MenuHarian::with('detailBahans.bahanPangan')
+            ->whereYear('tanggal', $tahun)
+            ->whereMonth('tanggal', $bln)
+            ->orderBy('tanggal')
             ->get();
 
-        // ── Akumulasi gizi hari ini ──
-        $totalKalori    = 0;
-        $totalProtein   = 0;
-        $totalKarbo     = 0;
-        $totalLemak     = 0;
-        $totalBiaya     = 0;
+        $menusFinal  = $menus->filter(fn($m) => $m->status === 'final');
+        $jumlahHari  = $menusFinal->count();
 
-        foreach ($menusHariIni as $menu) {
-            $gizi = $menu->totalGizi();
-            $totalKalori  += $gizi['energi']      ?? 0;
-            $totalProtein += $gizi['protein']     ?? 0;
-            $totalKarbo   += $gizi['karbohidrat'] ?? 0;
-            $totalLemak   += $gizi['lemak']       ?? 0;
-
-            $biaya = $menu->totalBiaya();
-            $totalBiaya += $biaya['total_seluruh'] ?? 0;
-        }
-
-        // ── Target AKG harian (3 sesi makan = kalikan 3) ──
-        $targetKalori   = AKG::MAKAN_SIANG['energi']      * 3;
-        $targetProtein  = AKG::MAKAN_SIANG['protein']     * 3;
-        $targetKarbo    = AKG::MAKAN_SIANG['karbohidrat'] * 3;
-        $targetLemak    = AKG::MAKAN_SIANG['lemak']       * 3;
-
-        $persenProtein  = $targetProtein > 0
-            ? min(round($totalProtein / $targetProtein * 100), 200) : 0;
-        $persenKarbo    = $targetKarbo > 0
-            ? min(round($totalKarbo   / $targetKarbo   * 100), 200) : 0;
-        $persenLemak    = $targetLemak > 0
-            ? min(round($totalLemak   / $targetLemak   * 100), 200) : 0;
-
-        // ── Budget harian: anggaran per porsi × total porsi ──
-        $budgetHarian = 0;
-        foreach ($menusHariIni as $menu) {
-            $b = $menu->totalBiaya();
-            $budgetHarian += $b['anggaran'] * ($menu->jumlah_porsi ?? 1);
-        }
-        // fallback jika anggaran belum di-set
-        if ($budgetHarian === 0 && $menusHariIni->count()) {
-            $budgetHarian = 15000 * $menusHariIni->sum('jumlah_porsi');
-        }
-
-        // ── Status budget ──
-        $selisih       = $budgetHarian - $totalBiaya;
-        $persenBiaya   = $budgetHarian > 0
-            ? round($totalBiaya / $budgetHarian * 100) : 0;
-        $statusBudget  = $persenBiaya > 100 ? 'over'
-            : ($persenBiaya >= 85 ? 'warning' : 'aman');
-
-        // ── Budget Alert: hitung menu final bulan ini yang over/warning ──
-        $menusFinal = MenuHarian::where('status', 'final')
-            ->whereYear('tanggal',  $today->year)
-            ->whereMonth('tanggal', $today->month)
-            ->get();
+        $totalGizi       = array_fill_keys($keys, 0);
+        $totalBiaya      = 0;
+        $budgetTotal     = 0;
+        $distribusiBiaya = [];
+        $alertList       = [];
         $alertOver       = 0;
         $alertWarning    = 0;
-        $alertList       = [];
-        
+        $trendData       = [];
+
         foreach ($menusFinal as $menu) {
+            $gizi  = $menu->totalGizi();
+            $biaya = $menu->totalBiaya();
+
+            foreach ($keys as $k) {
+                $totalGizi[$k] += $gizi[$k] ?? 0;
+            }
+
+            $totalBiaya  += $biaya['total_seluruh'] ?? 0;
+            $budgetTotal += ($biaya['anggaran'] ?? 15000) * ($menu->jumlah_porsi ?? 1);
+
+            $trendData[] = [
+                'tanggal' => $menu->tanggal->format('d/m'),
+                'energi'  => round($gizi['energi'] ?? 0, 1),
+            ];
+
             $status = $menu->statusAnggaran();
             if ($status === 'over') {
                 $alertOver++;
                 $alertList[] = [
-                    'type'    => 'danger',
-                    'msg'     => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y'))
-                                 . ' melebihi anggaran',
-                    'time'    => $menu->tanggal->format('d/m/Y'),
-                    'menu_id' => $menu->id,
+                    'type' => 'danger',
+                    'msg'  => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y')) . ' melebihi anggaran',
+                    'time' => $menu->tanggal->format('d/m/Y'),
                 ];
             } elseif ($status === 'warning') {
                 $alertWarning++;
                 $alertList[] = [
-                    'type'    => 'warning',
-                    'msg'     => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y'))
-                                 . ' mendekati batas anggaran',
-                    'time'    => $menu->tanggal->format('d/m/Y'),
-                    'menu_id' => $menu->id,
+                    'type' => 'warning',
+                    'msg'  => 'Menu ' . ($menu->nama_menu ?? $menu->tanggal->format('d/m/Y')) . ' mendekati batas anggaran',
+                    'time' => $menu->tanggal->format('d/m/Y'),
                 ];
             }
-        }
-        $totalAlert = $alertOver + $alertWarning;
 
-        $distribusiBiaya = [];
-
-        foreach ($menusHariIni as $menu) {
             foreach ($menu->detailBahans as $detail) {
                 $bahan = $detail->bahanPangan;
                 if (!$bahan) continue;
                 $kategori = $bahan->kategori ?? 'Lainnya';
-
                 $harga = \App\Models\HargaBahan::where('bahan_pangan_id', $bahan->id)
-                    ->where('berlaku_mulai', '<=', today())
-                    ->where(function ($q) {
+                    ->where('berlaku_mulai', '<=', $menu->tanggal)
+                    ->where(function ($q) use ($menu) {
                         $q->whereNull('berlaku_sampai')
-                          ->orWhere('berlaku_sampai', '>=', today());
+                          ->orWhere('berlaku_sampai', '>=', $menu->tanggal);
                     })
                     ->orderByDesc('berlaku_mulai')
                     ->value('harga_per_100g');
-    
                 if (!$harga) continue;
-    
                 $biayaBahan = ($detail->jumlah_gram / 100) * $harga * ($detail->jumlah_porsi ?? 1);
                 $distribusiBiaya[$kategori] = ($distribusiBiaya[$kategori] ?? 0) + $biayaBahan;
             }
         }
-    
-        arsort($distribusiBiaya);
-        $top     = array_slice($distribusiBiaya, 0, 6, true);
-        $sisanya = array_sum($distribusiBiaya) - array_sum($top);
-        if ($sisanya > 0) {
-            $top['Lainnya'] = ($top['Lainnya'] ?? 0) + $sisanya;
+
+        $rataGizi  = [];
+        $persenAkg = [];
+        foreach ($keys as $k) {
+            $rataGizi[$k] = $jumlahHari > 0 ? round($totalGizi[$k] / $jumlahHari, 1) : 0;
+            $acuan = AKG::MAKAN_SIANG[$k] ?? 1;
+            $persenAkg[$k] = $acuan > 0 ? min(round(($rataGizi[$k] / $acuan) * 100, 1), 200) : 0;
         }
 
+        $tanpaLainnya = array_filter($distribusiBiaya, fn($k) => $k !== 'Lainnya', ARRAY_FILTER_USE_KEY);
+        arsort($tanpaLainnya);
+        $top     = array_slice($tanpaLainnya, 0, 6, true);
+        $sisanya = array_sum($distribusiBiaya) - array_sum($top);
+        if ($sisanya > 0) {
+            $top['Lainnya'] = $sisanya;
+        }
+
+        $persenBiaya  = $budgetTotal > 0 ? round($totalBiaya / $budgetTotal * 100) : 0;
+        $statusBudget = $budgetTotal > 0
+            ? ($persenBiaya > 100 ? 'over' : ($persenBiaya >= 85 ? 'warning' : 'aman'))
+            : 'belum_ada_data';
+
         $stats = [
-            'distribusi_biaya'    => $top, 
-            'total_menu_hari_ini' => $menusHariIni->count(),
-            'total_kalori'        => round($totalKalori),
-            'target_kalori'       => $targetKalori,
-            'total_biaya'         => round($totalBiaya),
-            'budget_harian'       => $budgetHarian,
-            'status_budget'       => $statusBudget,
-            'persen_protein'      => $persenProtein,
-            'persen_karbohidrat'  => $persenKarbo,
-            'persen_lemak'        => $persenLemak,
-            'alert_over'          => $alertOver,
-            'alert_warning'       => $alertWarning,
-            'total_alert'         => $totalAlert,
-            'alert_list'          => array_slice($alertList, 0, 5),
+            'total_menu_final' => $jumlahHari,
+            'total_menu_semua' => $menus->count(),
+            'rata_kalori'      => $jumlahHari > 0 ? round($totalGizi['energi'] / $jumlahHari) : 0,
+            'target_kalori'    => AKG::MAKAN_SIANG['energi'],
+            'total_biaya'      => round($totalBiaya),
+            'budget_total'     => $budgetTotal,
+            'status_budget'    => $statusBudget,
+            'persen_biaya'     => $persenBiaya,
+            'total_alert'      => $alertOver + $alertWarning,
+            'alert_over'       => $alertOver,
+            'alert_list'       => array_slice($alertList, 0, 5),
+            'distribusi_biaya' => $top,
         ];
 
-        return view('dashboard.index', compact('user', 'stats', 'menusHariIni'));
+        return view('dashboard.index', compact(
+            'user', 'stats', 'menus', 'bulan',
+            'rataGizi', 'persenAkg', 'trendData', 'jumlahHari'
+        ));
     }
 }

@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->string('nama_lengkap')->nullable()->after('name');
             }
             if (!Schema::hasColumn('users', 'role')) {
-                $table->enum('role', ['admin', 'pengelola'])->default('pengelola');
+                $table->string('role', 50)->default('ahli_gizi');
             }
             if (!Schema::hasColumn('users', 'is_active')) {
                 $table->boolean('is_active')->default(true)->after('role');

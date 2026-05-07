@@ -32,10 +32,10 @@ class LaporanController extends Controller
 
         $totalMenu  = $menus->count();
         $rataGizi   = $this->hitungRataGizi($menus);
-        $totalBiaya = $menus->sum(fn($m) => $m->totalBiaya()['total_seluruh']);
-        $rataCost   = $totalMenu > 0
-            ? $menus->avg(fn($m) => $m->totalBiaya()['cost_per_porsi'])
-            : 0;
+
+        $rekapBiaya = $menus->map(fn($m) => $m->totalBiaya());
+        $totalBiaya = $rekapBiaya->sum(fn($b) => $b['total_seluruh']);
+        $rataCost   = $totalMenu > 0 ? $rekapBiaya->avg(fn($b) => $b['cost_per_porsi']) : 0;
 
         return view('laporan.index', compact(
             'menus', 'bulan', 'jenis',

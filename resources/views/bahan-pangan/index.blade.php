@@ -140,9 +140,11 @@
                             </th>
                             <th class="text-center" style="width:60px">BDD%</th>
                             <th class="text-center" style="width:50px">Status</th>
+                            @if(auth()->user()->role !== 'ahli_gizi')
                             <th class="text-center" style="width:110px">
                                 Harga/kg<br><small class="fw-normal text-muted">(Rp)</small>
                             </th>
+                            @endif
                             <th class="text-center" style="width:110px">Aksi</th>
                         </tr>
                     </thead>
@@ -202,6 +204,7 @@
                                     <span class="badge bg-secondary-subtle text-secondary">Nonaktif</span>
                                 @endif
                             </td>
+                            @if(auth()->user()->role !== 'ahli_gizi')
                             <td class="text-center">
                                 @if(isset($hargaMap[$bahan->id]))
                                     <span class="small fw-semibold text-dark">
@@ -211,6 +214,7 @@
                                     <span class="badge bg-danger" style="font-size:.7rem;">Belum ada</span>
                                 @endif
                             </td>
+                            @endif
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('bahan-pangan.show', $bahan) }}"
@@ -233,7 +237,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center py-5 text-muted">
+                            <td colspan="{{ auth()->user()->role !== 'ahli_gizi' ? 11 : 10 }}" class="text-center py-5 text-muted">
                                 <i class="fas fa-search fa-2x mb-2 d-block opacity-25"></i>
                                 Tidak ada data yang cocok dengan pencarian.
                                 <br>

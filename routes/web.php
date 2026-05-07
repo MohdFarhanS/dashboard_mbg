@@ -40,8 +40,7 @@ Route::middleware('auth')->group(function () {
         // ── Bahan Pangan ──────────────────────────────────────────────────────
         Route::prefix('bahan-pangan')->name('bahan-pangan.')->group(function () {
             // View: semua role operasional
-            Route::get('/',              [BahanPanganController::class, 'index'])->name('index');
-            Route::get('/{bahanPangan}', [BahanPanganController::class, 'show'])->name('show');
+            Route::get('/', [BahanPanganController::class, 'index'])->name('index');
 
             // Manajemen: ketua_sppg saja (controller juga memverifikasi)
             Route::middleware('role:ketua_sppg')->group(function () {
@@ -53,6 +52,9 @@ Route::middleware('auth')->group(function () {
                 Route::patch('/{bahanPangan}/status', [BahanPanganController::class, 'toggleStatus'])
                      ->name('toggle-status');
             });
+
+            // Wildcard show harus di bawah semua route spesifik
+            Route::get('/{bahanPangan}', [BahanPanganController::class, 'show'])->name('show');
         });
 
         // ── Menu Harian ───────────────────────────────────────────────────────

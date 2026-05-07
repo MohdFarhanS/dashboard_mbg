@@ -43,10 +43,12 @@ class SimulasiController extends Controller
         $detail     = [];
 
         foreach ($request->bahans as $item) {
-            $b      = BahanPangan::find($item['id']);
-            $gram   = (float) $item['gram'];
-            $porsi  = (int)   $item['porsi'];
-            $bdd    = ($b->bdd ?? 100) / 100;
+            $b = BahanPangan::find($item['id']);
+            if (!$b) continue;
+
+            $gram  = (float) $item['gram'];
+            $porsi = (int)   $item['porsi'];
+            $bdd   = ($b->bdd ?? 100) / 100;
             $faktor = ($gram * $bdd) / 100;
 
             $giziItem = [];
@@ -123,23 +125,25 @@ class SimulasiController extends Controller
 
         $menuHarian->load('detailBahans.bahanPangan');
 
+        $today = $menuHarian->tanggal->toDateString();
+
         $existingBahans = $menuHarian->detailBahans
             ->filter(fn($d) => $d->bahanPangan)
             ->map(fn($d) => [
-                'id'           => $d->bahanPangan->id,
-                'kode'         => $d->bahanPangan->kode,
-                'nama_bahan'   => $d->bahanPangan->nama_bahan,
-                'kategori'     => $d->bahanPangan->kategori,
-                'energi'       => $d->bahanPangan->energi,
-                'protein'      => $d->bahanPangan->protein,
-                'lemak'        => $d->bahanPangan->lemak,
-                'karbohidrat'  => $d->bahanPangan->karbohidrat,
-                'bdd'          => $d->bahanPangan->bdd,
-                'jumlah_gram'  => $d->jumlah_gram,
-                'jumlah_porsi' => $d->jumlah_porsi,
+                'id'             => $d->bahanPangan->id,
+                'kode'           => $d->bahanPangan->kode,
+                'nama_bahan'     => $d->bahanPangan->nama_bahan,
+                'kategori'       => $d->bahanPangan->kategori,
+                'energi'         => $d->bahanPangan->energi,
+                'protein'        => $d->bahanPangan->protein,
+                'lemak'          => $d->bahanPangan->lemak,
+                'karbohidrat'    => $d->bahanPangan->karbohidrat,
+                'bdd'            => $d->bahanPangan->bdd,
+                'jumlah_gram'    => $d->jumlah_gram,
+                'jumlah_porsi'   => $d->jumlah_porsi,
+                'harga_per_100g' => HargaBahan::hargaAktif($d->bahanPangan->id, $today),
             ])->values();
 
-        $today = $menuHarian->tanggal->toDateString();
         $anggaranBalitaSd3      = AnggaranPorsi::aktif($today, 'balita_sd3');
         $anggaranSd4IbuMenyusui = AnggaranPorsi::aktif($today, 'sd4_ibu_menyusui');
 
@@ -218,7 +222,6 @@ class SimulasiController extends Controller
                 'anggaran_per_porsi' => AnggaranPorsi::aktif($request->tanggal, $kelompok),
                 'status'             => 'draft',
                 'user_id'            => Auth::id(),
-                'unit_sppg'          => Auth::user()->unit_sppg,
             ]);
 
             foreach ($request->bahans as $item) {
