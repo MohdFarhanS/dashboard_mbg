@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MenuDetailBahan extends Model
 {
     protected $fillable = [
-        'menu_harian_id', 'bahan_pangan_id', 'jumlah_gram', 'jumlah_porsi'
+        'menu_harian_id', 'bahan_pangan_id', 'jumlah_gram', 'jumlah_porsi', 'harga_per_100g',
     ];
 
     public function menuHarian(): BelongsTo

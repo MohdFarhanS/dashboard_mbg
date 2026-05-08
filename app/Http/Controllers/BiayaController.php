@@ -71,10 +71,11 @@ class BiayaController extends Controller
         $q = $request->input('q');
 
         $hargaList = HargaBahan::with('bahanPangan')
-            ->when($q, fn($query) => $query->whereHas('bahanPangan',
-                fn($bq) => $bq->where('nama_bahan', 'like', "%{$q}%")
-            ))
-            ->orderByDesc('berlaku_mulai')
+            ->join('bahan_pangans', 'harga_bahans.bahan_pangan_id', '=', 'bahan_pangans.id')
+            ->when($q, fn($query) => $query->where('bahan_pangans.nama_bahan', 'like', "%{$q}%"))
+            ->orderBy('bahan_pangans.nama_bahan')
+            ->orderByDesc('harga_bahans.berlaku_mulai')
+            ->select('harga_bahans.*')
             ->paginate(20)
             ->withQueryString();
 
@@ -83,15 +84,13 @@ class BiayaController extends Controller
 
     public function createHarga()
     {
-        // dilindungi middleware role:ketua_sppg,akuntan
-
-        $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
-        return view('biaya.harga-form', compact('bahans'));
+        // dilindungi middleware role:akuntan
+        return view('biaya.harga-form');
     }
 
     public function storeHarga(Request $request)
     {
-        // dilindungi middleware role:ketua_sppg,akuntan
+        // dilindungi middleware role:akuntan
 
         $data = $request->validate([
             'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
@@ -103,6 +102,15 @@ class BiayaController extends Controller
 
         $data['harga_per_100g'] = $data['harga_per_kg'] / 10;
         unset($data['harga_per_kg']);
+
+        // Tutup semua record open-ended milik bahan ini yang mulai sebelum tarif baru
+        $berlakuSampaiLama = \Carbon\Carbon::parse($data['berlaku_mulai'])
+            ->subDay()->toDateString();
+
+        HargaBahan::where('bahan_pangan_id', $data['bahan_pangan_id'])
+            ->whereNull('berlaku_sampai')
+            ->where('berlaku_mulai', '<', $data['berlaku_mulai'])
+            ->update(['berlaku_sampai' => $berlakuSampaiLama]);
 
         HargaBahan::create($data);
 
@@ -112,40 +120,45 @@ class BiayaController extends Controller
 
     public function editHarga(HargaBahan $harga)
     {
-        // dilindungi middleware role:ketua_sppg,akuntan
-
-        $bahans = BahanPangan::select('id', 'nama_bahan')->orderBy('nama_bahan')->get();
-        return view('biaya.harga-form', compact('harga', 'bahans'));
+        // Tarif tidak bisa diedit — immutable setelah dibuat (seperti anggaran per porsi)
+        return redirect()->route('biaya.harga.index')
+            ->with('info', 'Tarif harga tidak dapat diedit. Tambahkan tarif baru untuk menggantinya — tarif lama akan otomatis ditutup.');
     }
 
     public function updateHarga(Request $request, HargaBahan $harga)
     {
-        // dilindungi middleware role:ketua_sppg,akuntan
-
-        $data = $request->validate([
-            'bahan_pangan_id' => 'required|exists:bahan_pangans,id',
-            'harga_per_kg'    => 'required|numeric|min:0',
-            'berlaku_mulai'   => 'required|date',
-            'berlaku_sampai'  => 'nullable|date|after_or_equal:berlaku_mulai',
-            'keterangan'      => 'nullable|string|max:200',
-        ]);
-
-        $data['harga_per_100g'] = $data['harga_per_kg'] / 10;
-        unset($data['harga_per_kg']);
-
-        $harga->update($data);
-    
+        // Tidak ada jalur edit yang valid
         return redirect()->route('biaya.harga.index')
-            ->with('success', 'Harga bahan berhasil diperbarui.');
+            ->with('info', 'Tarif harga tidak dapat diedit. Tambahkan tarif baru untuk menggantinya.');
     }
 
     public function destroyHarga(HargaBahan $harga)
     {
-        // dilindungi middleware role:ketua_sppg,akuntan
-    
+        // dilindungi middleware role:akuntan
+
+        $isAktif   = $harga->berlaku_sampai === null;
+        $bahanId   = $harga->bahan_pangan_id;
+        $hargaId   = $harga->id;
+
         $harga->delete();
-        return redirect()->route('biaya.harga.index')
-            ->with('success', 'Data harga dihapus.');
+
+        // Jika yang dihapus adalah tarif aktif (open-ended), aktifkan kembali tarif sebelumnya
+        if ($isAktif) {
+            $sebelumnya = HargaBahan::where('bahan_pangan_id', $bahanId)
+                ->whereKeyNot($hargaId)
+                ->orderByDesc('berlaku_mulai')
+                ->first();
+
+            if ($sebelumnya) {
+                $sebelumnya->update(['berlaku_sampai' => null]);
+            }
+        }
+
+        $pesan = $isAktif
+            ? 'Tarif aktif dihapus. Tarif sebelumnya diaktifkan kembali.'
+            : 'Data tarif historis dihapus.';
+
+        return redirect()->route('biaya.harga.index')->with('success', $pesan);
     }
 
     // ─── Detail Biaya per Menu ─────────────────────────────────────────────────

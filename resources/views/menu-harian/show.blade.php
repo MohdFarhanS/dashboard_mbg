@@ -23,15 +23,13 @@
         </div>
         <div class="d-flex gap-2 align-items-center flex-wrap">
             {{-- Badge kelompok --}}
-            @if($menuHarian->kelompok === 'balita_sd3')
-                <span class="badge p-2" style="background:#daeeff;color:#0f4c81;font-size:.8rem">
-                    <i class="fas fa-child me-1"></i>Balita s/d Kelas 3 SD
-                </span>
-            @else
-                <span class="badge p-2" style="background:#d1f0e0;color:#1a6640;font-size:.8rem">
-                    <i class="fas fa-user-graduate me-1"></i>Kelas 4 SD s/d Ibu Menyusui
-                </span>
-            @endif
+            @php
+                $ks = $menuHarian->kelompok_sasaran ?? 'SD_4_6';
+                $ksLabel = \App\Constants\AKG::KELOMPOK[$ks]['label'] ?? $ks;
+            @endphp
+            <span class="badge p-2" style="background:#daeeff;color:#0f4c81;font-size:.8rem">
+                <i class="fas fa-users me-1"></i>{{ $ksLabel }}
+            </span>
 
             @if($menuHarian->status === 'final')
                 <span class="badge p-2" style="background:#e2e8f0;color:#475569;font-size:.85rem">
@@ -68,7 +66,8 @@
     @php
         $isAkuntan = auth()->user()->isAkuntan();
         $gizi = $menuHarian->totalGizi();
-        $akg  = \App\Constants\AKG::MAKAN_SIANG;
+        // Gunakan target AKG kelompok_sasaran untuk 4 makro, MAKAN_SIANG untuk mikronutrien
+        $akg  = array_merge(\App\Constants\AKG::MAKAN_SIANG, $menuHarian->akgTarget('siang'));
         $giziMeta = [
             ['key'=>'energi',      'label'=>'Energi',      'unit'=>'kkal', 'color'=>'#0f4c81', 'icon'=>'fa-fire',      'bg'=>'#daeeff'],
             ['key'=>'protein',     'label'=>'Protein',     'unit'=>'g',    'color'=>'#0d6efd', 'icon'=>'fa-dumbbell',  'bg'=>'#e7f0ff'],
@@ -151,11 +150,11 @@
                     <span class="fw-semibold">Realisasi Biaya vs Anggaran Per Porsi</span>
                     @if($menuHarian->kelompok === 'balita_sd3')
                         <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.72rem">
-                            <i class="fas fa-child me-1"></i>Balita s/d Kelas 3 SD
+                            <i class="fas fa-child me-1"></i>Anggaran: Balita s/d Kls 3 SD
                         </span>
                     @else
                         <span class="badge" style="background:#d1f0e0;color:#1a6640;font-size:.72rem">
-                            <i class="fas fa-user-graduate me-1"></i>Kelas 4 SD s/d Ibu Menyusui
+                            <i class="fas fa-user-graduate me-1"></i>Anggaran: Kls 4 SD s/d Ibu Menyusui
                         </span>
                     @endif
                     @if($statusAnggaran === 'over')
@@ -270,7 +269,10 @@
                         @forelse($menuHarian->detailBahans as $detail)
                         @php
                             $b = $detail->bahanPangan;
-                            $f = ($detail->jumlah_gram * (($b->bdd ?? 100) / 100)) / 100 * $detail->jumlah_porsi;
+                            // Bagi dengan jumlah_porsi menu → kontribusi gizi per orang untuk bahan ini
+                            $jumlahPorsiMenu = max((int) $menuHarian->jumlah_porsi, 1);
+                            $f = ($detail->jumlah_gram * (($b->bdd ?? 100) / 100)) / 100
+                                 * $detail->jumlah_porsi / $jumlahPorsiMenu;
                         @endphp
                         <tr>
                             <td class="ps-4">

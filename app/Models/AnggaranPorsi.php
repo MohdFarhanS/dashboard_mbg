@@ -19,8 +19,8 @@ class AnggaranPorsi extends Model
     ];
 
     protected $casts = [
-        'berlaku_mulai'  => 'date',
-        'berlaku_sampai' => 'date',
+        'berlaku_mulai'  => 'date:Y-m-d',
+        'berlaku_sampai' => 'date:Y-m-d',
     ];
 
     public function createdBy()

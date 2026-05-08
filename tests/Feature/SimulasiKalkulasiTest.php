@@ -19,14 +19,20 @@ use Tests\TestCase;
  * │ Daging Ayam (Test│ 100 g        │ 1              │ Rp 4.000        │
  * └──────────────────┴──────────────┴────────────────┴─────────────────┘
  * Jumlah Porsi menu : 1
- * Kelompok          : Kelas 4 SD s/d Ibu Menyusui
- * Anggaran/porsi    : Rp 15.000
+ * Kelompok (AKG)    : SD_4_6 (energi=1950, protein=52.5, lemak=65, karbo=290)
+ * Anggaran/porsi    : Rp 15.000 (sd4_ibu_menyusui)
+ *
+ * Target makan siang SD_4_6 (PCT=0.325):
+ *   energi      : round(1950×0.325, 1) = 633.8 kkal
+ *   protein     : round(52.5×0.325, 1) = 17.1 g
+ *   lemak       : round(65×0.325, 1)   = 21.1 g
+ *   karbohidrat : round(290×0.325, 1)  = 94.3 g
  *
  * Hasil yang diharapkan:
- *   Energi        : 560 kkal  (96,9% AKG)
- *   Protein       : 28 g      (200,0% AKG)
- *   Lemak         : 10 g      (52,6% AKG)
- *   Karbohidrat   : 80 g      (90,9% AKG)
+ *   Energi        : 560 kkal  (88,4% AKG SD_4_6)
+ *   Protein       : 28 g      (163,7% AKG SD_4_6)
+ *   Lemak         : 10 g      (47,4% AKG SD_4_6)
+ *   Karbohidrat   : 80 g      (84,8% AKG SD_4_6)
  *   Total biaya   : Rp 8.000
  *   Cost/porsi    : Rp 8.000
  *   Selisih       : Rp 7.000 (sisa dari anggaran)
@@ -109,7 +115,7 @@ class SimulasiKalkulasiTest extends TestCase
         }
     }
 
-    /** Payload default: 1 porsi, 2 bahan, tanggal 2026-05-08 */
+    /** Payload default: 1 porsi, 2 bahan, tanggal 2026-05-08, kelompok SD_4_6 */
     private function payload(array $overrides = []): array
     {
         return array_merge([
@@ -119,7 +125,7 @@ class SimulasiKalkulasiTest extends TestCase
             ],
             'jumlah_porsi' => 1,
             'tanggal'      => '2026-05-08',
-            'kelompok'     => 'sd4_ibu_menyusui',
+            'kelompok'     => 'SD_4_6',
         ], $overrides);
     }
 
@@ -197,20 +203,21 @@ class SimulasiKalkulasiTest extends TestCase
 
     public function test_kalkulasi_menghitung_persen_akg_dengan_benar(): void
     {
-        // AKG Makan Siang: energi=578, protein=14, lemak=19, karbo=88, serat=8, kalsium=350, besi=4, vit_c=16
-        // energi : round(560/578×100, 1) = 96.9%
-        // protein: round(28/14×100, 1)   = 200.0%
-        // lemak  : round(10/19×100, 1)   = 52.6%
-        // karbo  : round(80/88×100, 1)   = 90.9%
+        // Kelompok SD_4_6 → targetSajian('SD_4_6', 'siang') dengan PCT=0.325:
+        //   energi  : round(1950×0.325, 1) = 633.8 → 560/633.8×100 = 88.4%
+        //   protein : round(52.5×0.325, 1) = 17.1  → 28/17.1×100   = 163.7%
+        //   lemak   : round(65×0.325, 1)   = 21.1  → 10/21.1×100   = 47.4%
+        //   karbo   : round(290×0.325, 1)  = 94.3  → 80/94.3×100   = 84.8%
+        //   mikro (serat, kalsium, besi, vit_c): fallback ke MAKAN_SIANG, nilai 0 → 0%
         $persen = $this->actingAs($this->ahliGizi)
             ->postJson(route('simulasi.kalkulasi'), $this->payload())
             ->assertOk()
             ->json('persen_akg');
 
-        $this->assertEquals(96.9,  $persen['energi']);
-        $this->assertEquals(200.0, $persen['protein']);
-        $this->assertEquals(52.6,  $persen['lemak']);
-        $this->assertEquals(90.9,  $persen['karbohidrat']);
+        $this->assertEquals(88.4,  $persen['energi']);
+        $this->assertEquals(163.7, $persen['protein']);
+        $this->assertEquals(47.4,  $persen['lemak']);
+        $this->assertEquals(84.8,  $persen['karbohidrat']);
         $this->assertEquals(0.0,   $persen['serat']);
         $this->assertEquals(0.0,   $persen['kalsium']);
         $this->assertEquals(0.0,   $persen['besi']);
@@ -219,8 +226,9 @@ class SimulasiKalkulasiTest extends TestCase
 
     public function test_kalkulasi_gizi_skala_dengan_jumlah_sajian(): void
     {
-        // Jika sajian=10, gizi ikut ×10 (10 orang, per-orang tetap sama)
-        // energi total = 560 × 10 = 5600
+        // sajian=10 (batch untuk 10 orang), jumlah_porsi=10
+        // API mengembalikan gizi PER ORANG = total_batch / jumlah_porsi
+        // energi per orang = 560 kkal (sama seperti sajian=1, porsi=1)
         $gizi = $this->actingAs($this->ahliGizi)
             ->postJson(route('simulasi.kalkulasi'), $this->payload([
                 'bahans' => [
@@ -232,8 +240,8 @@ class SimulasiKalkulasiTest extends TestCase
             ->assertOk()
             ->json('gizi');
 
-        $this->assertEquals(5600.0, $gizi['energi']);
-        $this->assertEquals(280.0,  $gizi['protein']);
+        $this->assertEquals(560.0, $gizi['energi']);
+        $this->assertEquals(28.0,  $gizi['protein']);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -285,16 +293,18 @@ class SimulasiKalkulasiTest extends TestCase
         // Buat anggaran berbeda untuk balita_sd3 = Rp 12.000
         AnggaranPorsi::where('kelompok', 'balita_sd3')->update(['anggaran_per_porsi' => 12000]);
 
+        // Kelompok AKG 'SD_1_3' → toAnggaranKelompok('SD_1_3') = 'balita_sd3'
+        // Sehingga anggaran yang digunakan adalah 12.000 (balita_sd3)
         $biaya = $this->actingAs($this->ahliGizi)
             ->postJson(route('simulasi.kalkulasi'), $this->payload([
-                'kelompok' => 'balita_sd3',
+                'kelompok' => 'SD_1_3',
             ]))
             ->assertOk()
             ->json('biaya');
 
         $this->assertEquals(12000, $biaya['anggaran']);
         $this->assertEquals(8000,  $biaya['total']);
-        // selisih = 12000 - 8000 = 4000
+        // selisih = anggaran×porsi − total = 12000 − 8000 = 4000
         $this->assertEquals(4000, $biaya['selisih']);
     }
 

@@ -28,6 +28,7 @@
                             <th>Kelompok Penerima</th>
                             <th>Anggaran/Porsi</th>
                             <th>Berlaku Mulai</th>
+                            <th>Berlaku Sampai</th>
                             <th>Keterangan</th>
                             <th>Ditetapkan Oleh</th>
                         </tr>
@@ -50,6 +51,13 @@
                             </td>
                             <td class="fw-semibold">Rp {{ number_format($item->anggaran_per_porsi, 0, ',', '.') }}</td>
                             <td>{{ $item->berlaku_mulai->format('d/m/Y') }}</td>
+                            <td>
+                                @if($item->berlaku_sampai)
+                                    {{ $item->berlaku_sampai->format('d/m/Y') }}
+                                @else
+                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                @endif
+                            </td>
                             <td>{{ $item->keterangan ?? '-' }}</td>
                             <td>{{ $item->createdBy->name ?? '-' }}</td>
                         </tr>

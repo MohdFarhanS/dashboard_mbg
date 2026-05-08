@@ -96,14 +96,20 @@ Route::middleware('auth')->group(function () {
             Route::get('/detail/{menu}', [BiayaController::class, 'detailMenu'])->name('detail-menu');
             Route::post('/api/estimasi', [BiayaController::class, 'apiEstimasi'])->name('api.estimasi');
 
-            // Harga Bahan: ketua_sppg + akuntan
+            // Harga Bahan — view: ketua_sppg + akuntan; CUD: akuntan saja
             Route::prefix('harga')->name('harga.')->group(function () {
-                Route::get('/',             [BiayaController::class, 'indexHarga'])->name('index');
-                Route::get('/tambah',       [BiayaController::class, 'createHarga'])->name('create');
-                Route::post('/',            [BiayaController::class, 'storeHarga'])->name('store');
+                Route::get('/', [BiayaController::class, 'indexHarga'])->name('index');
+
+                // Tambah, simpan, dan hapus: akuntan saja
+                Route::middleware('role:akuntan')->group(function () {
+                    Route::get('/tambah',       [BiayaController::class, 'createHarga'])->name('create');
+                    Route::post('/',            [BiayaController::class, 'storeHarga'])->name('store');
+                    Route::delete('/{harga}',   [BiayaController::class, 'destroyHarga'])->name('destroy');
+                });
+
+                // Edit & update selalu redirect (tarif immutable)
                 Route::get('/{harga}/edit', [BiayaController::class, 'editHarga'])->name('edit');
                 Route::put('/{harga}',      [BiayaController::class, 'updateHarga'])->name('update');
-                Route::delete('/{harga}',   [BiayaController::class, 'destroyHarga'])->name('destroy');
             });
         });
 
