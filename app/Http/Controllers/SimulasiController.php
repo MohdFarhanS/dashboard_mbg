@@ -31,12 +31,19 @@ class SimulasiController extends Controller
             'bahans.*.porsi' => 'required|integer|min:1',
             'jumlah_porsi'   => 'required|integer|min:1',
             'tanggal'        => 'nullable|date',
-            'kelompok'       => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
+            'kelompok'       => 'nullable|string',
         ]);
+
+        $kelompok = $request->input('kelompok', 'SD_4_6');
+        if (!array_key_exists($kelompok, AKG::KELOMPOK)) {
+            $kelompok = 'SD_4_6';
+        }
+        $akgTarget = AKG::targetSajian($kelompok, 'siang');
 
         $jumlahPorsi = (int) $request->jumlah_porsi;
         $tanggal     = $request->tanggal ?? today()->toDateString();
 
+        // giziTotal akumulasi nilai batch (× sajian), dibagi jumlahPorsi di akhir → gizi per orang
         $giziTotal  = ['energi'=>0,'protein'=>0,'lemak'=>0,'karbohidrat'=>0,
                         'serat'=>0,'kalsium'=>0,'besi'=>0,'vit_c'=>0];
         $biayaTotal = 0;
@@ -51,11 +58,11 @@ class SimulasiController extends Controller
             $bdd   = ($b->bdd ?? 100) / 100;
             $faktor = ($gram * $bdd) / 100;
 
-            $giziItem = [];
+            $giziItemBatch = [];
             foreach (array_keys($giziTotal) as $k) {
-                $val            = $faktor * ($b->$k ?? 0) * $porsi;
-                $giziTotal[$k] += $val;
-                $giziItem[$k]   = $val;
+                $val                 = $faktor * ($b->$k ?? 0) * $porsi; // nilai batch
+                $giziTotal[$k]      += $val;
+                $giziItemBatch[$k]   = $val;
             }
 
             $hargaVal   = HargaBahan::hargaAktif($b->id, $tanggal);
@@ -70,7 +77,8 @@ class SimulasiController extends Controller
                 'gram'     => $gram,
                 'porsi'    => $porsi,
                 'bdd'      => $b->bdd,
-                'gizi'     => $giziItem,
+                // gizi per orang untuk tampilan detail tabel simulasi
+                'gizi'     => array_map(fn($v) => round($v / $jumlahPorsi, 2), $giziItemBatch),
                 'harga_per_100g' => $hargaVal,
                 'biaya'    => round($biayaItem, 0),
                 'ada_harga'=> $hargaVal > 0,
@@ -83,26 +91,27 @@ class SimulasiController extends Controller
             'balita_sd3'       => AnggaranPorsi::aktif($tanggal, 'balita_sd3'),
             'sd4_ibu_menyusui' => AnggaranPorsi::aktif($tanggal, 'sd4_ibu_menyusui'),
         ];
-        // Gunakan kelompok yang dipilih dari request, fallback ke sd4_ibu_menyusui
-        $kelompokDipilih = in_array($request->kelompok, array_keys($anggaranPerKelompok))
-            ? $request->kelompok
-            : 'sd4_ibu_menyusui';
-        $anggaran     = $anggaranPerKelompok[$kelompokDipilih];
+        $kelompokAnggaran = AKG::toAnggaranKelompok($kelompok);
+        $anggaran         = $anggaranPerKelompok[$kelompokAnggaran];
         $totalAngg    = $anggaran * $jumlahPorsi;
         $selisih      = $totalAngg - $biayaTotal;
         $persenAngg   = $totalAngg > 0
             ? round($biayaTotal / $totalAngg * 100, 1) : 0;
 
+        // persen_akg vs target 1 orang — bagi giziTotal dengan jumlahPorsi dulu
         $persenAkg = [];
         foreach (array_keys($giziTotal) as $k) {
-            $target        = AKG::MAKAN_SIANG[$k] ?? 1;
+            $giziPerOrang  = $jumlahPorsi > 0 ? $giziTotal[$k] / $jumlahPorsi : 0;
+            $target        = ($akgTarget[$k] ?? 0) > 0 ? $akgTarget[$k] : (AKG::MAKAN_SIANG[$k] ?? 1);
             $persenAkg[$k] = $target > 0
-                ? round($giziTotal[$k] / $target * 100, 1) : 0;
+                ? round($giziPerOrang / $target * 100, 1) : 0;
         }
 
         return response()->json([
-            'gizi'       => array_map(fn($v) => round($v, 2), $giziTotal),
+            // gizi per orang (per porsi) — bukan total batch
+            'gizi'       => array_map(fn($v) => round($v / $jumlahPorsi, 2), $giziTotal),
             'persen_akg' => $persenAkg,
+            'akg_target' => $akgTarget,
             'detail'     => $detail,
             'biaya'      => [
                 'total'                => round($biayaTotal, 0),
@@ -157,41 +166,53 @@ class SimulasiController extends Controller
     {
         // Route dilindungi middleware role:ahli_gizi
         $request->validate([
-            'tanggal'        => 'required|date',
-            'nama_menu'      => 'nullable|string|max:100',
-            'catatan'        => 'nullable|string|max:255',
-            'jumlah_porsi'   => 'required|integer|min:1',
-            'bahans'         => 'required|array|min:1',
-            'bahans.*.id'    => 'required|exists:bahan_pangans,id',
-            'bahans.*.gram'  => 'required|numeric|min:1',
-            'bahans.*.porsi' => 'required|integer|min:1',
-            'menu_id'        => 'nullable|integer|exists:menu_harians,id',
-            'kelompok'       => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
+            'tanggal'          => 'required|date',
+            'nama_menu'        => 'nullable|string|max:100',
+            'catatan'          => 'nullable|string|max:255',
+            'jumlah_porsi'     => 'required|integer|min:1',
+            'bahans'           => 'required|array|min:1',
+            'bahans.*.id'      => 'required|exists:bahan_pangans,id',
+            'bahans.*.gram'    => 'required|numeric|min:1',
+            'bahans.*.porsi'   => 'required|integer|min:1',
+            'menu_id'          => 'nullable|integer|exists:menu_harians,id',
+            'kelompok'         => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
+            'kelompok_sasaran' => 'nullable|string',
         ]);
 
-        $kelompok = $request->kelompok ?? 'sd4_ibu_menyusui';
+        $kelompokSasaran = $request->input('kelompok_sasaran', 'SD_4_6');
+        if (!array_key_exists($kelompokSasaran, AKG::KELOMPOK)) {
+            $kelompokSasaran = 'SD_4_6';
+        }
+
+        // Tentukan kelompok anggaran secara otomatis dari kelompok_sasaran
+        $kelompok = AKG::toAnggaranKelompok($kelompokSasaran);
 
         // ── Mode edit: perbarui menu yang sudah ada ─────────────────────────
         if ($request->filled('menu_id')) {
             $menu = MenuHarian::findOrFail($request->menu_id);
 
-            DB::transaction(function () use ($request, $menu, $kelompok) {
+            DB::transaction(function () use ($request, $menu, $kelompok, $kelompokSasaran) {
+                $tgl = $menu->tanggal->toDateString();
+
                 $menu->update([
                     'nama_menu'          => $request->nama_menu,
                     'catatan_anggaran'   => $request->catatan,
                     'jumlah_porsi'       => $request->jumlah_porsi,
                     'kelompok'           => $kelompok,
-                    'anggaran_per_porsi' => AnggaranPorsi::aktif($menu->tanggal->toDateString(), $kelompok),
+                    'kelompok_sasaran'   => $kelompokSasaran,
+                    'anggaran_per_porsi' => AnggaranPorsi::aktif($tgl, $kelompok),
                 ]);
 
                 $menu->detailBahans()->delete();
 
                 foreach ($request->bahans as $item) {
+                    $harga = HargaBahan::hargaAktif((int) $item['id'], $tgl);
                     MenuDetailBahan::create([
                         'menu_harian_id'  => $menu->id,
                         'bahan_pangan_id' => $item['id'],
                         'jumlah_gram'     => $item['gram'],
                         'jumlah_porsi'    => $item['porsi'],
+                        'harga_per_100g'  => $harga > 0 ? $harga : null,
                     ]);
                 }
             });
@@ -203,33 +224,39 @@ class SimulasiController extends Controller
         }
 
         // ── Mode tambah baru ─────────────────────────────────────────────────
-        $existing = MenuHarian::whereDate('tanggal', $request->tanggal)->first();
+        $existing = MenuHarian::whereDate('tanggal', $request->tanggal)
+            ->where('kelompok_sasaran', $kelompokSasaran)
+            ->first();
 
         if ($existing) {
             return response()->json([
-                'error'    => 'Menu untuk tanggal ini sudah ada. Silakan edit menu yang sudah ada.',
+                'error'    => 'Menu untuk tanggal dan kelompok ini sudah ada. Silakan edit menu yang sudah ada.',
                 'redirect' => route('simulasi.edit-simulasi', $existing),
             ], 422);
         }
 
-        DB::transaction(function () use ($request, $kelompok) {
+        DB::transaction(function () use ($request, $kelompok, $kelompokSasaran) {
+            $tgl  = $request->tanggal;
             $menu = MenuHarian::create([
-                'tanggal'            => $request->tanggal,
+                'tanggal'            => $tgl,
                 'nama_menu'          => $request->nama_menu,
                 'catatan_anggaran'   => $request->catatan,
                 'jumlah_porsi'       => $request->jumlah_porsi,
                 'kelompok'           => $kelompok,
-                'anggaran_per_porsi' => AnggaranPorsi::aktif($request->tanggal, $kelompok),
+                'kelompok_sasaran'   => $kelompokSasaran,
+                'anggaran_per_porsi' => AnggaranPorsi::aktif($tgl, $kelompok),
                 'status'             => 'draft',
                 'user_id'            => Auth::id(),
             ]);
 
             foreach ($request->bahans as $item) {
+                $harga = HargaBahan::hargaAktif((int) $item['id'], $tgl);
                 MenuDetailBahan::create([
                     'menu_harian_id'  => $menu->id,
                     'bahan_pangan_id' => $item['id'],
                     'jumlah_gram'     => $item['gram'],
                     'jumlah_porsi'    => $item['porsi'],
+                    'harga_per_100g'  => $harga > 0 ? $harga : null,
                 ]);
             }
         });

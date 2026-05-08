@@ -1,7 +1,7 @@
 {{-- resources/views/biaya/harga-form.blade.php --}}
 @extends('layouts.app')
 
-@section('title', isset($harga) ? 'Edit Harga Bahan' : 'Tambah Harga Bahan')
+@section('title', 'Tambah Tarif Harga Bahan')
 
 @section('content')
 <div class="container py-4" style="max-width:600px">
@@ -10,30 +10,31 @@
         <a href="{{ route('biaya.harga.index') }}" class="btn btn-sm btn-outline-secondary">
             <i class="fa fa-arrow-left"></i>
         </a>
-        <h4 class="fw-semibold mb-0">
-            {{ isset($harga) ? 'Edit Harga Bahan' : 'Tambah Harga Bahan' }}
-        </h4>
+        <h4 class="fw-semibold mb-0">Tambah Tarif Harga Bahan</h4>
+    </div>
+
+    <div class="alert alert-info d-flex align-items-start gap-2 mb-3 py-2" style="font-size:.875rem">
+        <i class="fas fa-info-circle mt-1 flex-shrink-0"></i>
+        <div>
+            Menambahkan tarif baru akan <strong>otomatis menutup</strong> tarif aktif sebelumnya untuk bahan yang sama
+            — berlaku sampai = tanggal sebelum tarif baru mulai berlaku.
+        </div>
     </div>
 
     <div class="card border-0 shadow-sm">
         <div class="card-body">
 
-            <form method="POST"
-                  action="{{ isset($harga)
-                             ? route('biaya.harga.update', $harga)
-                             : route('biaya.harga.store') }}">
+            <form method="POST" action="{{ route('biaya.harga.store') }}">
                 @csrf
-                @if(isset($harga)) @method('PUT') @endif
 
                 <div class="mb-3 position-relative">
                     <label class="form-label fw-medium">Bahan Pangan <span class="text-danger">*</span></label>
-                    <input type="hidden" name="bahan_pangan_id" id="bahan-pangan-id"
-                           value="{{ old('bahan_pangan_id', $harga->bahan_pangan_id ?? '') }}">
+                    <input type="hidden" name="bahan_pangan_id" id="bahan-pangan-id" value="{{ old('bahan_pangan_id') }}">
                     <input type="text" id="bahan-search"
                            class="form-control @error('bahan_pangan_id') is-invalid @enderror"
                            placeholder="Ketik nama bahan untuk mencari..."
                            autocomplete="off"
-                           value="{{ old('bahan_pangan_id') ? '' : ($harga->bahanPangan->nama_bahan ?? '') }}">
+                           value="">
                     <div id="bahan-dropdown"
                          class="list-group shadow-sm position-absolute w-100 z-3"
                          style="max-height:220px;overflow-y:auto;display:none;top:100%;left:0"></div>
@@ -45,7 +46,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-medium">Harga per kg (Rp) <span class="text-danger">*</span></label>
                     <input type="number" name="harga_per_kg" step="1" min="0"
-                           value="{{ old('harga_per_kg', isset($harga) ? $harga->harga_per_100g * 10 : '') }}"
+                           value="{{ old('harga_per_kg') }}"
                            class="form-control @error('harga_per_kg') is-invalid @enderror"
                            placeholder="Contoh: 15000"
                            required>
@@ -58,10 +59,10 @@
                 <div class="mb-3">
                     <label class="form-label fw-medium">Berlaku Mulai <span class="text-danger">*</span></label>
                     <input type="date" name="berlaku_mulai"
-                           value="{{ old('berlaku_mulai', isset($harga) ? $harga->berlaku_mulai->format('Y-m-d') : '') }}"
+                           value="{{ old('berlaku_mulai') }}"
                            class="form-control @error('berlaku_mulai') is-invalid @enderror"
                            required>
-                    <div class="form-text">Harga berlaku mulai tanggal ini hingga ditetapkan harga baru.</div>
+                    <div class="form-text">Tarif berlaku mulai tanggal ini hingga ditetapkan tarif baru.</div>
                     @error('berlaku_mulai')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -70,7 +71,7 @@
                 <div class="mb-4">
                     <label class="form-label fw-medium">Keterangan</label>
                     <input type="text" name="keterangan" maxlength="200"
-                           value="{{ old('keterangan', $harga->keterangan ?? '') }}"
+                           value="{{ old('keterangan') }}"
                            class="form-control @error('keterangan') is-invalid @enderror"
                            placeholder="Opsional...">
                     @error('keterangan')

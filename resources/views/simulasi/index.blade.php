@@ -82,19 +82,6 @@
         font-size:.8rem; font-weight:700; flex-shrink:0;
     }
 
-    /* Tier radio BGN */
-    .tier-label {
-        cursor: pointer;
-        font-size: .82rem;
-        transition: border-color .15s, background .15s;
-    }
-    .tier-label:hover { border-color: #7db8e8 !important; background: #f0f6ff; }
-    .tier-label.active {
-        border-color: var(--primary) !important;
-        background: #daeeff;
-        font-weight: 600;
-    }
-
     /* Stacked bar */
     .chart-bar-segment { height: 100%; transition: width .4s ease; }
     .chart-bar-segment:first-child { border-radius: 5px 0 0 5px; }
@@ -290,25 +277,20 @@
                             </span>
                         </div>
                         <div class="card-body pb-3">
-                            <div class="d-flex flex-column gap-1">
-                                <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
-                                       id="label-tier-balita">
-                                    <input type="radio" name="bgn-tier" value="balita_sd3"
-                                           class="form-check-input mt-0 flex-shrink-0">
-                                    <span>
-                                        <i class="fas fa-child me-1 text-primary"></i>
-                                        Balita s/d Kelas 3 SD
-                                    </span>
-                                </label>
-                                <label class="tier-label d-flex align-items-center gap-2 p-2 rounded border"
-                                       id="label-tier-sd4">
-                                    <input type="radio" name="bgn-tier" value="sd4_ibu_menyusui"
-                                           class="form-check-input mt-0 flex-shrink-0" checked>
-                                    <span>
-                                        <i class="fas fa-user-graduate me-1 text-success"></i>
-                                        Kelas 4 SD s/d Ibu Menyusui
-                                    </span>
-                                </label>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Grup Sasaran</label>
+                                <select id="select-grup" class="form-select form-select-sm">
+                                    @foreach(\App\Constants\AKG::cascadeOptions() as $grup => $keys)
+                                    <option value="{{ $grup }}">{{ $grup }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small fw-semibold">Kelompok Spesifik</label>
+                                <select id="select-kelompok" class="form-select form-select-sm">
+                                    {{-- Diisi oleh JavaScript --}}
+                                </select>
+                                <div class="form-text" id="label-akg-info"></div>
                             </div>
                         </div>
                     </div>
@@ -393,8 +375,10 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // DATA AKG (dari PHP)
 // ═══════════════════════════════════════════════════════════════════════════════
-const AKG_SIANG = @json(\App\Constants\AKG::MAKAN_SIANG);
-const AKG_LABEL = @json(\App\Constants\AKG::LABEL);
+const AKG_SIANG    = @json(\App\Constants\AKG::MAKAN_SIANG);
+const AKG_LABEL    = @json(\App\Constants\AKG::LABEL);
+const AKG_KELOMPOK = @json(\App\Constants\AKG::KELOMPOK);
+let   akgTarget    = null;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // STATE
@@ -533,14 +517,11 @@ document.getElementById('btn-hitung').addEventListener('click', async () => {
 
     if (!bahans.length) return;
 
-    const kelompokDipilih = document.querySelector('input[name="bgn-tier"]:checked')?.value
-        || 'sd4_ibu_menyusui';
-
     const payload = {
         bahans,
         jumlah_porsi : parseInt(document.getElementById('sim-porsi').value) || 1,
         tanggal      : document.getElementById('sim-tanggal').value,
-        kelompok     : kelompokDipilih,
+        kelompok     : getSelectedKelompok(),
         _token       : document.querySelector('meta[name="csrf-token"]')?.content
                         || '{{ csrf_token() }}',
     };
@@ -577,6 +558,8 @@ document.getElementById('btn-hitung').addEventListener('click', async () => {
 // RENDER HASIL
 // ═══════════════════════════════════════════════════════════════════════════════
 function renderHasil(data) {
+    akgTarget = data.akg_target || null;
+
     // Tampilkan panel
     document.getElementById('panel-placeholder').classList.add('d-none');
     document.getElementById('panel-hasil').classList.remove('d-none');
@@ -607,7 +590,7 @@ function renderGizi(gizi, persenAkg) {
                 </span>
                 <div class="d-flex align-items-center gap-1">
                     <span style="font-size:.78rem;color:#7a9280">
-                        ${(gizi[k]||0).toFixed(1)} / ${AKG_SIANG[k]} ${info.satuan}
+                        ${(gizi[k]||0).toFixed(1)} / ${akgTarget?.[k] ?? AKG_SIANG[k]} ${info.satuan}
                     </span>
                     <span class="badge badge-${cls}" style="font-size:.65rem">${pct}%</span>
                 </div>
@@ -637,9 +620,7 @@ function renderGizi(gizi, persenAkg) {
 }
 
 function renderBiaya(b) {
-    const checkedTier = document.querySelector('input[name="bgn-tier"]:checked');
-    document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
-    if (checkedTier) checkedTier.closest('.tier-label')?.classList.add('active');
+    // placeholder — data biaya tersedia di b jika dibutuhkan di masa depan
 }
 
 function renderDetail(detail) {
@@ -710,8 +691,8 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
         tanggal      : document.getElementById('sim-tanggal').value,
         nama_menu    : document.getElementById('sim-nama-menu').value,
         catatan      : document.getElementById('sim-catatan').value,
-        jumlah_porsi : parseInt(document.getElementById('sim-porsi').value) || 1,
-        kelompok     : document.querySelector('input[name="bgn-tier"]:checked')?.value || 'sd4_ibu_menyusui',
+        jumlah_porsi      : parseInt(document.getElementById('sim-porsi').value) || 1,
+        kelompok_sasaran  : getSelectedKelompok(),
         bahans,
         _token       : '{{ csrf_token() }}',
         @isset($menuHarian)
@@ -757,19 +738,71 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// KELOMPOK — re-render biaya saat radio berubah
+// CASCADING DROPDOWN KELOMPOK
 // ═══════════════════════════════════════════════════════════════════════════════
-document.querySelectorAll('input[name="bgn-tier"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-        document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
-        radio.closest('.tier-label')?.classList.add('active');
-    });
+const cascadeOptions = @json(\App\Constants\AKG::cascadeOptions());
+const kelompokAll    = @json(\App\Constants\AKG::KELOMPOK);
+
+function populateSubGrup(grupName) {
+    const keys = cascadeOptions[grupName] || [];
+    const sel  = document.getElementById('select-kelompok');
+    sel.innerHTML = keys.map(k =>
+        `<option value="${k}">${kelompokAll[k]?.label ?? k}</option>`
+    ).join('');
+    updateAkgInfo();
+    rerenderGiziForKelompok();
+}
+
+function updateAkgInfo() {
+    const key    = document.getElementById('select-kelompok').value;
+    const data   = kelompokAll[key];
+    const infoEl = document.getElementById('label-akg-info');
+    if (data && infoEl) {
+        const e = (data.energi * 0.325).toFixed(0);
+        const p = (data.protein * 0.325).toFixed(1);
+        infoEl.textContent = `Target makan siang: ${e} kkal · ${p}g protein`;
+    }
+}
+
+function rerenderGiziForKelompok() {
+    if (!hasilKalkulasi) return;
+
+    const key  = getSelectedKelompok();
+    const data = kelompokAll[key];
+    if (!data) return;
+
+    const pct = 0.325;
+    akgTarget = {
+        energi      : data.energi      * pct,
+        protein     : data.protein     * pct,
+        lemak       : data.lemak       * pct,
+        karbohidrat : data.karbohidrat * pct,
+    };
+
+    const gizi     = hasilKalkulasi.gizi;
+    const persenAkg = {};
+    for (const k of Object.keys(gizi)) {
+        const t    = (akgTarget[k] ?? 0) > 0 ? akgTarget[k] : (AKG_SIANG[k] ?? 1);
+        persenAkg[k] = t > 0 ? Math.round(gizi[k] / t * 1000) / 10 : 0;
+    }
+
+    renderGizi(gizi, persenAkg);
+}
+
+document.getElementById('select-grup').addEventListener('change', function () {
+    populateSubGrup(this.value);
+});
+document.getElementById('select-kelompok').addEventListener('change', () => {
+    updateAkgInfo();
+    rerenderGiziForKelompok();
 });
 
-// Set label aktif awal (sd4_ibu_menyusui checked by default)
-document.querySelectorAll('.tier-label').forEach(el => {
-    if (el.querySelector('input[name="bgn-tier"]')?.checked) el.classList.add('active');
-});
+// Inisialisasi dropdown pertama kali
+populateSubGrup(Object.keys(cascadeOptions)[0]);
+
+function getSelectedKelompok() {
+    return document.getElementById('select-kelompok').value || 'SD_4_6';
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PRE-FILL (mode edit — hanya dijalankan jika $menuHarian tersedia)
@@ -777,12 +810,15 @@ document.querySelectorAll('.tier-label').forEach(el => {
 @isset($menuHarian)
 document.addEventListener('DOMContentLoaded', () => {
     // Pre-select kelompok sesuai menu yang diedit
-    const kelompokMenu = '{{ $menuHarian->kelompok ?? 'sd4_ibu_menyusui' }}';
-    const radioKelompok = document.querySelector(`input[name="bgn-tier"][value="${kelompokMenu}"]`);
-    if (radioKelompok) {
-        radioKelompok.checked = true;
-        document.querySelectorAll('.tier-label').forEach(el => el.classList.remove('active'));
-        radioKelompok.closest('.tier-label')?.classList.add('active');
+    const kelompokMenu = '{{ $menuHarian->kelompok_sasaran ?? 'SD_4_6' }}';
+    for (const [grup, keys] of Object.entries(cascadeOptions)) {
+        if (keys.includes(kelompokMenu)) {
+            document.getElementById('select-grup').value = grup;
+            populateSubGrup(grup);
+            document.getElementById('select-kelompok').value = kelompokMenu;
+            updateAkgInfo();
+            break;
+        }
     }
 
     const bahansEdit = @json($existingBahans);

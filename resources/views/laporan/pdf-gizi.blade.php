@@ -70,10 +70,10 @@
 </div>
 
 @php
-    $akgRef    = \App\Constants\AKG::MAKAN_SIANG;
-    $totalMenu = $menus->count();
-    $pctEnergi = $akgRef['energi'] > 0
-        ? round($rataGizi['energi'] / $akgRef['energi'] * 100) : 0;
+    $akgRataRef = \App\Constants\AKG::MAKAN_SIANG; // untuk rata-rata lintas kelompok
+    $totalMenu  = $menus->count();
+    $pctEnergi  = $akgRataRef['energi'] > 0
+        ? round($rataGizi['energi'] / $akgRataRef['energi'] * 100) : 0;
 @endphp
 
 <table class="main">
@@ -81,6 +81,7 @@
         <tr>
             <th>No</th>
             <th>Tanggal</th>
+            <th>Kelompok</th>
             <th>Nama Menu</th>
             <th>Energi (kkal)</th>
             <th>% AKG</th>
@@ -94,14 +95,18 @@
     <tbody>
         @forelse($menus as $i => $menu)
         @php
-            $g   = $menu->totalGizi();
-            $pct = $akgRef['energi'] > 0 ? round($g['energi'] / $akgRef['energi'] * 100) : 0;
-            $cls = $pct < 70 ? 'kurang' : ($pct > 130 ? 'lebih' : 'cukup');
-            $lbl = $cls === 'kurang' ? 'Kurang' : ($cls === 'lebih' ? 'Lebih' : 'Cukup');
+            $g       = $menu->totalGizi();
+            $ks      = $menu->kelompok_sasaran ?? 'SD_4_6';
+            $ksLabel = \App\Constants\AKG::KELOMPOK[$ks]['label'] ?? $ks;
+            $akgRef  = array_merge(\App\Constants\AKG::MAKAN_SIANG, $menu->akgTarget('siang'));
+            $pct     = $akgRef['energi'] > 0 ? round($g['energi'] / $akgRef['energi'] * 100) : 0;
+            $cls     = $pct < 70 ? 'kurang' : ($pct > 130 ? 'lebih' : 'cukup');
+            $lbl     = $cls === 'kurang' ? 'Kurang' : ($cls === 'lebih' ? 'Lebih' : 'Cukup');
         @endphp
         <tr>
             <td style="text-align:center">{{ $i + 1 }}</td>
             <td style="text-align:center">{{ $menu->tanggal->format('d/m/Y') }}</td>
+            <td style="font-size:7.5pt">{{ $ksLabel }}</td>
             <td>{{ $menu->nama_menu ?? '-' }}</td>
             <td style="text-align:right">{{ number_format($g['energi'], 1) }}</td>
             <td style="text-align:center">{{ $pct }}%</td>
@@ -112,13 +117,13 @@
             <td style="text-align:center"><span class="badge-{{ $cls }}">{{ $lbl }}</span></td>
         </tr>
         @empty
-        <tr><td colspan="10" style="text-align:center;color:#aaa;padding:12px">Tidak ada data</td></tr>
+        <tr><td colspan="11" style="text-align:center;color:#aaa;padding:12px">Tidak ada data</td></tr>
         @endforelse
     </tbody>
     @if($totalMenu)
     <tfoot>
         <tr>
-            <td colspan="3" style="text-align:right">Rata-rata</td>
+            <td colspan="4" style="text-align:right">Rata-rata per Porsi</td>
             <td style="text-align:right">{{ number_format($rataGizi['energi'], 1) }}</td>
             <td style="text-align:center">{{ $pctEnergi }}%</td>
             <td style="text-align:right">{{ number_format($rataGizi['protein'], 1) }}</td>

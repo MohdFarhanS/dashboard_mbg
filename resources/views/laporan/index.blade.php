@@ -159,6 +159,7 @@
                         <tr>
                             <th class="ps-3">No</th>
                             <th>Tanggal</th>
+                            <th>Kelompok</th>
                             <th>Nama Menu</th>
                             <th class="text-end">Porsi</th>
                             <th class="text-end">Total Bahan</th>
@@ -173,10 +174,17 @@
                         @php
                             $b      = $menu->totalBiaya();
                             $status = $menu->statusAnggaran();
+                            $ks     = $menu->kelompok_sasaran ?? 'SD_4_6';
+                            $ksLabel = \App\Constants\AKG::KELOMPOK[$ks]['label'] ?? $ks;
                         @endphp
                         <tr>
                             <td class="ps-3 text-muted small">{{ $i + 1 }}</td>
                             <td>{{ $menu->tanggal->format('d/m/Y') }}</td>
+                            <td>
+                                <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.7rem">
+                                    {{ Str::limit($ksLabel, 22) }}
+                                </span>
+                            </td>
                             <td>{{ $menu->nama_menu ?? '-' }}</td>
                             <td class="text-end">{{ number_format($menu->jumlah_porsi ?? 1) }}</td>
                             <td class="text-end">Rp {{ number_format($b['total_seluruh'], 0, ',', '.') }}</td>
@@ -213,7 +221,7 @@
                     @if($menus->count())
                     <tfoot style="background:var(--primary-pale)">
                         <tr class="fw-semibold">
-                            <td class="ps-3" colspan="5">Total</td>
+                            <td class="ps-3" colspan="6">Total</td>
                             <td class="text-end">Rp {{ number_format($totalBiaya, 0, ',', '.') }}</td>
                             <td class="text-end">Rp {{ number_format($rataCost, 0, ',', '.') }}</td>
                             <td colspan="3"></td>
@@ -224,12 +232,12 @@
 
                 @else
                 {{-- ═══ TABEL GIZI ═══ --}}
-                @php $akgRef = \App\Constants\AKG::MAKAN_SIANG; @endphp
                 <table class="table table-sm table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-3">No</th>
                             <th>Tanggal</th>
+                            <th>Kelompok</th>
                             <th>Nama Menu</th>
                             <th class="text-end">Energi (kkal)</th>
                             <th class="text-end">% AKG</th>
@@ -242,14 +250,22 @@
                     <tbody>
                         @forelse($menus as $i => $menu)
                         @php
-                            $g   = $menu->totalGizi();
-                            $pct = $akgRef['energi'] > 0
+                            $g      = $menu->totalGizi();
+                            $ks     = $menu->kelompok_sasaran ?? 'SD_4_6';
+                            $ksLabel = \App\Constants\AKG::KELOMPOK[$ks]['label'] ?? $ks;
+                            $akgRef = array_merge(\App\Constants\AKG::MAKAN_SIANG, $menu->akgTarget('siang'));
+                            $pct    = $akgRef['energi'] > 0
                                 ? round($g['energi'] / $akgRef['energi'] * 100) : 0;
-                            $cls = $pct < 70 ? 'kurang' : ($pct > 130 ? 'lebih' : 'cukup');
+                            $cls    = $pct < 70 ? 'kurang' : ($pct > 130 ? 'lebih' : 'cukup');
                         @endphp
                         <tr>
                             <td class="ps-3 text-muted small">{{ $i + 1 }}</td>
                             <td>{{ $menu->tanggal->format('d/m/Y') }}</td>
+                            <td>
+                                <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.7rem">
+                                    {{ Str::limit($ksLabel, 22) }}
+                                </span>
+                            </td>
                             <td>{{ $menu->nama_menu ?? '-' }}</td>
                             <td class="text-end fw-semibold" style="color:var(--primary)">
                                 {{ number_format($g['energi'], 1) }}
@@ -283,7 +299,7 @@
                     @if($menus->count())
                     <tfoot style="background:var(--primary-pale)">
                         <tr class="fw-semibold">
-                            <td class="ps-3" colspan="4">Rata-rata</td>
+                            <td class="ps-3" colspan="5">Rata-rata</td>
                             <td class="text-end" style="color:var(--primary)">
                                 {{ number_format($rataGizi['energi'], 1) }} kkal
                             </td>

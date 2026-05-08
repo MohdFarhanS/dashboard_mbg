@@ -11,6 +11,7 @@ class MenuHarian extends Model
     protected $fillable = [
         'tanggal', 'user_id', 'nama_menu', 'status', 'kelompok',
         'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
+        'kelompok_sasaran',
     ];
 
     protected $casts = ['tanggal' => 'date'];
@@ -33,12 +34,16 @@ class MenuHarian extends Model
         foreach ($this->detailBahans as $detail) {
             $b = $detail->bahanPangan;
             if (!$b) continue;
-            $faktor = ($detail->jumlah_gram * (($b->bdd ?? 100) / 100)) / 100 * $detail->jumlah_porsi; // ← tambah × jumlah_porsi
+            // jumlah_porsi per bahan = total sajian batch (= menu.jumlah_porsi untuk bahan yg disajikan ke semua orang)
+            $faktor = ($detail->jumlah_gram * (($b->bdd ?? 100) / 100)) / 100 * $detail->jumlah_porsi;
             foreach ($keys as $k) {
-                $total[$k] += round($faktor * ($b->$k ?? 0), 2);
+                $total[$k] += $faktor * ($b->$k ?? 0);
             }
         }
-        return $total;
+
+        // Bagi dengan jumlah_porsi untuk mendapatkan gizi PER ORANG (per porsi)
+        $jumlahPorsi = max((int) $this->jumlah_porsi, 1);
+        return array_map(fn($v) => round($v / $jumlahPorsi, 2), $total);
     }
 
     /**
@@ -54,10 +59,11 @@ class MenuHarian extends Model
             $b = $d->bahanPangan;
             if (!$b) continue;
 
-            $hargaPer100g = \App\Models\HargaBahan::hargaAktif(
-                $b->id,
-                $this->tanggal->toDateString()  // harga pada tanggal menu, bukan hari ini
-            );
+            // Menu final: pakai snapshot harga yang dikunci saat finalisasi.
+            // Menu draft atau snapshot belum ada: hitung ulang dari HargaBahan.
+            $hargaPer100g = ($this->status === 'final' && $d->harga_per_100g !== null)
+                ? (float) $d->harga_per_100g
+                : \App\Models\HargaBahan::hargaAktif($b->id, $this->tanggal->toDateString());
 
             $biaya = ($d->jumlah_gram / 100) * $hargaPer100g * $d->jumlah_porsi; // ← tambah × jumlah_porsi
             $totalBiayaSeluruh += $biaya;
@@ -72,7 +78,11 @@ class MenuHarian extends Model
 
         $jumlahPorsi = max($this->jumlah_porsi, 1);
 
-        $anggaran = \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString(), $this->kelompok);
+        // Menu final: pakai snapshot anggaran yang dikunci saat finalisasi.
+        // Menu draft: hitung ulang dari AnggaranPorsi agar selalu pakai tarif terkini.
+        $anggaran = ($this->status === 'final' && $this->anggaran_per_porsi > 0)
+            ? (float) $this->anggaran_per_porsi
+            : \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString(), $this->kelompok);
 
         return [
             'total_seluruh'   => round($totalBiayaSeluruh, 0),
@@ -97,6 +107,9 @@ class MenuHarian extends Model
      */
     public function anggaranAktif(): float
     {
+        if ($this->status === 'final' && $this->anggaran_per_porsi > 0) {
+            return (float) $this->anggaran_per_porsi;
+        }
         return (float) \App\Models\AnggaranPorsi::aktif($this->tanggal->toDateString(), $this->kelompok);
     }
 
@@ -128,5 +141,32 @@ class MenuHarian extends Model
     public function persenAnggaran(): float
     {
         return (float) $this->totalBiaya()['persen_anggaran'];
+    }
+
+    public function akgTarget(string $mealType = 'siang'): array
+    {
+        return \App\Constants\AKG::targetSajian(
+            $this->kelompok_sasaran ?? 'SD_4_6',
+            $mealType
+        );
+    }
+
+    public function evaluasiGizi(string $mealType = 'siang'): array
+    {
+        $gizi   = $this->totalGizi();
+        $target = $this->akgTarget($mealType);
+        $result = [];
+        foreach (['energi', 'protein', 'lemak', 'karbohidrat'] as $k) {
+            $pct = $target[$k] > 0
+                ? round(($gizi[$k] ?? 0) / $target[$k] * 100, 1)
+                : 0;
+            $result[$k] = [
+                'pct'    => $pct,
+                'aktual' => $gizi[$k] ?? 0,
+                'target' => $target[$k],
+                'status' => $pct < 80 ? 'kurang' : ($pct > 120 ? 'lebih' : 'cukup'),
+            ];
+        }
+        return $result;
     }
 }

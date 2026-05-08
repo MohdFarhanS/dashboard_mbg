@@ -18,13 +18,23 @@
             </h4>
         </div>
     
-        <!-- Kanan: tombol tambah -->
+        <!-- Kanan: tombol tambah — hanya akuntan -->
         @if(Auth::user()->isAkuntan())
         <a href="{{ route('biaya.harga.create') }}" class="btn btn-primary btn-sm">
-            <i class="fa fa-plus me-1"></i>Tambah Harga
+            <i class="fa fa-plus me-1"></i>Tambah Tarif Baru
         </a>
         @endif
     </div>
+
+    @foreach(['success','info','error'] as $level)
+    @if(session($level))
+    <div class="alert alert-{{ $level === 'error' ? 'danger' : $level }} alert-dismissible fade show mb-3">
+        <i class="fas fa-{{ $level === 'success' ? 'check-circle' : ($level === 'info' ? 'info-circle' : 'exclamation-circle') }} me-2"></i>
+        {{ session($level) }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+    @endforeach
 
     {{-- Search --}}
     <form method="GET" class="mb-3 d-flex gap-2">
@@ -49,6 +59,7 @@
                             <th class="text-end">Harga / kg</th>
                             <th class="text-end">Harga / gram</th>
                             <th>Berlaku Mulai</th>
+                            <th>Berlaku Sampai</th>
                             <th>Keterangan</th>
                             <th class="text-center">Aksi</th>
                         </tr>
@@ -60,26 +71,32 @@
                             <td class="text-end">Rp {{ number_format($h->harga_per_100g * 10, 0, ',', '.') }}</td>
                             <td class="text-end text-muted small">Rp {{ number_format($h->harga_per_100g / 100, 2, ',', '.') }}</td>
                             <td>{{ $h->berlaku_mulai->format('d/m/Y') }}</td>
+                            <td>
+                                @if($h->berlaku_sampai)
+                                    {{ $h->berlaku_sampai->format('d/m/Y') }}
+                                @else
+                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                @endif
+                            </td>
                             <td class="text-muted small">{{ $h->keterangan ?? '—' }}</td>
                             <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ route('biaya.harga.edit', $h) }}"
-                                       class="btn btn-sm btn-outline-primary py-0 px-2">
-                                        <i class="fa fa-pencil"></i>
-                                    </a>
-                                    <form method="POST" action="{{ route('biaya.harga.destroy', $h) }}"
-                                          onsubmit="return confirm('Hapus data harga ini?')">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger py-0 px-2">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                                @if(Auth::user()->isAkuntan())
+                                <form method="POST" action="{{ route('biaya.harga.destroy', $h) }}"
+                                      onsubmit="return confirm('{{ $h->berlaku_sampai === null
+                                          ? 'Hapus tarif aktif ini? Tarif sebelumnya akan diaktifkan kembali secara otomatis.'
+                                          : 'Hapus data tarif historis ini?' }}')">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2"
+                                            title="{{ $h->berlaku_sampai === null ? 'Hapus — tarif sebelumnya aktif kembali' : 'Hapus tarif historis' }}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 Belum ada data harga bahan.
                             </td>
                         </tr>

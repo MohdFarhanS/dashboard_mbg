@@ -276,8 +276,9 @@
                                 $g      = $menu->totalGizi();
                                 $b      = $menu->totalBiaya();
                                 $status = $menu->statusAnggaran();
-                                $pctAkg = \App\Constants\AKG::MAKAN_SIANG['energi'] > 0
-                                    ? round($g['energi'] / \App\Constants\AKG::MAKAN_SIANG['energi'] * 100)
+                                $akgMenu = array_merge(\App\Constants\AKG::MAKAN_SIANG, $menu->akgTarget('siang'));
+                                $pctAkg = $akgMenu['energi'] > 0
+                                    ? round($g['energi'] / $akgMenu['energi'] * 100)
                                     : 0;
                                 $clsAkg = $pctAkg < 70 ? 'kurang' : ($pctAkg > 130 ? 'lebih' : 'cukup');
                             @endphp

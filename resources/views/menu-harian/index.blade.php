@@ -54,6 +54,17 @@
                         <option value="final" {{ request('status')=='final'?'selected':'' }}>Final</option>
                     </select>
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Kelompok</label>
+                    <select name="kelompok_sasaran" class="form-select">
+                        <option value="">Semua Kelompok</option>
+                        @foreach(\App\Constants\AKG::KELOMPOK as $key => $data)
+                        <option value="{{ $key }}" {{ request('kelompok_sasaran')===$key?'selected':'' }}>
+                            {{ $data['label'] }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-primary"
                             style="background:var(--primary);border-color:var(--primary)">
@@ -97,15 +108,14 @@
                             </td>
                             <td>{{ $menu->nama_menu ?? '-' }}</td>
                             <td>
-                                @if($menu->kelompok === 'balita_sd3')
-                                    <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.72rem">
-                                        <i class="fas fa-child me-1"></i>Balita s/d Kls 3 SD
-                                    </span>
-                                @else
-                                    <span class="badge" style="background:#d1f0e0;color:#1a6640;font-size:.72rem">
-                                        <i class="fas fa-user-graduate me-1"></i>Kls 4 SD s/d Ibu Menyusui
-                                    </span>
-                                @endif
+                                @php
+                                    $ks = $menu->kelompok_sasaran ?? 'SD_4_6';
+                                    $ksLabel = \App\Constants\AKG::KELOMPOK[$ks]['label'] ?? $ks;
+                                @endphp
+                                <span class="badge" style="background:#daeeff;color:#0f4c81;font-size:.72rem"
+                                      title="{{ $ksLabel }}">
+                                    {{ Str::limit($ksLabel, 22) }}
+                                </span>
                             </td>
                             <td class="text-muted">{{ $menu->detailBahans->count() }} bahan</td>
                             <td>

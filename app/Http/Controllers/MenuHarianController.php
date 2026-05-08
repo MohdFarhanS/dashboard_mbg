@@ -22,6 +22,10 @@ class MenuHarianController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('kelompok_sasaran')) {
+            $query->where('kelompok_sasaran', $request->kelompok_sasaran);
+        }
+
         $menus = $query->paginate(15)->withQueryString();
 
         return view('menu-harian.index', compact('menus'));
@@ -142,7 +146,21 @@ class MenuHarianController extends Controller
                 ->with('error', 'Menu sudah berstatus final.');
         }
 
-        $menuHarian->update(['status' => 'final']);
+        $tgl = $menuHarian->tanggal->toDateString();
+
+        $menuHarian->update([
+            'status'             => 'final',
+            'anggaran_per_porsi' => \App\Models\AnggaranPorsi::aktif($tgl, $menuHarian->kelompok),
+        ]);
+
+        // Kunci harga tiap bahan pada tanggal menu — snapshot agar tidak berubah
+        // jika tarif harga bahan diperbarui di kemudian hari
+        foreach ($menuHarian->detailBahans as $detail) {
+            if ($detail->harga_per_100g === null) {
+                $harga = \App\Models\HargaBahan::hargaAktif($detail->bahan_pangan_id, $tgl);
+                $detail->update(['harga_per_100g' => $harga > 0 ? $harga : null]);
+            }
+        }
 
         return redirect()->route('menu-harian.show', $menuHarian)
             ->with('success', 'Menu berhasil difinalisasi.');

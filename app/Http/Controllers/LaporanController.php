@@ -70,8 +70,10 @@ class LaporanController extends Controller
 
         if ($jenis === 'biaya') {
             $rows = $menus->map(function ($menu, $i) {
-                $b      = $menu->totalBiaya();
-                $status = match($menu->statusAnggaran()) {
+                $b        = $menu->totalBiaya();
+                $ks       = $menu->kelompok_sasaran ?? 'SD_4_6';
+                $ksLabel  = AKG::KELOMPOK[$ks]['label'] ?? $ks;
+                $status   = match($menu->statusAnggaran()) {
                     'over'    => 'Over Budget',
                     'warning' => 'Mendekati Batas',
                     'aman'    => 'Aman',
@@ -80,6 +82,7 @@ class LaporanController extends Controller
                 return [
                     'No'                  => $i + 1,
                     'Tanggal'             => $menu->tanggal->format('d/m/Y'),
+                    'Kelompok'            => $ksLabel,
                     'Nama Menu'           => $menu->nama_menu ?? '-',
                     'Jumlah Porsi'        => $menu->jumlah_porsi ?? 1,
                     'Total Biaya (Rp)'    => round($b['total_seluruh']),
@@ -91,12 +94,15 @@ class LaporanController extends Controller
                 ];
             });
         } else {
-            $akgRef = \App\Constants\AKG::MAKAN_SIANG;
-            $rows = $menus->map(function ($menu, $i) use ($akgRef) {
-                $g = $menu->totalGizi();
+            $rows = $menus->map(function ($menu, $i) {
+                $g        = $menu->totalGizi();
+                $ks       = $menu->kelompok_sasaran ?? 'SD_4_6';
+                $ksLabel  = AKG::KELOMPOK[$ks]['label'] ?? $ks;
+                $akgRef   = array_merge(AKG::MAKAN_SIANG, $menu->akgTarget('siang'));
                 return [
                     'No'              => $i + 1,
                     'Tanggal'         => $menu->tanggal->format('d/m/Y'),
+                    'Kelompok'        => $ksLabel,
                     'Nama Menu'       => $menu->nama_menu ?? '-',
                     'Energi (kkal)'   => round($g['energi'], 1),
                     '% AKG Energi'    => round($g['energi'] / $akgRef['energi'] * 100) . '%',
