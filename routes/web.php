@@ -12,8 +12,12 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ImportTkpiController;
 use App\Http\Controllers\BudgetAlertController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\PesanMasukController;
 
-Route::get('/', fn() => redirect()->route('login'));
+// ── Halaman publik ────────────────────────────────────────────────────────────
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::post('/pesan', [LandingController::class, 'kirimPesan'])->name('landing.kirim-pesan');
 
 Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -112,6 +116,11 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{harga}',      [BiayaController::class, 'updateHarga'])->name('update');
             });
         });
+
+        // ── Pesan Masuk: ketua_sppg saja ─────────────────────────────────────
+        Route::middleware('role:ketua_sppg')
+             ->get('/pesan-masuk', [PesanMasukController::class, 'index'])
+             ->name('pesan-masuk.index');
 
         // ── Anggaran Porsi: ketua_sppg saja ──────────────────────────────────
         Route::middleware('role:ketua_sppg')->prefix('anggaran')->name('anggaran.')->group(function () {
