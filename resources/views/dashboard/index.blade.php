@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard — MBG')
+@section('title', 'Dashboard — SPPG')
 @section('page-title', 'Dashboard')
 
 @push('styles')

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard MBG')</title>
+    <title>@yield('title', 'Dashboard SPPG')</title>
 
     {{-- Bootstrap 5 --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -229,7 +229,7 @@
 
     {{-- FOOTER --}}
     <footer class="text-center py-3" style="font-size:.75rem; color:#adb5bd;">
-        &copy; {{ date('Y') }} Dashboard MBG — SPPG Monitoring System
+        &copy; {{ date('Y') }} Dashboard SPPG — Monitoring System
     </footer>
 </div>
 

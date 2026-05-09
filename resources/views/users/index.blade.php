@@ -8,7 +8,7 @@
             <h4 class="fw-bold mb-0" style="color:var(--primary)">
                 <i class="fas fa-users me-2"></i>Manajemen User
             </h4>
-            <small class="text-muted">Kelola akses pengguna sistem Dashboard MBG</small>
+            <small class="text-muted">Kelola akses pengguna sistem Dashboard SPPG</small>
         </div>
         <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i>Tambah User

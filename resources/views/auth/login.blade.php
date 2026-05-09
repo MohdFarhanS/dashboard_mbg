@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Dashboard MBG</title>
+    <title>Login — Dashboard SPPG</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -64,7 +64,7 @@
             <div class="card login-card">
                 <div class="login-header">
                     <img src="{{ asset('images/logo_bgn.png') }}" alt="Logo" width="120">
-                    <h4 class="fw-bold mb-1">Dashboard MBG</h4>
+                    <h4 class="fw-bold mb-1">Dashboard SPPG</h4>
                     <small class="opacity-75">Monitoring Gizi & Biaya Produksi</small>
                 </div>
                 <div class="card-body p-4">

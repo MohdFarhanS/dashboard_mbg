@@ -2,7 +2,7 @@
     {{-- Brand --}}
     <div class="sidebar-brand" style="flex-shrink:0;">
         <img src="{{ asset('images/logo_bgn.png') }}" alt="Logo" width="100">
-        <h5>Dashboard MBG</h5>
+        <h5>Dashboard SPPG</h5>
         <small>Monitoring Gizi & Biaya Produksi</small>
     </div>
 

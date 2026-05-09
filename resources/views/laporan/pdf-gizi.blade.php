@@ -144,7 +144,7 @@
 </div>
 
 <div class="footer">
-    Dicetak oleh sistem Dashboard MBG — {{ now()->format('d/m/Y H:i') }}
+    Dicetak oleh sistem Dashboard SPPG — {{ now()->format('d/m/Y H:i') }}
 </div>
 
 </body>
