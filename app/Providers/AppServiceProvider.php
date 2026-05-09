@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use App\Models\MenuHarian;
+use App\Models\PesanMasuk;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -59,6 +60,13 @@ class AppServiceProvider extends ServiceProvider
         
             $view->with('navAlertCount', $totalAlert);
             $view->with('navAlerts', array_slice($navAlerts, 0, 5));
+
+            // Jumlah pesan masuk yang belum dibaca (hanya untuk ketua_sppg)
+            $pesanMasukCount = 0;
+            if ($user->isKetuaSppg() && Schema::hasTable('pesan_masuks')) {
+                $pesanMasukCount = PesanMasuk::unread()->count();
+            }
+            $view->with('pesanMasukCount', $pesanMasukCount);
         });
     }
 }

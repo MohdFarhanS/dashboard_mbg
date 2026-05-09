@@ -78,6 +78,17 @@
                 <i class="fas fa-chart-bar"></i> Laporan Gizi & Biaya
             </a>
 
+            <div class="nav-section">Publik</div>
+            <a href="{{ route('pesan-masuk.index') }}"
+               class="nav-link {{ request()->routeIs('pesan-masuk.*') ? 'active' : '' }}">
+                <i class="fas fa-envelope"></i> Pesan Masuk
+                @if(isset($pesanMasukCount) && $pesanMasukCount > 0)
+                <span class="badge ms-auto" style="background:rgba(0,113,228,.85); font-size:.65rem;">
+                    {{ $pesanMasukCount }}
+                </span>
+                @endif
+            </a>
+
         {{-- ── Ahli Gizi ─────────────────────────────────────────────── --}}
         @elseif($role === 'ahli_gizi')
             <div class="nav-section">Menu Utama</div>
