@@ -307,10 +307,14 @@
                                 @endisset
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold">Catatan <span class="text-muted fw-normal">(opsional)</span></label>
+                                <label class="form-label small fw-semibold">
+                                    Kelompok Penerima <span class="text-danger">*</span>
+                                </label>
                                 <input type="text" id="sim-catatan" class="form-control form-control-sm"
-                                       placeholder="cth. Untuk siswa SD Negeri 01"
+                                       placeholder="cth. SD Negeri 01 Kelas 5A"
                                        value="{{ isset($menuHarian) ? ($menuHarian->catatan_anggaran ?? '') : '' }}">
+                                <div class="invalid-feedback">Kelompok penerima wajib diisi.</div>
+                                <div class="form-text">Tulis nama sekolah/kelompok penerima menu ini.</div>
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="button" id="btn-simpan" class="btn btn-primary flex-fill"
@@ -674,8 +678,19 @@ function renderDetail(detail) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIMPAN KE MENU HARIAN
 // ═══════════════════════════════════════════════════════════════════════════════
+const isEditMode = {{ isset($menuHarian) ? 'true' : 'false' }};
+
 document.getElementById('btn-simpan').addEventListener('click', async () => {
     if (!hasilKalkulasi) return;
+
+    // Validasi kelompok penerima
+    const catatanEl = document.getElementById('sim-catatan');
+    if (!catatanEl.value.trim()) {
+        catatanEl.classList.add('is-invalid');
+        catatanEl.focus();
+        return;
+    }
+    catatanEl.classList.remove('is-invalid');
 
     const rows   = document.querySelectorAll('.bahan-row');
     const bahans = [];
@@ -727,13 +742,17 @@ document.getElementById('btn-simpan').addEventListener('click', async () => {
                 ${data.redirect ? `<a href="${data.redirect}" class="alert-link ms-2">Edit menu →</a>` : ''}`;
             successEl.classList.add('d-none');
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save me-1"></i>Simpan ke Menu Harian';
+            btn.innerHTML = isEditMode
+                ? '<i class="fas fa-sync me-1"></i>Perbarui Menu'
+                : '<i class="fas fa-save me-1"></i>Simpan ke Menu Harian';
         }
     } catch (e) {
         console.error(e);
         alert('Gagal menghubungi server.');
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-1"></i>Simpan ke Menu Harian';
+        btn.innerHTML = isEditMode
+            ? '<i class="fas fa-sync me-1"></i>Perbarui Menu'
+            : '<i class="fas fa-save me-1"></i>Simpan ke Menu Harian';
     }
 });
 
@@ -848,6 +867,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // RESET
 // ═══════════════════════════════════════════════════════════════════════════════
+document.getElementById('sim-catatan').addEventListener('input', function () {
+    if (this.value.trim()) this.classList.remove('is-invalid');
+});
+
 document.getElementById('btn-reset').addEventListener('click', () => {
     if (!confirm('Reset semua bahan dan hasil simulasi?')) return;
     document.getElementById('bahan-list').innerHTML =

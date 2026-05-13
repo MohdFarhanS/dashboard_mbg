@@ -213,6 +213,30 @@
             border-radius: 4px 4px 0 0;
             opacity: .7;
         }
+        .mockup-menu-list { background: rgba(255,255,255,.08); border-radius: 10px; padding: .65rem .75rem; }
+        .mockup-menu-card {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .45rem 0;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        .mockup-menu-card:last-child { border-bottom: none; }
+        .mockup-menu-photo {
+            width: 40px; height: 40px;
+            border-radius: 7px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: rgba(255,255,255,.12);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mockup-menu-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .mockup-menu-photo-placeholder { color: rgba(255,255,255,.3); font-size: .8rem; }
+        .mockup-menu-info { flex: 1; min-width: 0; }
+        .mockup-menu-day  { font-size: .58rem; color: rgba(255,255,255,.35); font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+        .mockup-menu-name { font-size: .72rem; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .05rem; }
+        .mockup-menu-date { font-size: .6rem; color: rgba(255,255,255,.4); margin-top: .08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mockup-menu-badge { font-size: .58rem; color: rgba(100,220,150,.8); white-space: nowrap; flex-shrink: 0; }
 
         /* ── STATS STRIP ── */
         #stats {
@@ -583,32 +607,54 @@
                         <div class="mockup-stat-row">
                             <div class="mockup-stat">
                                 <div class="mockup-stat-label">Rata-rata Kalori</div>
-                                <div class="mockup-stat-val">547 kkal</div>
+                                <div class="mockup-stat-val">
+                                    {{ $avgEnergi > 0 ? number_format($avgEnergi, 0) . ' kkal' : '— kkal' }}
+                                </div>
                             </div>
                             <div class="mockup-stat">
                                 <div class="mockup-stat-label">Biaya / Porsi</div>
-                                <div class="mockup-stat-val">Rp 14.250</div>
+                                <div class="mockup-stat-val">
+                                    {{ $avgBiaya > 0 ? 'Rp ' . number_format($avgBiaya, 0, ',', '.') : '—' }}
+                                </div>
                             </div>
                             <div class="mockup-stat">
-                                <div class="mockup-stat-label">Menu Final</div>
-                                <div class="mockup-stat-val">22 menu</div>
+                                <div class="mockup-stat-label">Rata-rata % AKG</div>
+                                <div class="mockup-stat-val" style="{{ $avgPctAkg > 0 ? ($avgPctAkg >= 70 && $avgPctAkg <= 130 ? 'color:#28c840;' : 'color:#febc2e;') : '' }}">
+                                    {{ $avgPctAkg > 0 ? $avgPctAkg . '%' : '—' }}
+                                </div>
                             </div>
                             <div class="mockup-stat">
-                                <div class="mockup-stat-label">Status Budget</div>
-                                <div class="mockup-stat-val" style="color:#28c840;">Aman</div>
+                                <div class="mockup-stat-label">Total Porsi Bulan Ini</div>
+                                <div class="mockup-stat-val">
+                                    {{ $totalPorsi > 0 ? number_format($totalPorsi, 0, ',', '.') : '—' }}
+                                    @if($totalPorsi > 0)<span style="font-size:.65rem;opacity:.6;font-weight:400"> porsi</span>@endif
+                                </div>
                             </div>
                         </div>
-                        <div class="mockup-chart">
-                            <div style="font-size:.62rem; color:rgba(255,255,255,.45); font-weight:600; margin-bottom:.5rem;">TREN KALORI HARIAN</div>
-                            <div class="mockup-bars">
-                                <div class="mockup-bar-item" style="height:60%; background:#0071e4;"></div>
-                                <div class="mockup-bar-item" style="height:75%; background:#0071e4;"></div>
-                                <div class="mockup-bar-item" style="height:50%; background:#0071e4;"></div>
-                                <div class="mockup-bar-item" style="height:88%; background:#7dd3fc;"></div>
-                                <div class="mockup-bar-item" style="height:65%; background:#0071e4;"></div>
-                                <div class="mockup-bar-item" style="height:72%; background:#0071e4;"></div>
-                                <div class="mockup-bar-item" style="height:55%; background:#0071e4;"></div>
+                        <div class="mockup-menu-list">
+                            <div style="font-size:.62rem; color:rgba(255,255,255,.45); font-weight:600; margin-bottom:.5rem; letter-spacing:.04em;">
+                                MENU HARI INI &mdash; {{ now()->translatedFormat('d M Y') }}
                             </div>
+                            @forelse($todayMenus as $menu)
+                            <div class="mockup-menu-card">
+                                <div class="mockup-menu-photo">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($menu->foto_menu) }}"
+                                         alt="{{ $menu->nama_menu }}">
+                                </div>
+                                <div class="mockup-menu-info">
+                                    <div class="mockup-menu-name">{{ $menu->nama_menu ?: '(tanpa nama)' }}</div>
+                                    <div class="mockup-menu-date">
+                                        <i class="fas fa-users fa-xs" style="opacity:.55;margin-right:2px;"></i>
+                                        {{ $menu->catatan_anggaran ?: '—' }}
+                                    </div>
+                                </div>
+                            </div>
+                            @empty
+                            <div style="text-align:center; color:rgba(255,255,255,.3); font-size:.75rem; padding:.75rem 0;">
+                                <i class="fas fa-utensils" style="display:block; margin-bottom:.35rem; opacity:.4;"></i>
+                                Belum ada menu hari ini
+                            </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>

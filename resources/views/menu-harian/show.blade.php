@@ -30,6 +30,11 @@
             <span class="badge p-2" style="background:#daeeff;color:#0f4c81;font-size:.8rem">
                 <i class="fas fa-users me-1"></i>{{ $ksLabel }}
             </span>
+            @if($menuHarian->catatan_anggaran)
+            <span class="badge p-2" style="background:#f0f5fc;color:#0d2545;font-size:.8rem;border:1px solid #d0e4f7">
+                <i class="fas fa-school me-1"></i>{{ $menuHarian->catatan_anggaran }}
+            </span>
+            @endif
 
             @if($menuHarian->status === 'final')
                 <span class="badge p-2" style="background:#e2e8f0;color:#475569;font-size:.85rem">
@@ -43,6 +48,14 @@
                 <a href="{{ route('simulasi.edit-simulasi', $menuHarian) }}" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-edit me-1"></i>Edit
                 </a>
+                {{-- Tombol upload foto --}}
+                <button type="button" class="btn btn-sm {{ $menuHarian->foto_menu ? 'btn-success' : 'btn-outline-warning' }}"
+                        data-bs-toggle="modal" data-bs-target="#modalUploadFoto"
+                        title="{{ $menuHarian->foto_menu ? 'Ganti foto menu' : 'Upload foto menu' }}">
+                    <i class="fas fa-camera me-1"></i>{{ $menuHarian->foto_menu ? 'Ganti Foto' : 'Upload Foto' }}
+                </button>
+                {{-- Tombol finalisasi — disabled jika belum ada foto --}}
+                @if($menuHarian->foto_menu)
                 <form action="{{ route('menu-harian.finalize', $menuHarian) }}" method="POST"
                       onsubmit="return confirm('Finalisasi menu? Tidak bisa diedit setelah ini.')">
                     @csrf @method('PATCH')
@@ -51,6 +64,12 @@
                         <i class="fas fa-lock me-1"></i>Finalisasi
                     </button>
                 </form>
+                @else
+                <button class="btn btn-sm btn-secondary" disabled
+                        title="Upload foto menu terlebih dahulu">
+                    <i class="fas fa-lock me-1"></i>Finalisasi
+                </button>
+                @endif
                 @endif
             @endif
         </div>
@@ -61,6 +80,23 @@
             <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- Notifikasi belum upload foto (untuk draft ahli_gizi) --}}
+    @if($menuHarian->status === 'draft' && auth()->user()->role === 'ahli_gizi' && !$menuHarian->foto_menu)
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+        <i class="fas fa-camera fs-5 flex-shrink-0"></i>
+        <div>
+            <strong>Foto menu belum diupload.</strong>
+            Upload foto menu terlebih dahulu sebelum melakukan finalisasi.
+        </div>
+    </div>
     @endif
 
     @php
@@ -320,10 +356,93 @@
         </div>
         @if($menuHarian->catatan_anggaran ?? $menuHarian->catatan)
         <div class="card-footer bg-white border-top">
-            <small class="text-muted"><i class="fas fa-sticky-note me-1"></i>{{ $menuHarian->catatan_anggaran ?? $menuHarian->catatan }}</small>
+            <small>
+                <i class="fas fa-school me-1" style="color:var(--primary)"></i>
+                <span class="fw-semibold text-muted">Kelompok Penerima:</span>
+                {{ $menuHarian->catatan_anggaran ?? $menuHarian->catatan }}
+            </small>
         </div>
         @endif
     </div>
+
+    {{-- Card Foto Menu --}}
+    @if($menuHarian->foto_menu || ($menuHarian->status === 'draft' && auth()->user()->role === 'ahli_gizi'))
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header border-0 d-flex justify-content-between align-items-center"
+             style="background:#daeeff">
+            <span class="fw-semibold" style="color:#0f4c81">
+                <i class="fas fa-image me-2"></i>Foto Menu
+            </span>
+            @if($menuHarian->status === 'draft' && auth()->user()->role === 'ahli_gizi')
+            <button type="button" class="btn btn-sm btn-outline-primary"
+                    data-bs-toggle="modal" data-bs-target="#modalUploadFoto">
+                <i class="fas fa-camera me-1"></i>{{ $menuHarian->foto_menu ? 'Ganti Foto' : 'Upload Foto' }}
+            </button>
+            @endif
+        </div>
+        <div class="card-body text-center py-4">
+            @if($menuHarian->foto_menu)
+                <img src="{{ Storage::url($menuHarian->foto_menu) }}"
+                     class="img-fluid rounded shadow-sm"
+                     style="max-height:400px;object-fit:contain"
+                     alt="Foto menu {{ $menuHarian->nama_menu }}">
+            @else
+                <div class="text-muted py-3">
+                    <i class="fas fa-camera fa-3x mb-3 d-block opacity-25"></i>
+                    Foto menu belum diupload.
+                </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- Modal Upload Foto (hanya untuk draft + ahli_gizi) --}}
+    @if($menuHarian->status === 'draft' && auth()->user()->role === 'ahli_gizi')
+    <div class="modal fade" id="modalUploadFoto" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold">
+                        <i class="fas fa-camera me-2"></i>Upload Foto Menu
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('menu-harian.upload-foto', $menuHarian) }}"
+                      method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        @if($menuHarian->foto_menu)
+                        <div class="mb-3 text-center">
+                            <img src="{{ Storage::url($menuHarian->foto_menu) }}"
+                                 class="img-thumbnail" style="max-height:200px"
+                                 alt="Foto saat ini">
+                            <p class="text-muted small mt-1">Foto saat ini</p>
+                        </div>
+                        @endif
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                {{ $menuHarian->foto_menu ? 'Ganti Foto Menu' : 'Pilih Foto Menu' }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" name="foto_menu"
+                                   class="form-control"
+                                   accept="image/*" required>
+                            <div class="form-text">Format JPG/PNG/WebP, maksimal 2 MB</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm"
+                                data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm"
+                                style="background:var(--primary);border-color:var(--primary)">
+                            <i class="fas fa-upload me-1"></i>Upload Foto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
 </div>
 @endsection

@@ -11,7 +11,7 @@ class MenuHarian extends Model
     protected $fillable = [
         'tanggal', 'user_id', 'nama_menu', 'status', 'kelompok',
         'catatan', 'anggaran_per_porsi', 'jumlah_porsi', 'catatan_anggaran',
-        'kelompok_sasaran',
+        'kelompok_sasaran', 'foto_menu',
     ];
 
     protected $casts = ['tanggal' => 'date'];

@@ -35,10 +35,11 @@ class AppServiceProvider extends ServiceProvider
             $user  = Auth::user();
             $today = today();
         
-            $query = MenuHarian::where('status', 'final')
+            $query = MenuHarian::with('detailBahans.bahanPangan')
+                ->where('status', 'final')
                 ->whereYear('tanggal',  $today->year)
                 ->whereMonth('tanggal', $today->month);
-        
+
             $totalAlert   = 0;
             $navAlerts    = [];
             $dismissedIds = session('dismissed_alert_ids', []);

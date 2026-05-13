@@ -10,7 +10,7 @@ class MenuHarianController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MenuHarian::with('detailBahans')
+        $query = MenuHarian::with('detailBahans.bahanPangan')
             ->orderByDesc('tanggal');
 
         if ($request->filled('bulan')) {
@@ -88,7 +88,7 @@ class MenuHarianController extends Controller
         $data = $request->validate([
             'nama_menu'        => 'nullable|string|max:200',
             'catatan'          => 'nullable|string|max:200',
-            'status'           => 'required|in:draft,final',
+            'status'           => 'required|in:draft',
             'kelompok'         => 'nullable|in:balita_sd3,sd4_ibu_menyusui',
             'bahans'           => 'nullable|array',
             'bahans.*.bahan_pangan_id' => 'required_with:bahans|exists:bahan_pangans,id',
@@ -137,6 +137,38 @@ class MenuHarianController extends Controller
         // Single SPPG — semua pengguna terautentikasi boleh akses
     }
 
+    public function uploadFoto(Request $request, MenuHarian $menuHarian)
+    {
+        if ($menuHarian->status === 'final') {
+            return redirect()->route('menu-harian.show', $menuHarian)
+                ->with('error', 'Menu sudah final, tidak bisa mengubah foto.');
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'foto_menu' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'foto_menu.required' => 'Pilih foto menu terlebih dahulu.',
+            'foto_menu.image'    => 'File harus berupa gambar.',
+            'foto_menu.mimes'    => 'Format gambar harus JPG, PNG, atau WebP.',
+            'foto_menu.max'      => 'Ukuran foto maksimal 2 MB.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('menu-harian.show', $menuHarian)
+                ->with('error', $validator->errors()->first('foto_menu'));
+        }
+
+        if ($menuHarian->foto_menu) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($menuHarian->foto_menu);
+        }
+
+        $path = $request->file('foto_menu')->store('menu-foto', 'public');
+        $menuHarian->update(['foto_menu' => $path]);
+
+        return redirect()->route('menu-harian.show', $menuHarian)
+            ->with('success', 'Foto menu berhasil diupload.');
+    }
+
     public function finalize(MenuHarian $menuHarian)
     {
         // Route dilindungi middleware role:ahli_gizi
@@ -144,6 +176,11 @@ class MenuHarianController extends Controller
         if ($menuHarian->status !== 'draft') {
             return redirect()->route('menu-harian.show', $menuHarian)
                 ->with('error', 'Menu sudah berstatus final.');
+        }
+
+        if (!$menuHarian->foto_menu) {
+            return redirect()->route('menu-harian.show', $menuHarian)
+                ->with('error', 'Upload foto menu terlebih dahulu sebelum finalisasi.');
         }
 
         $tgl = $menuHarian->tanggal->toDateString();

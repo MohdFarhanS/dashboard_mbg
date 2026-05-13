@@ -56,6 +56,21 @@
         @endif
     </div>
 
+    {{-- Foto Menu --}}
+    @if($menu->foto_menu)
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header border-0 fw-semibold" style="background:#daeeff;color:#0f4c81">
+            <i class="fas fa-image me-2"></i>Foto Menu
+        </div>
+        <div class="card-body text-center py-3">
+            <img src="{{ Storage::url($menu->foto_menu) }}"
+                 class="img-fluid rounded shadow-sm"
+                 style="max-height:300px;object-fit:contain"
+                 alt="Foto menu {{ $menu->nama_menu }}">
+        </div>
+    </div>
+    @endif
+
     {{-- Tabel Breakdown --}}
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white fw-semibold border-0">Breakdown Biaya per Bahan</div>

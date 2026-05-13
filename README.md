@@ -20,10 +20,17 @@ Sistem monitoring berbasis web untuk program **Makan Bergizi Gratis (MBG)** yang
 
 ## Fitur Utama
 
+### Halaman Publik (Landing Page)
+- Halaman beranda publik tanpa perlu login (`/`)
+- Statistik real-time: rata-rata kalori, biaya/porsi, total porsi bulan ini, dan % AKG
+- Kartu "Menu Hari Ini" menampilkan foto menu yang sudah difinalisasi
+- Formulir kontak untuk mengirim pesan ke pengelola SPPG
+
 ### Manajemen Menu Harian
 - Input menu harian beserta bahan pangan mengacu pada database TKPI
 - Pilih **kelompok sasaran** (12 kelompok: TK/PAUD, SD Kelas 1–3, SD 4–6, SMP, SMA, Balita, Ibu Hamil/Menyusui)
 - Status menu: **Draft** (dapat diedit) dan **Final** (terkunci & masuk laporan)
+- **Wajib upload foto menu** sebelum finalisasi — tombol Finalisasi dinonaktifkan jika foto belum ada
 - Satu unit SPPG bisa menyimpan lebih dari satu menu per hari (satu menu per kelompok sasaran)
 
 ### Data Bahan Pangan (TKPI)
@@ -271,11 +278,17 @@ Klik tombol **Hitung Estimasi**. Panel kanan akan menampilkan:
 
 **Langkah 5 — Simpan Menu**
 
-Tambahkan catatan (opsional), lalu klik **Simpan ke Menu Harian**. Menu tersimpan sebagai **Draft**.
+Isi **Kelompok Penerima** (nama sekolah/kelompok), lalu klik **Simpan ke Menu Harian**. Menu tersimpan sebagai **Draft**.
 
-**Langkah 6 — Finalisasi Menu**
+**Langkah 6 — Upload Foto Menu**
 
-Di halaman **Menu Harian**, buka detail menu Draft dan klik **Finalisasi**. Status berubah menjadi **Final** — menu terkunci dan masuk ke laporan serta monitoring.
+Di halaman **Menu Harian**, buka detail menu Draft. Klik tombol **Upload Foto** lalu pilih foto menu (JPG/PNG/WebP, maks 2 MB). Foto ini akan tampil di halaman publik landing page setelah menu difinalisasi.
+
+> Tombol **Finalisasi** tidak aktif selama foto belum diupload.
+
+**Langkah 7 — Finalisasi Menu**
+
+Setelah foto terupload, klik **Finalisasi**. Status berubah menjadi **Final** — menu terkunci, harga bahan dan anggaran dikunci sebagai snapshot, dan menu masuk ke laporan serta monitoring.
 
 > Menu dengan status **Draft** tidak dihitung dalam laporan dan grafik monitoring.
 
@@ -430,18 +443,22 @@ Klik ikon hapus di baris pengguna. Akun sendiri tidak bisa dihapus.
 
 [Ketua SPPG]
   └─ Setup operasional:
-       1. Set anggaran per porsi per kelompok
+       1. Set anggaran per porsi per kelompok (Anggaran)
+       2. Input harga bahan (delegasi ke Akuntan)
 
 [Ahli Gizi] — Harian
   └─ Simulasi Menu → Pilih kelompok sasaran → Tambah bahan → Hitung estimasi → Simpan (Draft)
-  └─ Menu Harian → Review → Finalisasi (Final)
+  └─ Menu Harian → Upload Foto Menu → Finalisasi (Final)
 
 [Ketua SPPG / Ahli Gizi / Akuntan] — Monitoring
-  └─ Dashboard → cek ringkasan hari ini
+  └─ Dashboard → cek ringkasan bulanan
   └─ Monitoring Gizi (Ketua/Ahli Gizi) → pantau pemenuhan AKG per kelompok sasaran
   └─ Monitoring Biaya (Ketua/Akuntan) → pantau cost vs anggaran
   └─ Budget Alert (Ketua/Akuntan) → investigasi menu bermasalah
   └─ Laporan → export Excel/PDF bulanan
+
+[Ketua SPPG] — Inbox
+  └─ Pesan Masuk → baca & tindak lanjuti pesan dari formulir kontak landing page
 ```
 
 ---
@@ -452,9 +469,12 @@ Klik ikon hapus di baris pengguna. Akun sendiri tidak bisa dihapus.
 users                   — Pengguna sistem (4 role)
 bahan_pangans           — Data TKPI (845+ bahan pangan)
 menu_harians            — Menu harian per unit SPPG; unique (tanggal, kelompok_sasaran)
+                          Kolom foto_menu menyimpan path foto (wajib sebelum finalisasi)
 menu_detail_bahans      — Detail bahan dalam satu menu; menyimpan snapshot harga saat finalisasi
 harga_bahans            — Harga bahan per 100g (time-based)
 anggaran_porsis         — Anggaran per porsi per kelompok (time-based)
+import_logs             — Riwayat import CSV TKPI
+pesan_masuks            — Pesan kontak dari halaman publik (is_read, nama, no_hp, pesan)
 ```
 
 **Relasi Utama:**
@@ -464,6 +484,7 @@ users          ──< menu_harians         (user membuat menu)
 menu_harians   ──< menu_detail_bahans   (menu punya banyak bahan)
 bahan_pangans  ──< menu_detail_bahans   (bahan dipakai di banyak menu)
 bahan_pangans  ──< harga_bahans         (bahan punya riwayat harga)
+users          ──< import_logs          (user melakukan import)
 ```
 
 ---
@@ -502,13 +523,24 @@ Content-Type: application/json
 {
   "bahans": [{"id": 1, "gram": 150, "porsi": 100}],
   "jumlah_porsi": 100,
-  "tanggal": "2026-04-26"
+  "tanggal": "2026-04-26",
+  "kelompok": "SD_4_6"
 }
 ```
+Field `kelompok` adalah salah satu dari 12 kunci AKG (`TK_PAUD`, `SD_1_3`, `SD_4_6`, `SMP`, `SMA`, `BALITA_1_3`, `BALITA_4_6`, `HAMIL_T1/T2/T3`, `MENYUSUI_6BLN_1/2`). Response menyertakan `akg_target` dan `persen_akg` sesuai kelompok yang dipilih.
+
+### Upload Foto Menu
+```
+POST /menu-harian/{id}/upload-foto
+Content-Type: multipart/form-data
+
+foto_menu: <file> (JPG/PNG/WebP, maks 2 MB)
+```
+Hanya bisa dilakukan pada menu berstatus `draft`. Menghapus foto lama jika ada.
 
 ### Tren Gizi Bulanan
 ```
-GET /gizi/api/trend?bulan=2026-04&unit=SPPG-01
+GET /gizi/api/trend?bulan=2026-04
 ```
 
 ### Estimasi Biaya
@@ -522,10 +554,11 @@ POST /biaya/api/estimasi
 
 ```
 app/
-├── Constants/AKG.php                  — Nilai AKG makan siang
+├── Constants/AKG.php                  — Nilai AKG per kelompok sasaran (12 kelompok)
 ├── Http/Controllers/
+│   ├── LandingController.php          — Halaman publik + form kontak
 │   ├── DashboardController.php
-│   ├── MenuHarianController.php
+│   ├── MenuHarianController.php       — Termasuk uploadFoto & finalize
 │   ├── BahanPanganController.php
 │   ├── GiziController.php
 │   ├── BiayaController.php
@@ -534,18 +567,22 @@ app/
 │   ├── LaporanController.php
 │   ├── BudgetAlertController.php
 │   ├── ImportTkpiController.php
+│   ├── PesanMasukController.php       — Inbox pesan dari landing page
 │   └── UserController.php
 ├── Models/
 │   ├── BahanPangan.php
 │   ├── MenuHarian.php
 │   ├── MenuDetailBahan.php
 │   ├── HargaBahan.php
-│   └── AnggaranPorsi.php
+│   ├── AnggaranPorsi.php
+│   ├── ImportLog.php
+│   └── PesanMasuk.php
 resources/views/
-├── layouts/app.blade.php              — Layout utama
+├── landing.blade.php                  — Halaman publik (tanpa layout app)
+├── layouts/app.blade.php              — Layout utama (authenticated)
 ├── partials/sidebar.blade.php
 ├── dashboard/
-├── menu-harian/
+├── menu-harian/                       — index, show, edit (create via simulasi)
 ├── simulasi/
 ├── gizi/
 ├── biaya/
@@ -554,6 +591,7 @@ resources/views/
 ├── budget-alert/
 ├── bahan-pangan/
 ├── import-tkpi/
+├── pesan-masuk/
 └── users/
 database/seeders/data/
 └── tkpi_seeder.json                   — Data 845+ bahan pangan

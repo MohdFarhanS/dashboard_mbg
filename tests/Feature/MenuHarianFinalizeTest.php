@@ -69,6 +69,7 @@ class MenuHarianFinalizeTest extends TestCase
             'kelompok_sasaran'   => 'SD_4_6',
             'jumlah_porsi'       => 1,
             'anggaran_per_porsi' => 10000,
+            'foto_menu'          => 'menu-foto/test.jpg',
         ]);
 
         MenuDetailBahan::create([
@@ -297,6 +298,70 @@ class MenuHarianFinalizeTest extends TestCase
         $this->assertNull($lama->berlaku_sampai,
             'Tarif sebelumnya harus diaktifkan kembali setelah tarif aktif dihapus.'
         );
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Validasi foto menu sebelum finalisasi
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function test_finalize_ditolak_jika_foto_belum_diupload(): void
+    {
+        $this->menu->update(['foto_menu' => null]);
+
+        $this->actingAs($this->ahliGizi)
+            ->patch(route('menu-harian.finalize', $this->menu))
+            ->assertRedirect(route('menu-harian.show', $this->menu))
+            ->assertSessionHas('error');
+
+        $this->menu->refresh();
+        $this->assertEquals('draft', $this->menu->status);
+    }
+
+    public function test_finalize_berhasil_setelah_foto_diupload(): void
+    {
+        $this->menu->update(['foto_menu' => 'menu-foto/test.jpg']);
+
+        $this->actingAs($this->ahliGizi)
+            ->patch(route('menu-harian.finalize', $this->menu))
+            ->assertRedirect();
+
+        $this->menu->refresh();
+        $this->assertEquals('final', $this->menu->status);
+    }
+
+    public function test_upload_foto_berhasil_untuk_menu_draft(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $this->menu->update(['foto_menu' => null]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('menu.jpg', 100, 'image/jpeg');
+
+        $this->actingAs($this->ahliGizi)
+            ->post(route('menu-harian.upload-foto', $this->menu), [
+                'foto_menu' => $file,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->menu->refresh();
+        $this->assertNotNull($this->menu->foto_menu);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($this->menu->foto_menu);
+    }
+
+    public function test_upload_foto_ditolak_untuk_menu_final(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $this->menu->update(['status' => 'final']);
+        $file = \Illuminate\Http\UploadedFile::fake()->create('menu.jpg', 100, 'image/jpeg');
+
+        $this->actingAs($this->ahliGizi)
+            ->post(route('menu-harian.upload-foto', $this->menu), [
+                'foto_menu' => $file,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error');
     }
 
     public function test_hapus_tarif_historis_tidak_mengubah_tarif_aktif(): void

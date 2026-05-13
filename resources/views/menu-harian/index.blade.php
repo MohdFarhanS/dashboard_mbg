@@ -92,6 +92,9 @@
                             <th>Estimasi Energi</th>
                             <th>Status</th>
                             <th>Anggaran</th>
+                            @if(auth()->user()->role === 'ahli_gizi')
+                            <th class="text-center">Foto Menu</th>
+                            @endif
                             <th class="text-end pe-4">Aksi</th>
                         </tr>
                     </thead>
@@ -106,7 +109,14 @@
                                           style="background:var(--primary);font-size:.65rem">Hari ini</span>
                                 @endif
                             </td>
-                            <td>{{ $menu->nama_menu ?? '-' }}</td>
+                            <td>
+                                <div>{{ $menu->nama_menu ?? '-' }}</div>
+                                @if($menu->catatan_anggaran)
+                                <small class="text-muted">
+                                    <i class="fas fa-school fa-xs me-1"></i>{{ $menu->catatan_anggaran }}
+                                </small>
+                                @endif
+                            </td>
                             <td>
                                 @php
                                     $ks = $menu->kelompok_sasaran ?? 'SD_4_6';
@@ -157,6 +167,38 @@
                                     <span class="text-muted small">—</span>
                                 @endif
                             </td>
+                            @if(auth()->user()->role === 'ahli_gizi')
+                            <td class="text-center">
+                                @if($menu->status === 'final')
+                                    @if($menu->foto_menu)
+                                        <a href="{{ Storage::url($menu->foto_menu) }}" target="_blank"
+                                           class="btn btn-sm btn-outline-success" title="Lihat foto">
+                                            <i class="fas fa-image"></i>
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                @else
+                                    @if($menu->foto_menu)
+                                        <button type="button"
+                                                class="btn btn-sm btn-success"
+                                                title="Foto sudah diupload — klik untuk ganti"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalFoto{{ $menu->id }}">
+                                            <i class="fas fa-check me-1"></i>Foto
+                                        </button>
+                                    @else
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="Upload foto menu"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalFoto{{ $menu->id }}">
+                                            <i class="fas fa-camera me-1"></i>Upload
+                                        </button>
+                                    @endif
+                                @endif
+                            </td>
+                            @endif
                             <td class="text-end pe-4">
                                 <a href="{{ route('menu-harian.show', $menu) }}"
                                    class="btn btn-sm btn-outline-secondary me-1">
@@ -180,7 +222,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-5">
+                            <td colspan="{{ auth()->user()->role === 'ahli_gizi' ? 9 : 8 }}" class="text-center text-muted py-5">
                                 <i class="fas fa-utensils fa-2x mb-2 d-block opacity-25"></i>
                                 Belum ada menu untuk bulan ini.
                                 @if(auth()->user()->role === 'ahli_gizi')
@@ -199,6 +241,60 @@
         </div>
         @endif
     </div>
+
+    {{-- Modal Upload Foto (di luar tabel agar Bootstrap dapat render dengan benar) --}}
+    @if(auth()->user()->role === 'ahli_gizi')
+        @foreach($menus as $menu)
+            @if($menu->status !== 'final')
+            <div class="modal fade" id="modalFoto{{ $menu->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="modal-title fw-bold">
+                                <i class="fas fa-camera me-2"></i>Upload Foto Menu
+                            </h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ route('menu-harian.upload-foto', $menu) }}"
+                              method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="modal-body">
+                                <p class="text-muted small mb-3">
+                                    Menu: <strong>{{ $menu->nama_menu ?? $menu->tanggal->translatedFormat('d F Y') }}</strong>
+                                </p>
+                                @if($menu->foto_menu)
+                                <div class="mb-3 text-center">
+                                    <img src="{{ Storage::url($menu->foto_menu) }}"
+                                         class="img-thumbnail" style="max-height:180px"
+                                         alt="Foto saat ini">
+                                    <p class="text-muted small mt-1">Foto saat ini</p>
+                                </div>
+                                @endif
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        {{ $menu->foto_menu ? 'Ganti Foto' : 'Pilih Foto Menu' }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="file" name="foto_menu"
+                                           class="form-control" accept="image/*" required>
+                                    <div class="form-text">Format JPG/PNG/WebP, maks 2 MB</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary btn-sm"
+                                        style="background:var(--primary);border-color:var(--primary)">
+                                    <i class="fas fa-upload me-1"></i>Upload Foto
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @endif
+        @endforeach
+    @endif
 
 </div>
 @endsection

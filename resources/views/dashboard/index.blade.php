@@ -295,6 +295,11 @@
                                     {{ $menu->nama_menu ?: '(tanpa nama)' }}
                                     @endif
                                     <div style="font-size:.7rem;color:#adb5bd;">{{ $menu->status === 'final' ? '🔒 Final' : '✏️ Draft' }}</div>
+                                    @if($menu->catatan_anggaran)
+                                    <div style="font-size:.7rem;color:#6b8ba4;">
+                                        <i class="fas fa-school fa-xs me-1"></i>{{ $menu->catatan_anggaran }}
+                                    </div>
+                                    @endif
                                 </td>
                                 <td style="padding:.65rem 1rem;border-color:#e8f1fc;">
                                     @if($menu->kelompok === 'balita_sd3')

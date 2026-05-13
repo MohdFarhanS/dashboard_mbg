@@ -168,7 +168,7 @@ class SimulasiController extends Controller
         $request->validate([
             'tanggal'          => 'required|date',
             'nama_menu'        => 'nullable|string|max:100',
-            'catatan'          => 'nullable|string|max:255',
+            'catatan'          => 'required|string|max:255',
             'jumlah_porsi'     => 'required|integer|min:1',
             'bahans'           => 'required|array|min:1',
             'bahans.*.id'      => 'required|exists:bahan_pangans,id',
@@ -262,7 +262,7 @@ class SimulasiController extends Controller
         });
 
         return response()->json([
-            'success'  => 'Simulasi berhasil disimpan sebagai Menu Harian (Draft).',
+            'success'  => 'Menu berhasil disimpan sebagai draft. Silakan upload foto menu sebelum melakukan finalisasi.',
             'redirect' => route('menu-harian.index'),
         ]);
     }

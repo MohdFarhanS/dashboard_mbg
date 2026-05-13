@@ -767,6 +767,7 @@ class GiziDuaBelasKelompokTest extends TestCase
             ->postJson(route('simulasi.simpan'), [
                 'tanggal'          => '2026-06-01',  // tanggal berbeda untuk menghindari unique constraint
                 'nama_menu'        => 'Menu HAMIL_T2 via HTTP',
+                'catatan'          => 'SD Negeri 01',
                 'jumlah_porsi'     => 5,
                 'kelompok_sasaran' => 'HAMIL_T2',
                 'bahans'           => [
@@ -787,6 +788,7 @@ class GiziDuaBelasKelompokTest extends TestCase
             ->postJson(route('simulasi.simpan'), [
                 'tanggal'          => '2026-05-10',
                 'nama_menu'        => 'Menu Duplikat',
+                'catatan'          => 'SD Negeri 01',
                 'jumlah_porsi'     => 5,
                 'kelompok_sasaran' => 'SD_4_6',
                 'bahans'           => [
@@ -800,6 +802,7 @@ class GiziDuaBelasKelompokTest extends TestCase
             ->postJson(route('simulasi.simpan'), [
                 'tanggal'          => '2026-05-10',
                 'nama_menu'        => 'Menu Ibu Hamil T1',
+                'catatan'          => 'SD Negeri 01',
                 'jumlah_porsi'     => 5,
                 'kelompok_sasaran' => 'HAMIL_T1',
                 'bahans'           => [
@@ -831,6 +834,7 @@ class GiziDuaBelasKelompokTest extends TestCase
             'kelompok_sasaran'   => $kelompokSasaran,
             'jumlah_porsi'       => 1,
             'anggaran_per_porsi' => 15000,
+            'foto_menu'          => 'menu-foto/test.jpg',
         ]);
 
         MenuDetailBahan::create([

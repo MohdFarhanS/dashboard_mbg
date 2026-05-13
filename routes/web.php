@@ -75,8 +75,9 @@ Route::middleware('auth')->group(function () {
                 Route::post('/',                       [MenuHarianController::class, 'store'])->name('store');
                 Route::get('/{menuHarian}/edit',       [MenuHarianController::class, 'edit'])->name('edit');
                 Route::put('/{menuHarian}',            [MenuHarianController::class, 'update'])->name('update');
-                Route::delete('/{menuHarian}',         [MenuHarianController::class, 'destroy'])->name('destroy');
-                Route::patch('/{menuHarian}/finalize', [MenuHarianController::class, 'finalize'])->name('finalize');
+                Route::delete('/{menuHarian}',             [MenuHarianController::class, 'destroy'])->name('destroy');
+                Route::patch('/{menuHarian}/finalize',    [MenuHarianController::class, 'finalize'])->name('finalize');
+                Route::post('/{menuHarian}/upload-foto',  [MenuHarianController::class, 'uploadFoto'])->name('upload-foto');
             });
         });
 
